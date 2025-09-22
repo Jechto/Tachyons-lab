@@ -13,6 +13,10 @@ interface TierlistEntry {
 
 interface TierlistDisplayProps {
   tierlistData: Record<string, TierlistEntry[]>;
+  onCardClick?: (card: TierlistEntry) => void;
+  deckCardIds?: Set<string>;
+  isCardDisabled?: (cardId: number, limitBreak: number) => boolean;
+  getCardDisabledInfo?: (cardId: number, limitBreak: number) => { disabled: boolean; reason?: string };
 }
 
 interface TierDefinition {
@@ -23,7 +27,7 @@ interface TierDefinition {
   maxScore: number;
 }
 
-export default function TierlistDisplay({ tierlistData }: TierlistDisplayProps) {
+export default function TierlistDisplay({ tierlistData, onCardClick, deckCardIds = new Set(), isCardDisabled, getCardDisabledInfo }: TierlistDisplayProps) {
   // Get all cards from all types and flatten them
   const allCards = Object.values(tierlistData).flat();
   
@@ -80,17 +84,25 @@ export default function TierlistDisplay({ tierlistData }: TierlistDisplayProps) 
             {/* Cards in this tier */}
             <div className="flex-1 min-h-[4rem] bg-gray-100 dark:bg-gray-800 rounded-lg p-3 border-2 border-gray-300 dark:border-gray-600">
               <div className="flex flex-wrap gap-3">
-                {cardsInTier.map((card, index) => (
-                  <TierlistCard
-                    key={`${card.id}-${card.limit_break}`}
-                    id={card.id}
-                    cardName={card.card_name}
-                    cardRarity={card.card_rarity}
-                    limitBreak={card.limit_break}
-                    cardType={card.card_type}
-                    score={card.score}
-                  />
-                ))}
+                {cardsInTier.map((card, index) => {
+                  const cardKey = `${card.id}-${card.limit_break}`;
+                  const disabledInfo = getCardDisabledInfo ? getCardDisabledInfo(card.id, card.limit_break) : { disabled: deckCardIds.has(cardKey) };
+                  const isDisabled = disabledInfo.disabled;
+                  return (
+                    <TierlistCard
+                      key={cardKey}
+                      id={card.id}
+                      cardName={card.card_name}
+                      cardRarity={card.card_rarity}
+                      limitBreak={card.limit_break}
+                      cardType={card.card_type}
+                      score={card.score}
+                      onClick={() => onCardClick?.(card)}
+                      isInDeck={isDisabled}
+                      disabledReason={disabledInfo.reason}
+                    />
+                  );
+                })}
               </div>
               
               {/* Tier Info */}

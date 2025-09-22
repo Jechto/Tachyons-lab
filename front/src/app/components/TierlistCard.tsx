@@ -8,6 +8,10 @@ interface TierlistCardProps {
   cardType: string;
   score: number;
   className?: string;
+  onClick?: () => void;
+  isInDeck?: boolean;
+  inDeckView?: boolean; // New prop to distinguish deck view from tierlist view
+  disabledReason?: string; // Optional reason for why the card is disabled
 }
 
 export default function TierlistCard({ 
@@ -17,7 +21,11 @@ export default function TierlistCard({
   limitBreak, 
   cardType, 
   score, 
-  className = "" 
+  className = "",
+  onClick,
+  isInDeck = false,
+  inDeckView = false,
+  disabledReason
 }: TierlistCardProps) {
   const getLimitBreakText = (lb: number): string => {
     switch (lb) {
@@ -50,6 +58,18 @@ export default function TierlistCard({
     }
   };
 
+  const getTypeIcon = (type: string): string => {
+    switch (type) {
+      case 'Speed': return '/images/icons/Speed.png';
+      case 'Stamina': return '/images/icons/Stamina.png';
+      case 'Power': return '/images/icons/Power.png';
+      case 'Guts': return '/images/icons/Guts.png';
+      case 'Wit': return '/images/icons/Intelligence.png';
+      case 'Support': return '/images/icons/Support.png';
+      default: return '/images/icons/Support.png';
+    }
+  };
+
   const getRarityGlow = (rarity: string): string => {
     switch (rarity) {
       case 'SSR': return 'shadow-md hover:shadow-[0_0_12px_rgba(255,0,255,0.7),0_0_20px_rgba(0,255,255,0.5),0_0_28px_rgba(255,255,0,0.3)]';
@@ -60,9 +80,14 @@ export default function TierlistCard({
   };
 
   return (
-    <div className={`relative group cursor-pointer transition-all duration-300 hover:scale-105 ${className}`}>
+    <div className={`relative group transition-all duration-300 ${
+      isInDeck && !inDeckView ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'
+    } ${className}`} onClick={isInDeck && !inDeckView ? undefined : onClick}>
       {/* Card Image */}
-      <div className={`relative w-24 h-28 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600 transition-all duration-300 ${getRarityGlow(cardRarity)}`}>
+      <div className={`relative w-24 h-28 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+        isInDeck && !inDeckView ? 'border-gray-400 bg-gray-100 dark:bg-gray-800 opacity-50 grayscale' : 
+        isInDeck ? 'border-blue-500 bg-blue-50 dark:bg-blue-900' : 'border-gray-300 dark:border-gray-600'
+      } ${!isInDeck || inDeckView ? getRarityGlow(cardRarity) : ''}`}>
         <Image
           src={`/images/cards/${id}.png`}
           alt={cardName}
@@ -76,10 +101,12 @@ export default function TierlistCard({
           }}
         />
         
-        {/* Score Overlay  */}
-        <div className="absolute top-1 right-1 bg-black bg-opacity-80 text-white text-sm px-1.5 py-0.5 rounded z-1 font-bold leading-none">
-          {Math.round(score)}
-        </div>
+        {/* Score Overlay - only show if score > 0 */}
+        {score > 0 && (
+          <div className="absolute top-1 right-1 bg-black bg-opacity-80 text-white text-sm px-1.5 py-0.5 rounded z-1 font-bold leading-none">
+            {Math.round(score)}
+          </div>
+        )}
         
         {/* Limit Break Badge */}
         <div className={`absolute bottom-1 right-1 text-sm px-1.5 py-0.5 rounded z-1 font-bold leading-none ${getRarityColor(cardRarity)}`}>
@@ -87,7 +114,40 @@ export default function TierlistCard({
         </div>
         
         {/* Card Type Indicator */}
-        <div className={`absolute bottom-1 left-1 w-3 h-3 rounded-full ${getTypeColor(cardType)} z-10 border border-white`}></div>
+        <div className="absolute bottom-1 left-1 w-7 h-7 z-10">
+          <Image
+            src={getTypeIcon(cardType)}
+            alt={`${cardType} type`}
+            width={30}
+            height={30}
+            className="object-contain drop-shadow-sm"
+            onError={(e) => {
+              // Fallback to colored dot if icon fails to load
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const parent = target.parentElement;
+              if (parent) {
+                parent.innerHTML = `<div class="w-3 h-3 rounded-full ${getTypeColor(cardType)} border border-white"></div>`;
+              }
+            }}
+          />
+        </div>
+        
+        {/* In Deck Indicator */}
+        {isInDeck && (
+          <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-1 py-0.5 rounded z-10 font-bold leading-none">
+            ✓
+          </div>
+        )}
+        
+        {/* Already in Deck Overlay - only show in tierlist view */}
+        {isInDeck && !inDeckView && (
+          <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center z-20">
+            <div className="bg-black bg-opacity-80 text-white text-xs px-2 py-1 rounded font-bold text-center">
+              {disabledReason || "IN DECK"}
+            </div>
+          </div>
+        )}
       </div>
       
     </div>

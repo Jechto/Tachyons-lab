@@ -3,13 +3,24 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Tierlist, LimitBreakFilter } from "./classes/Tierlist";
+import { DeckEvaluator } from "./classes/DeckEvaluator";
+import { SupportCard } from "./classes/SupportCard";
 import allDataRaw from "./data/data.json";
 import { CardData } from "./types/cardTypes";
 import TierlistDisplay from "./components/TierlistDisplay";
+import TierlistCard from "./components/TierlistCard";
 
 // Types for our form state
 type RaceType = 'Sprint' | 'Mile' | 'Medium' | 'Long';
 type RunningStyle = 'Front Runner' | 'Pace Chaser' | 'Late Surger' | 'End Closer';
+
+interface DeckCard {
+  id: number;
+  limitBreak: number;
+  cardName: string;
+  cardRarity: string;
+  cardType: string;
+}
 
 export default function Home() {
   // Form state
@@ -24,6 +35,10 @@ export default function Home() {
     SR: [4], // Default to only max limit break for SR cards  
     SSR: [0, 1, 2, 3, 4] // Include all limit breaks for SSR cards
   });
+  
+  // Deck state
+  const [currentDeck, setCurrentDeck] = useState<DeckCard[]>([]);
+  const [deckCardIds, setDeckCardIds] = useState<Set<string>>(new Set());
 
   // Race types and running styles
   const raceTypes: { value: RaceType; label: string }[] = [
@@ -63,6 +78,93 @@ export default function Home() {
       [rarity]: allSelected ? [] : [0, 1, 2, 3, 4]
     }));
   };
+
+  // Deck management functions
+  const handleCardClick = async (card: any) => {
+    const cardKey = `${card.id}-${card.limit_break}`;
+    const cardId = card.id;
+    const newLimitBreak = card.limit_break;
+    
+    // Check if this exact card is already in deck
+    if (deckCardIds.has(cardKey)) {
+      return;
+    }
+    
+    // Check if any version of this card is already in deck
+    const existingCardInDeck = currentDeck.find(deckCard => deckCard.id === cardId);
+    if (existingCardInDeck) {
+      // If trying to add a lower or equal limit break version, prevent it
+      if (newLimitBreak <= existingCardInDeck.limitBreak) {
+        return;
+      }
+      // If trying to add a higher limit break version, remove the lower one first
+      const existingCardKey = `${existingCardInDeck.id}-${existingCardInDeck.limitBreak}`;
+      setCurrentDeck(prev => prev.filter(c => `${c.id}-${c.limitBreak}` !== existingCardKey));
+      setDeckCardIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(existingCardKey);
+        return newSet;
+      });
+    }
+    
+    // Add to deck (max 6 cards)
+    if (currentDeck.length < 6 || existingCardInDeck) {
+      const deckCard: DeckCard = {
+        id: card.id,
+        limitBreak: card.limit_break,
+        cardName: card.card_name,
+        cardRarity: card.card_rarity,
+        cardType: card.card_type
+      };
+      setCurrentDeck(prev => [...prev, deckCard]);
+      setDeckCardIds(prev => new Set([...prev, cardKey]));
+      
+      // Auto-regenerate tierlist if conditions are met
+      if (canAutoRegenerate()) {
+        // Small delay to ensure state has updated
+        setTimeout(() => {
+          generateTierlist();
+        }, 100);
+      }
+    }
+  };
+
+  const clearDeck = () => {
+    setCurrentDeck([]);
+    setDeckCardIds(new Set());
+    
+    // Auto-regenerate tierlist if conditions are met
+    if (canAutoRegenerate()) {
+      // Small delay to ensure state has updated
+      setTimeout(() => {
+        generateTierlist();
+      }, 100);
+    }
+  };
+
+  // Helper function to check if a card should be disabled/grayed out
+  const getCardDisabledInfo = (cardId: number, limitBreak: number): { disabled: boolean; reason?: string } => {
+    const cardKey = `${cardId}-${limitBreak}`;
+    
+    // If this exact card is in deck, it's disabled
+    if (deckCardIds.has(cardKey)) {
+      return { disabled: true, reason: "IN DECK" };
+    }
+    
+    // If any higher limit break version of this card is in deck, this card is disabled
+    const existingCardInDeck = currentDeck.find(deckCard => deckCard.id === cardId);
+    if (existingCardInDeck && existingCardInDeck.limitBreak > limitBreak) {
+      const existingLbText = existingCardInDeck.limitBreak === 4 ? 'MLB' : `${existingCardInDeck.limitBreak}LB`;
+      return { disabled: true, reason: `${existingLbText} IN DECK` };
+    }
+    
+    return { disabled: false };
+  };
+
+  // Backward compatibility function
+  const isCardDisabled = (cardId: number, limitBreak: number): boolean => {
+    return getCardDisabledInfo(cardId, limitBreak).disabled;
+  };
   const handleRaceChange = (race: RaceType, checked: boolean) => {
     if (checked) {
       setSelectedRaces(prev => [...prev, race]);
@@ -79,6 +181,11 @@ export default function Home() {
     }
   };
 
+  // Helper function to check if we can auto-regenerate tierlist
+  const canAutoRegenerate = (): boolean => {
+    return selectedRaces.length > 0 && selectedStyles.length > 0 && !isGenerating;
+  };
+
   // Generate tierlist
   const generateTierlist = async () => {
     if (selectedRaces.length === 0 || selectedStyles.length === 0) {
@@ -88,6 +195,20 @@ export default function Home() {
 
     setIsGenerating(true);
     try {
+      // Create deck evaluator with current deck
+      const deckEvaluator = new DeckEvaluator();
+      const allData = allDataRaw as CardData[];
+      
+      // Add cards to deck
+      for (const deckCard of currentDeck) {
+        try {
+          const supportCard = new SupportCard(deckCard.id, deckCard.limitBreak, allData);
+          deckEvaluator.addCard(supportCard);
+        } catch (error) {
+          console.warn(`Failed to add card ${deckCard.id} to deck:`, error);
+        }
+      }
+      
       const tierlist = new Tierlist();
       
       // Convert our form state to the format expected by the Tierlist class
@@ -105,9 +226,8 @@ export default function Home() {
         "End Closer": selectedStyles.includes('End Closer')
       };
 
-      // Load data and generate tierlist
-      const allData = allDataRaw as CardData[];
-      const result = tierlist.bestCardForDeck(undefined, raceTypes, runningTypes, allData, limitBreakFilter);
+      // Generate tierlist with current deck
+      const result = tierlist.bestCardForDeck(deckEvaluator, raceTypes, runningTypes, allData, limitBreakFilter);
       setTierlistResult(result);
     } catch (error) {
       setTierlistResult({ success: false, error: error?.toString() });
@@ -218,6 +338,85 @@ export default function Home() {
             {isGenerating ? '🔄 Generating...' : '🏆 Get Tierlist'}
           </button>
         </div>
+        
+        {/* Current Deck Display */}
+        {currentDeck.length > 0 ? (
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg border border-blue-200 dark:border-blue-700">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold text-blue-800 dark:text-blue-200">
+                Current Deck ({currentDeck.length}/6)
+              </h4>
+              <button
+                onClick={clearDeck}
+                className="bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded transition-colors"
+              >
+                Clear Deck
+              </button>
+            </div>
+            <div className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+              💡 Click on cards to remove them from your deck
+              {canAutoRegenerate() && (
+                <span className="block mt-1">
+                  🔄 Tierlist will automatically update when you modify your deck
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {currentDeck.map((card) => {
+                const cardKey = `${card.id}-${card.limitBreak}`;
+                return (
+                  <div key={cardKey} className="relative group">
+                    <TierlistCard
+                      id={card.id}
+                      cardName={card.cardName}
+                      cardRarity={card.cardRarity}
+                      limitBreak={card.limitBreak}
+                      cardType={card.cardType}
+                      score={0} // No score in deck view
+                      onClick={() => {
+                        // Remove from deck when clicked
+                        setCurrentDeck(prev => prev.filter(c => `${c.id}-${c.limitBreak}` !== cardKey));
+                        setDeckCardIds(prev => {
+                          const newSet = new Set(prev);
+                          newSet.delete(cardKey);
+                          return newSet;
+                        });
+                        
+                        // Auto-regenerate tierlist if conditions are met
+                        if (canAutoRegenerate()) {
+                          // Small delay to ensure state has updated
+                          setTimeout(() => {
+                            generateTierlist();
+                          }, 100);
+                        }
+                      }}
+                      isInDeck={true}
+                      inDeckView={true}
+                      className="hover:scale-110 transition-transform"
+                    />
+                    {/* Remove indicator on hover */}
+                    <div className="absolute inset-0 bg-red-500 bg-opacity-0 group-hover:bg-opacity-20 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none">
+                      <span className="text-white font-bold text-lg drop-shadow-lg">✖</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="text-center text-gray-600 dark:text-gray-400">
+              <div className="text-4xl mb-2">🃏</div>
+              <h4 className="text-lg font-semibold mb-2">No cards in deck</h4>
+              <p className="text-sm">Generate a tierlist and click on cards to add them to your deck (max 6 cards)</p>
+              {canAutoRegenerate() && (
+                <p className="text-xs mt-2 text-blue-600 dark:text-blue-400">
+                  🔄 Tierlist will auto-update as you build your deck
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tierlist Results */}
@@ -226,7 +425,13 @@ export default function Home() {
           {/* Visual Tierlist */}
           {tierlistResult.success !== false && (
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600">
-              <TierlistDisplay tierlistData={tierlistResult.tierlist} />
+              <TierlistDisplay 
+                tierlistData={tierlistResult.tierlist} 
+                onCardClick={handleCardClick}
+                deckCardIds={deckCardIds}
+                isCardDisabled={isCardDisabled}
+                getCardDisabledInfo={getCardDisabledInfo}
+              />
             </div>
           )}
           

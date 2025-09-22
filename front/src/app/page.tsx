@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Tierlist, LimitBreakFilter } from "./classes/Tierlist";
 import allDataRaw from "./data/data.json";
 import { CardData } from "./types/cardTypes";
+import TierlistDisplay from "./components/TierlistDisplay";
 
 // Types for our form state
 type RaceType = 'Sprint' | 'Mile' | 'Medium' | 'Long';
@@ -122,7 +123,7 @@ export default function Home() {
       </h2>
       
       {/* Tierlist Configuration Form */}
-      <div className="w-full max-w-4xl bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600 mb-8">
+      <div className="w-full max-w-6xl bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600 mb-8">
         <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
           🏆 Generate Tierlist
         </h3>
@@ -221,14 +222,26 @@ export default function Home() {
 
       {/* Tierlist Results */}
       {tierlistResult && (
-        <div className="w-full max-w-6xl bg-gray-100 dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600 mb-8">
-          <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-            📊 Tierlist Results: {tierlistResult.success === false ? '❌ Failed' : '✅ Success'}
-          </h3>
-          <div className="max-h-96 overflow-auto bg-white dark:bg-gray-900 p-4 rounded border">
-            <pre className="text-sm text-gray-800 dark:text-gray-200">
-              {JSON.stringify(tierlistResult, null, 2)}
-            </pre>
+        <div className="w-full max-w-6xl space-y-6 mb-8">
+          {/* Visual Tierlist */}
+          {tierlistResult.success !== false && (
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600">
+              <TierlistDisplay tierlistData={tierlistResult.tierlist} />
+            </div>
+          )}
+          
+          {/* JSON Results (Collapsible) */}
+          <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600">
+            <details className="w-full">
+              <summary className="cursor-pointer text-xl font-bold mb-4 text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400">
+                📊 Raw JSON Results: {tierlistResult.success === false ? '❌ Failed' : '✅ Success'} (Click to expand)
+              </summary>
+              <div className="max-h-96 overflow-auto bg-white dark:bg-gray-900 p-4 rounded border mt-4">
+                <pre className="text-sm text-gray-800 dark:text-gray-200">
+                  {JSON.stringify(tierlistResult, null, 2)}
+                </pre>
+              </div>
+            </details>
           </div>
         </div>
       )}
@@ -249,7 +262,7 @@ export default function Home() {
         </button>
       </div>
 
-      <div className="w-full max-w-4xl bg-gray-100 dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600">
+      <div className="w-full max-w-6xl bg-gray-100 dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600">
         <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
           🚀 Project Status
         </h3>

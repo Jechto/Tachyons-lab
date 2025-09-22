@@ -39,6 +39,12 @@ interface TierlistResponse {
   };
 }
 
+export interface LimitBreakFilter {
+  R: number[];  // Which limit breaks to include for R cards (0-4)
+  SR: number[]; // Which limit breaks to include for SR cards (0-4)
+  SSR: number[]; // Which limit breaks to include for SSR cards (0-4)
+}
+
 export class Tierlist {
   private static readonly rarityToSymbol: Record<number, string> = {
     1: "R",
@@ -50,7 +56,8 @@ export class Tierlist {
     deckObject: DeckEvaluator = new DeckEvaluator(),
     raceTypes?: RaceTypes,
     runningTypes?: RunningTypes,
-    allData: CardData[] = []
+    allData: CardData[] = [],
+    filter?: LimitBreakFilter
   ): TierlistResponse {
     // Default race types
     if (!raceTypes) {
@@ -69,6 +76,15 @@ export class Tierlist {
         "Pace Chaser": true,
         "Late Surger": false,
         "End Closer": false
+      };
+    }
+
+    // Default filter - include all limit breaks for all rarities
+    if (!filter) {
+      filter = {
+        R: [0, 1, 2, 3, 4],
+        SR: [0, 1, 2, 3, 4], 
+        SSR: [0, 1, 2, 3, 4]
       };
     }
 
@@ -165,7 +181,7 @@ export class Tierlist {
 
       // This matches the Python bug where these lines are inside the loop
       hintsForDeck = deckObject.evaluateHints();
-      deck.score = this.resultsToScore(baseResultForDeck, hintsForDeck, card?.cardType.type || "", weights);
+      deck.score = this.resultsToScore(baseResultForDeck, hintsForDeck, weights);
     }
 
     // Calculate deck stats delta
@@ -192,7 +208,14 @@ export class Tierlist {
       let cardType = cardEntry.prefered_type || "Unknown";
       cardType = cardType === "Intelligence" ? "Wit" : cardType;
 
+      // Get the allowed limit breaks for this rarity
+      const allowedLimitBreaks = filter[cardRarity as keyof LimitBreakFilter] || [];
+
       for (let limitBreak = 0; limitBreak < 5; limitBreak++) {
+        // Skip this limit break if it's not in the filter
+        if (!allowedLimitBreaks.includes(limitBreak)) {
+          continue;
+        }
         try {
           const card = new SupportCard(cardId, limitBreak, allData);
           const tempDeck = deckObject ? this.deepCopyDeck(deckObject) : new DeckEvaluator();
@@ -202,7 +225,7 @@ export class Tierlist {
           const cardHints = card.evaluateCardHints(raceTypesArray, runningTypesArray);
           const deckHints = tempDeck.evaluateHints();
 
-          const score = this.resultsToScore(result, deckHints, cardType, weights);
+          const score = this.resultsToScore(result, deckHints, weights);
 
           const deltaStat: any = {};
           for (const k of Object.keys(result)) {
@@ -255,7 +278,6 @@ export class Tierlist {
   private resultsToScore(
     resultDict: StatsDict,
     hintDict: Record<string, number>,
-    cardType: string,
     weights: Record<string, number>
   ): number {
     // TODO: Add more sophisticated scoring // use hint_dict
@@ -270,10 +292,7 @@ export class Tierlist {
       };
     }
 
-    const mainStatMultiplier = 1; // Disabled for now
-
     const weightsCopy = { ...weights };
-    weightsCopy[cardType] = (weightsCopy[cardType] || 1.0) * mainStatMultiplier;
 
     let score = 0;
     for (const [k, v] of Object.entries(resultDict)) {

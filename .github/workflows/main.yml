@@ -9,16 +9,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # 1. Install deps + build site
+      # 1. Install deps + build site (inside /front)
       - run: npm ci
+        working-directory: ./front
+
       - run: npm run build && npm run export
+        working-directory: ./front
 
       # 2. Deploy to GitHub Pages
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out
+          publish_dir: ./front/out

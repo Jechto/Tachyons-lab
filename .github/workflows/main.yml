@@ -13,14 +13,11 @@ jobs:
         with:
           node-version: 20
 
-      # 1. Fetch + preprocess data
-      - run: node scripts/precompile.js
-
-      # 2. Install deps + build site
+      # 1. Install deps + build site
       - run: npm ci
       - run: npm run build && npm run export
 
-      # 3. Deploy to GitHub Pages
+      # 2. Deploy to GitHub Pages
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

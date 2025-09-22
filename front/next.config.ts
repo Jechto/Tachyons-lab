@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',          // enables static export
+  basePath: '/Tachyons-lab', // GitHub Pages subdirectory
+  assetPrefix: '/Tachyons-lab', // Prefix for assets
   distDir: '.next',          // optional, default build dir
   experimental: {
     turbo: true              // if you want Turbopack enabled

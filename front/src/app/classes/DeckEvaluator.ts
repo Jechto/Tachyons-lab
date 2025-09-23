@@ -36,12 +36,52 @@ export class DeckEvaluator {
             }
         }
 
+        // Normalize first
         const total = trainingDistribution.reduce((sum, val) => sum + val, 0);
+        let normalizedDistribution: number[];
         if (total !== 0) {
-            return trainingDistribution.map((x) => x / total);
+            normalizedDistribution = trainingDistribution.map((x) => x / total);
         } else {
-            return [0.2, 0.2, 0.2, 0.2, 0.2]; // Fallback to equal distribution
+            normalizedDistribution = [0.2, 0.2, 0.2, 0.2, 0.2]; // Fallback to equal distribution
         }
+
+        // Cap any single training type at 50% after normalization
+        const maxTrainingPercentage = 0.5;
+        
+        // Find the maximum value and cap it if needed
+        const maxValue = Math.max(...normalizedDistribution);
+        if (maxValue > maxTrainingPercentage) {
+            // Find the index of the maximum value
+            const maxIndex = normalizedDistribution.indexOf(maxValue);
+            
+            // Calculate how much excess we need to redistribute
+            const excess = maxValue - maxTrainingPercentage;
+            
+            // Cap the maximum value
+            normalizedDistribution[maxIndex] = maxTrainingPercentage;
+            
+            // Redistribute the excess proportionally to other categories
+            const remainingSum = normalizedDistribution.reduce((sum, val, idx) => 
+                idx === maxIndex ? sum : sum + val, 0);
+            
+            if (remainingSum > 0) {
+                for (let i = 0; i < normalizedDistribution.length; i++) {
+                    if (i !== maxIndex) {
+                        normalizedDistribution[i] += excess * (normalizedDistribution[i] / remainingSum);
+                    }
+                }
+            } else {
+                // If all other values are 0, distribute equally
+                const redistributed = excess / (normalizedDistribution.length - 1);
+                for (let i = 0; i < normalizedDistribution.length; i++) {
+                    if (i !== maxIndex) {
+                        normalizedDistribution[i] += redistributed;
+                    }
+                }
+            }
+        }
+
+        return normalizedDistribution;
     }
 
     public evaluateStats(
@@ -292,8 +332,16 @@ export class DeckEvaluator {
                 totalFacilityBonus[name] = {};
             }
 
+            // Calculate effective card presence based on training distribution
+            // Multiplier ranges from 0 to 1, where 1 = all cards present, 0 = none present
+            // If there's 1 card, multiplier is always 1 (guaranteed presence)
+            const totalCardsAtFacility = totalFacilityBonus[name]["Total support cards"] || 0;
+            const cardPresenceMultiplier = totalCardsAtFacility <= 1 
+                ? 1  // Single card or no cards = full presence
+                : Math.max(1/totalCardsAtFacility, Math.min(1, (1 + (totalCardsAtFacility - 1) * trainingDistribution[index]) / totalCardsAtFacility));
+
             const moodEffect =
-                (totalFacilityBonus[name]["Mood Effect"] || 0) / 100 + 1;
+                ((totalFacilityBonus[name]["Mood Effect"] || 0) * cardPresenceMultiplier) / 100 + 1;
             const trainingEffectivenessRaw =
                 totalFacilityBonus[name]["Training Effectiveness"] || 0;
             const trainingEffectiveness = Math.max(
@@ -301,7 +349,7 @@ export class DeckEvaluator {
                 1,
             ); // Ensure it's never below 1
             const friendshipBonus =
-                (totalFacilityBonus[name]["Friendship Bonus"] || 0) / 100 + 1;
+                ((totalFacilityBonus[name]["Friendship Bonus"] || 0) * cardPresenceMultiplier) / 100 + 1;
 
             // Debug logging
             if (isNaN(trainingEffectivenessRaw)) {
@@ -337,6 +385,7 @@ export class DeckEvaluator {
                         Math.floor(
                             stat *
                                 facilityMultiplier *
+								cardPresenceMultiplier *
                                 moodBonus *
                                 moodEffect *
                                 trainingEffectiveness *
@@ -348,6 +397,7 @@ export class DeckEvaluator {
                         Math.floor(
                             stat *
                                 facilityMultiplier *
+								cardPresenceMultiplier *
                                 moodBonus *
                                 trainingEffectiveness,
                         ),
@@ -364,17 +414,17 @@ export class DeckEvaluator {
                     }
                 }
 
-                // Add facility bonuses
+                // Add facility bonuses with card presence scaling
                 averageStatsPerTurn[0] +=
-                    totalFacilityBonus[name]["Speed Bonus"] || 0;
+                    ((totalFacilityBonus[name]["Speed Bonus"] || 0) * cardPresenceMultiplier);
                 averageStatsPerTurn[1] +=
-                    totalFacilityBonus[name]["Stamina Bonus"] || 0;
+                    ((totalFacilityBonus[name]["Stamina Bonus"] || 0) * cardPresenceMultiplier);
                 averageStatsPerTurn[2] +=
-                    totalFacilityBonus[name]["Power Bonus"] || 0;
+                    ((totalFacilityBonus[name]["Power Bonus"] || 0) * cardPresenceMultiplier);
                 averageStatsPerTurn[3] +=
-                    totalFacilityBonus[name]["Guts Bonus"] || 0;
+                    ((totalFacilityBonus[name]["Guts Bonus"] || 0) * cardPresenceMultiplier);
                 averageStatsPerTurn[4] +=
-                    totalFacilityBonus[name]["Wit Bonus"] || 0;
+                    ((totalFacilityBonus[name]["Wit Bonus"] || 0) * cardPresenceMultiplier);
 
                 totalStatsGained.Speed += averageStatsPerTurn[0];
                 totalStatsGained.Stamina += averageStatsPerTurn[1];
@@ -429,15 +479,3 @@ export class DeckEvaluator {
         return totalHintsGained;
     }
 }
-
-// Correcting regex-related logic failure in DeckEvaluator
-// Adding manual intervention to ensure proper functionality
-
-// Example of regex correction (if applicable):
-// const regex = /pattern/;
-// const match = someString.match(regex);
-// if (match) {
-//     // Handle match logic
-// }
-
-// Ensure all regex operations are properly validated and tested

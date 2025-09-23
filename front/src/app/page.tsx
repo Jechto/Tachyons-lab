@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tierlist, LimitBreakFilter } from "./classes/Tierlist";
 import { DeckEvaluator } from "./classes/DeckEvaluator";
 import { SupportCard } from "./classes/SupportCard";
@@ -137,28 +137,14 @@ export default function Home() {
             };
             setCurrentDeck((prev) => [...prev, deckCard]);
             setDeckCardIds((prev) => new Set([...prev, cardKey]));
-
-            // Auto-regenerate tierlist if conditions are met
-            if (canAutoRegenerate()) {
-                // Small delay to ensure state has updated
-                setTimeout(() => {
-                    generateTierlist();
-                }, 100);
-            }
+            // useEffect will handle automatic regeneration
         }
     };
 
     const clearDeck = () => {
         setCurrentDeck([]);
         setDeckCardIds(new Set());
-
-        // Auto-regenerate tierlist if conditions are met
-        if (canAutoRegenerate()) {
-            // Small delay to ensure state has updated
-            setTimeout(() => {
-                generateTierlist();
-            }, 100);
-        }
+        // useEffect will handle automatic regeneration
     };
 
     // Helper function to check if a card should be disabled/grayed out
@@ -279,6 +265,14 @@ export default function Home() {
             setIsGenerating(false);
         }
     };
+
+    // Auto-regenerate tierlist when deck changes
+    useEffect(() => {
+        if (canAutoRegenerate()) {
+            generateTierlist();
+        }
+    }, [currentDeck]); // Only depend on currentDeck changes
+
     return (
         <div className="flex min-h-screen flex-col items-center justify-center p-24">
             <h1 className="text-6xl font-bold mb-8 text-center">
@@ -488,13 +482,7 @@ export default function Home() {
                                                     return newSet;
                                                 });
 
-                                                // Auto-regenerate tierlist if conditions are met
-                                                if (canAutoRegenerate()) {
-                                                    // Small delay to ensure state has updated
-                                                    setTimeout(() => {
-                                                        generateTierlist();
-                                                    }, 100);
-                                                }
+                                                // useEffect will handle automatic regeneration
                                             }}
                                             isInDeck={true}
                                             inDeckView={true}
@@ -538,6 +526,8 @@ export default function Home() {
                 <StatPreviewer
                     currentDeck={currentDeck}
                     allData={allDataRaw as CardData[]}
+                    deckStats={tierlistResult?.deck?.stats}
+                    scoreBreakdown={tierlistResult?.deck?.scoreBreakdown}
                 />
             </div>
 

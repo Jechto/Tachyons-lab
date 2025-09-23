@@ -21,6 +21,20 @@ interface TierlistDeck {
     score: number;
     stats: StatsDict;
     hints?: Record<string, number>;
+    scoreBreakdown?: {
+        totalScore: number;
+        baseScore: number;
+        staminaPenalty: number;
+        staminaPenaltyReason: string;
+        statContributions: Array<{
+            stat: string;
+            value: number;
+            weight: number;
+            contribution: number;
+        }>;
+        activeRaceTypes: string[];
+        staminaThreshold: number;
+    };
 }
 
 interface TierlistEntry {
@@ -84,12 +98,11 @@ export class Tierlist {
             };
         }
 
-        // Default filter - include all limit breaks for all rarities
         if (!filter) {
             filter = {
-                R: [0, 1, 2, 3, 4],
-                SR: [0, 1, 2, 3, 4],
-                SSR: [0, 1, 2, 3, 4],
+                R: [0, 4],
+                SR: [0, 4],
+                SSR: [0, 4],
             };
         }
 
@@ -220,11 +233,6 @@ export class Tierlist {
 
             // This matches the Python bug where these lines are inside the loop
             hintsForDeck = deckObject.evaluateHints();
-            deck.score = this.resultsToScore(
-                baseResultForDeck,
-                hintsForDeck,
-                weights,
-            );
         }
 
         // Calculate deck stats delta
@@ -239,6 +247,22 @@ export class Tierlist {
                 (baseResultForDeck as any)[k] - (baseResultEmptyDeck as any)[k];
         }
         deck.hints = hintsForDeck;
+
+        // Calculate deck score using delta stats (consistent with individual card scoring)
+        deck.score = this.resultsToScore(
+            deck.stats,
+            hintsForDeck,
+            weights,
+            raceTypes,
+        );
+
+        // Generate score breakdown for the deck using the delta stats
+        deck.scoreBreakdown = this.getScoreBreakdown(
+            deck.stats,
+            hintsForDeck,
+            weights,
+            raceTypes,
+        );
 
         const results: TierlistEntry[] = [];
 
@@ -289,6 +313,7 @@ export class Tierlist {
                         deltaStat,
                         deckHints,
                         weights,
+                        raceTypes,
                     );
 
                     results.push({
@@ -341,6 +366,7 @@ export class Tierlist {
         resultDict: StatsDict,
         hintDict: Record<string, number>,
         weights: Record<string, number>,
+        raceTypes?: RaceTypes,
     ): number {
         // TODO: Add more sophisticated scoring // use hint_dict
         if (!weights || Object.keys(weights).length === 0) {
@@ -362,7 +388,136 @@ export class Tierlist {
             score += v * weight;
         }
 
-        return score;
+        // Apply stamina penalty based on race type focus
+        const stamina = resultDict.Stamina || 0;
+        let staminaPenalty = 1.0; // No penalty by default
+
+        if (raceTypes) {
+            // Determine the dominant race type from the actual raceTypes object
+            const activeRaceTypes = Object.entries(raceTypes)
+                .filter(([_, isActive]) => isActive)
+                .map(([raceType, _]) => raceType);
+
+            if (activeRaceTypes.length > 0) {
+                // Set stamina thresholds based on race types
+                const staminaThresholds: Record<string, number> = {
+                    Sprint: 100,
+                    Mile: 300,
+                    Medium: 400,
+                    Long: 700,
+                };
+
+                // Use the highest threshold among active race types (most demanding)
+                const maxThreshold = Math.max(
+                    ...activeRaceTypes.map(raceType => staminaThresholds[raceType] || 400)
+                );
+
+                if (stamina < maxThreshold - 100) {
+                    staminaPenalty = 0.8; // 20% penalty
+                } else if (stamina < maxThreshold) {
+                    staminaPenalty = 0.9; // 10% penalty
+                }
+            }
+        }
+
+        return score * staminaPenalty;
+    }
+
+    public getScoreBreakdown(
+        resultDict: StatsDict,
+        hintDict: Record<string, number>,
+        weights: Record<string, number>,
+        raceTypes?: RaceTypes,
+    ): {
+        totalScore: number;
+        baseScore: number;
+        staminaPenalty: number;
+        staminaPenaltyReason: string;
+        statContributions: Array<{
+            stat: string;
+            value: number;
+            weight: number;
+            contribution: number;
+        }>;
+        activeRaceTypes: string[];
+        staminaThreshold: number;
+    } {
+        // TODO: Add more sophisticated scoring // use hint_dict
+        if (!weights || Object.keys(weights).length === 0) {
+            weights = {
+                Speed: 1.0,
+                Stamina: 1.0,
+                Power: 1.0,
+                Guts: 1.0,
+                Wit: 1.0,
+                "Skill Points": 0.2,
+            };
+        }
+
+        const weightsCopy = { ...weights };
+
+        // Calculate stat contributions
+        const statContributions = [];
+        let baseScore = 0;
+        for (const [k, v] of Object.entries(resultDict)) {
+            const weight = weightsCopy[k] || 0;
+            const contribution = v * weight;
+            baseScore += contribution;
+            statContributions.push({
+                stat: k,
+                value: v,
+                weight: weight,
+                contribution: contribution,
+            });
+        }
+
+        // Calculate stamina penalty details
+        const stamina = resultDict.Stamina || 0;
+        let staminaPenalty = 1.0;
+        let staminaPenaltyReason = "No penalty applied";
+        let activeRaceTypes: string[] = [];
+        let staminaThreshold = 400;
+
+        if (raceTypes) {
+            activeRaceTypes = Object.entries(raceTypes)
+                .filter(([_, isActive]) => isActive)
+                .map(([raceType, _]) => raceType);
+
+            if (activeRaceTypes.length > 0) {
+                const staminaThresholds: Record<string, number> = {
+                    Sprint: 100,
+                    Mile: 300,
+                    Medium: 400,
+                    Long: 700,
+                };
+
+                staminaThreshold = Math.max(
+                    ...activeRaceTypes.map(raceType => staminaThresholds[raceType] || 400)
+                );
+
+                if (stamina < staminaThreshold - 100) {
+                    staminaPenalty = 0.8;
+                    staminaPenaltyReason = `20% penalty: Stamina ${stamina} is significantly below threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
+                } else if (stamina < staminaThreshold) {
+                    staminaPenalty = 0.9;
+                    staminaPenaltyReason = `10% penalty: Stamina ${stamina} is below threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
+                } else {
+                    staminaPenaltyReason = `No penalty: Stamina ${stamina} meets threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
+                }
+            }
+        }
+
+        const totalScore = baseScore * staminaPenalty;
+
+        return {
+            totalScore,
+            baseScore,
+            staminaPenalty,
+            staminaPenaltyReason,
+            statContributions: statContributions.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution)),
+            activeRaceTypes,
+            staminaThreshold,
+        };
     }
 
     private deepCopyDeck(deck: DeckEvaluator): DeckEvaluator {

@@ -49,6 +49,7 @@ interface TierlistEntry {
     limit_break: number;
     card_type: string;
     hints: any;
+    hintTypes: string[];
     stats: StatsDict;
     score: number;
 }
@@ -332,6 +333,10 @@ export class Tierlist {
                     const currentDeckScore = deck.score;
                     const cardImpact = newDeckScore - currentDeckScore;
 
+                    // Extract hint types for this card
+                    const cardInstance = new SupportCard(cardId, limitBreak, allData);
+                    const hintTypes = cardInstance.extractHintTypes();
+
                     results.push({
                         id: cardId,
                         card_name: cardName,
@@ -339,6 +344,7 @@ export class Tierlist {
                         limit_break: limitBreak,
                         card_type: cardType,
                         hints: cardHints,
+                        hintTypes: hintTypes,
                         stats: deltaStat,
                         score: cardImpact,
                     });

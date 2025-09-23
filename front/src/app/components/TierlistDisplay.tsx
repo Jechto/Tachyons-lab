@@ -7,6 +7,7 @@ interface TierlistEntry {
     limit_break: number;
     card_type: string;
     hints: any;
+    hintTypes: string[];
     stats: any;
     score: number;
 }
@@ -176,6 +177,9 @@ export default function TierlistDisplay({
                                             onClick={() => onCardClick?.(card)}
                                             isInDeck={isDisabled}
                                             disabledReason={disabledInfo.reason}
+                                            deltaStats={card.stats}
+                                            hints={card.hints}
+                                            hintTypes={card.hintTypes}
                                         />
                                     );
                                 })}

@@ -274,18 +274,54 @@ export default function Home() {
     }, [currentDeck]); // Only depend on currentDeck changes
 
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center p-24">
-            <h1 className="text-6xl font-bold mb-8 text-center">
-                Tachyons Lab
-            </h1>
-            <h2 className="text-2xl mb-12 text-center text-gray-600 dark:text-gray-400">
-                A Tierlist and Deckbuilder combined
-            </h2>
+        <>
+            {/* Structured Data for SEO */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "WebApplication",
+                        "name": "Tachyons Lab - Uma Musume Tierlist and Deckbuilder",
+                        "description": "Free Uma Musume support card optimization tool with tierlist generation and deckbuilding capabilities",
+                        "applicationCategory": "GameApplication",
+                        "operatingSystem": "Web Browser",
+                        "offers": {
+                            "@type": "Offer",
+                            "price": "0",
+                            "priceCurrency": "USD"
+                        },
+                        "author": {
+                            "@type": "Organization",
+                            "name": "Tachyons Lab"
+                        },
+                        "about": {
+                            "@type": "VideoGame",
+                            "name": "Uma Musume Pretty Derby",
+                            "publisher": "Cygames"
+                        }
+                    })
+                }}
+            />
+            
+            <div className="flex min-h-screen flex-col items-center justify-center p-24">
+            <header className="text-center mb-8">
+                <h1 className="text-6xl font-bold mb-4">
+                    Tachyons Lab
+                </h1>
+                <h2 className="text-2xl mb-4 text-gray-600 dark:text-gray-400">
+                    Uma Musume Tierlist and Deckbuilder
+                </h2>
+                <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
+                    Generate optimized support card tierlists and build perfect decks for your Uma Musume races. 
+                    Analyze card synergies, stat distributions, and hint effectiveness for any racing strategy.
+                </p>
+            </header>
 
             {/* Tierlist Configuration Form */}
             <div className="w-full max-w-6xl bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600 mb-8">
                 <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
-                    🏆 Generate Tierlist
+                    Generate Tierlist
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
@@ -453,6 +489,26 @@ export default function Home() {
                         <div className="flex flex-wrap gap-3">
                             {currentDeck.map((card) => {
                                 const cardKey = `${card.id}-${card.limitBreak}`;
+                                
+                                // Find the corresponding tierlist entry for tooltip data
+                                const findTierlistEntry = () => {
+                                    if (!tierlistResult?.tierlist) return null;
+                                    
+                                    // Search through all tiers for the matching card
+                                    for (const tier of Object.values(tierlistResult.tierlist)) {
+                                        if (Array.isArray(tier)) {
+                                            const entry = tier.find(entry => 
+                                                entry.id === card.id && 
+                                                entry.limit_break === card.limitBreak
+                                            );
+                                            if (entry) return entry;
+                                        }
+                                    }
+                                    return null;
+                                };
+                                
+                                const tierlistEntry = findTierlistEntry();
+                                
                                 return (
                                     <div
                                         key={cardKey}
@@ -465,6 +521,9 @@ export default function Home() {
                                             limitBreak={card.limitBreak}
                                             cardType={card.cardType}
                                             score={0} // No score in deck view
+                                            deltaStats={tierlistEntry?.stats}
+                                            hints={tierlistEntry?.hints}
+                                            hintTypes={tierlistEntry?.hintTypes}
                                             onClick={() => {
                                                 // Remove from deck when clicked
                                                 setCurrentDeck((prev) =>
@@ -498,6 +557,42 @@ export default function Home() {
                                 );
                             })}
                         </div>
+                        
+                        {/* Gametora Links */}
+                        {currentDeck.length > 0 && (
+                            <div className="mt-4 pt-3 border-t border-blue-200 dark:border-blue-600">
+                                <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                                    📖 View Cards on Gametora:
+                                </h5>
+                                <div className="flex flex-wrap gap-2">
+                                    {currentDeck.map((card) => {
+                                        const cardKey = `${card.id}-${card.limitBreak}`;
+                                        const cleanedName = card.cardName
+                                            .toLowerCase()
+                                            .replace(/[^a-z0-9\s]/g, '')
+                                            .replace(/\s+/g, '-')
+                                            .replace(/-+/g, '-')
+                                            .replace(/^-|-$/g, '');
+                                        const gametorUrl = `https://gametora.com/umamusume/supports/${card.id}-${cleanedName}`;
+                                        
+                                        return (
+                                            <a
+                                                key={cardKey}
+                                                href={gametorUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 text-xs rounded-md hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors"
+                                            >
+                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                </svg>
+                                                {card.cardName}
+                                            </a>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -548,7 +643,7 @@ export default function Home() {
                     )}
 
                     {/* JSON Results (Collapsible) */}
-                    <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600">
+                    <div className="hidden bg-gray-100 dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600">
                         <details className="w-full">
                             <summary className="cursor-pointer text-xl font-bold mb-4 text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400">
                                 📊 Raw JSON Results:{" "}
@@ -567,7 +662,7 @@ export default function Home() {
                 </div>
             )}
 
-            <div className="flex gap-6 mb-12">
+            <div className="hidden flex gap-6 mb-12">
                 <a
                     href="/test"
                     className="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
@@ -583,50 +678,39 @@ export default function Home() {
                 </button>
             </div>
 
-            <div className="w-full max-w-6xl bg-gray-100 dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600">
-                <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-                    🚀 Project Status
-                </h3>
-                <div className="space-y-3">
-                    <div className="flex items-center space-x-3">
-                        <span className="text-green-500 text-xl">✅</span>
-                        <span className="text-gray-800 dark:text-gray-200">
-                            Python to TypeScript conversion completed
-                        </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                        <span className="text-green-500 text-xl">✅</span>
-                        <span className="text-gray-800 dark:text-gray-200">
-                            Deck evaluation calculations working
-                        </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                        <span className="text-green-500 text-xl">✅</span>
-                        <span className="text-gray-800 dark:text-gray-200">
-                            Data preprocessing system created
-                        </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                        <span className="text-green-500 text-xl">✅</span>
-                        <span className="text-gray-800 dark:text-gray-200">
-                            Tierlist generation functional
-                        </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                        <span className="text-yellow-500 text-xl">🔄</span>
-                        <span className="text-gray-800 dark:text-gray-200">
-                            Deckbuilder UI in development
-                        </span>
-                    </div>
-                </div>
-            </div>
-
             <div className="mt-8 text-center text-gray-500 dark:text-gray-400">
-                <p>Uma Musume support card optimization tools</p>
-                <p className="text-sm mt-2">
+                <p className="text-lg font-medium mb-4">Uma Musume support card optimization tools</p>
+                
+                {/* Technical Credits */}
+                <p className="text-sm mb-4">
                     Built with Next.js, TypeScript, and Tailwind CSS
                 </p>
+                
+                {/* Data Sources & Inspiration */}
+                <div className="text-sm mb-4 space-y-1">
+                    <p>Images and event data courtesy of <a 
+                        href="https://gametora.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:underline"
+                    >GameTora</a></p>
+                    <p>Inspired by <a 
+                        href="https://euophrys.github.io/uma-tiers/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:underline"
+                    >uma-tiers</a></p>
+                </div>
+                
+                {/* Legal Disclaimer */}
+                <div className="text-xs text-gray-400 dark:text-gray-500 border-t border-gray-200 dark:border-gray-700 pt-4 max-w-2xl mx-auto">
+                    <p className="mb-2">
+                        This tool is not affiliated with the developers of Uma Musume. 
+                        All materials from the Uma Musume game are copyrights of Cygames, Inc.
+                    </p>
+                </div>
             </div>
         </div>
+        </>
     );
 }

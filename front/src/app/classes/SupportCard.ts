@@ -328,6 +328,40 @@ export class SupportCard {
         return allHints;
     }
 
+    public extractHintTypes(): string[] {
+        const hintTypes = new Set<string>();
+        
+        for (const cardHint of this.hints) {
+            const skillData = cardHint.skill_data || {};
+            const condition = this.parseCondition(skillData.condition_1);
+            
+            // Check for running style specific hints
+            const runningStyleTrigger = this.parseTrigger(condition, "running_style");
+            if (runningStyleTrigger > 0) {
+                const runningStyles = ["Front Runner", "Pace Chaser", "Late Surger", "End Closer"];
+                if (runningStyleTrigger <= runningStyles.length) {
+                    hintTypes.add(runningStyles[runningStyleTrigger - 1]);
+                }
+            }
+            
+            // Check for distance type specific hints
+            const distanceTrigger = this.parseTrigger(condition, "distance_type");
+            if (distanceTrigger > 0) {
+                const distanceTypes = ["Sprint", "Mile", "Medium", "Long"];
+                if (distanceTrigger <= distanceTypes.length) {
+                    hintTypes.add(distanceTypes[distanceTrigger - 1]);
+                }
+            }
+            
+            // If no specific conditions, it's a general hint
+            if (runningStyleTrigger === 0 && distanceTrigger === 0) {
+                hintTypes.add("General");
+            }
+        }
+        
+        return Array.from(hintTypes);
+    }
+
     public evaluateCardHints(
         raceTypes: boolean[] = [false, false, false, false],
         runningTypes: boolean[] = [false, false, false, false],

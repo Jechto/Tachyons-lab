@@ -1,4 +1,6 @@
 import Image from "next/image";
+import CardTooltip from "./CardTooltip";
+import { StatsDict } from "../types/cardTypes";
 
 interface TierlistCardProps {
     id: number;
@@ -12,6 +14,10 @@ interface TierlistCardProps {
     isInDeck?: boolean;
     inDeckView?: boolean; // New prop to distinguish deck view from tierlist view
     disabledReason?: string; // Optional reason for why the card is disabled
+    // New props for tooltip
+    deltaStats?: StatsDict;
+    hints?: any; // Contains useful_hints_rate and other hint data
+    hintTypes?: string[]; // Types of hints this card produces
 }
 
 export default function TierlistCard({
@@ -26,6 +32,9 @@ export default function TierlistCard({
     isInDeck = false,
     inDeckView = false,
     disabledReason,
+    deltaStats,
+    hints,
+    hintTypes = [],
 }: TierlistCardProps) {
     const getLimitBreakText = (lb: number): string => {
         switch (lb) {
@@ -106,7 +115,9 @@ export default function TierlistCard({
         }
     };
 
-    return (
+    const hintsMatchPercentage = hints?.useful_hints_rate ? hints.useful_hints_rate * 100 : 0;
+
+    const cardContent = (
         <div
             className={`relative group transition-all duration-300 ${
                 isInDeck && !inDeckView
@@ -195,4 +206,24 @@ export default function TierlistCard({
             </div>
         </div>
     );
+
+    // If we have deltaStats, wrap with tooltip, otherwise render plain card
+    if (deltaStats && Object.keys(deltaStats).length > 0) {
+        return (
+            <CardTooltip
+                cardId={id}
+                cardName={cardName}
+                cardRarity={cardRarity}
+                limitBreak={limitBreak}
+                cardType={cardType}
+                deltaStats={deltaStats}
+                hintsMatchPercentage={hintsMatchPercentage}
+                hintTypes={hintTypes}
+            >
+                {cardContent}
+            </CardTooltip>
+        );
+    }
+
+    return cardContent;
 }

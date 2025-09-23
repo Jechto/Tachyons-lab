@@ -26,6 +26,10 @@ interface TierlistDeck {
         baseScore: number;
         staminaPenalty: number;
         staminaPenaltyReason: string;
+        usefulHintsPenalty: number;
+        usefulHintsPenaltyReason: string;
+        statOverbuiltPenalty: number;
+        statOverbuiltPenaltyReason: string;
         statContributions: Array<{
             stat: string;
             value: number;
@@ -111,36 +115,40 @@ export class Tierlist {
         let weights: Record<string, number> = {};
         const allWeights = {
             Sprint: {
-                Speed: 2.25,
+                Speed: 2.5,
                 Stamina: 0.5,
-                Power: 1,
+                Power: 0.75,
                 Guts: 0.5,
                 Wit: 0.75,
                 "Skill Points": 0.2,
+                Hints: 4.0,
             },
             Mile: {
-                Speed: 2,
+                Speed: 2.25,
                 Stamina: 0.75,
-                Power: 1.0,
+                Power: 0.75,
                 Guts: 0.5,
                 Wit: 0.75,
                 "Skill Points": 0.2,
+                Hints: 4.0,
             },
             Medium: {
-                Speed: 1.5,
+                Speed: 1.75,
                 Stamina: 1.25,
-                Power: 1.0,
+                Power: 0.75,
                 Guts: 0.5,
                 Wit: 0.75,
                 "Skill Points": 0.2,
+                Hints: 4.0,
             },
             Long: {
-                Speed: 1,
+                Speed: 1.25,
                 Stamina: 1.75,
-                Power: 1,
+                Power: 0.75,
                 Guts: 0.5,
                 Wit: 0.75,
                 "Skill Points": 0.2,
+                Hints: 4.0,
             },
         };
 
@@ -161,6 +169,7 @@ export class Tierlist {
                 Guts: 0,
                 Wit: 0,
                 "Skill Points": 0,
+                Hints: 0,
             };
 
             // Sum up weights from all selected race types
@@ -249,7 +258,8 @@ export class Tierlist {
         deck.hints = hintsForDeck;
 
         // Calculate deck score using delta stats (consistent with individual card scoring)
-        deck.score = this.resultsToScore(
+        deck.score = this.resultsWithPenaltyToScore(
+            baseResultForDeck,
             deck.stats,
             hintsForDeck,
             weights,
@@ -258,6 +268,7 @@ export class Tierlist {
 
         // Generate score breakdown for the deck using the delta stats
         deck.scoreBreakdown = this.getScoreBreakdown(
+            baseResultForDeck,
             deck.stats,
             hintsForDeck,
             weights,
@@ -301,20 +312,24 @@ export class Tierlist {
                     const deckHints = tempDeck.evaluateHints();
 
                     const deltaStat: any = {};
-                    const baseDeckStats = deckObject
-                        ? baseResultForDeck
-                        : baseResultEmptyDeck;
+                    // Calculate delta from empty deck (consistent with deck.score calculation)
                     for (const k of Object.keys(result)) {
                         deltaStat[k] =
-                            (result as any)[k] - (baseDeckStats as any)[k];
+                            (result as any)[k] - (baseResultEmptyDeck as any)[k];
                     }
 
-                    const score = this.resultsToScore(
-                        deltaStat,
-                        deckHints,
+                    // Calculate what the new deck's total score would be with this card added
+                    const newDeckScore = this.resultsWithPenaltyToScore(
+                        result, // total stats of deck + this card
+                        deltaStat, // delta from empty deck (consistent with deck.score)
+                        deckHints, // hints of deck + this card
                         weights,
                         raceTypes,
                     );
+
+                    // The card's actual impact is the difference between new deck score and current deck score
+                    const currentDeckScore = deck.score;
+                    const cardImpact = newDeckScore - currentDeckScore;
 
                     results.push({
                         id: cardId,
@@ -324,7 +339,7 @@ export class Tierlist {
                         card_type: cardType,
                         hints: cardHints,
                         stats: deltaStat,
-                        score: score,
+                        score: cardImpact,
                     });
                 } catch (error) {
                     // Skip cards that can't be instantiated
@@ -366,7 +381,6 @@ export class Tierlist {
         resultDict: StatsDict,
         hintDict: Record<string, number>,
         weights: Record<string, number>,
-        raceTypes?: RaceTypes,
     ): number {
         // TODO: Add more sophisticated scoring // use hint_dict
         if (!weights || Object.keys(weights).length === 0) {
@@ -377,23 +391,44 @@ export class Tierlist {
                 Guts: 1.0,
                 Wit: 1.0,
                 "Skill Points": 0.2,
+                Hints: 4.0,
             };
         }
 
         const weightsCopy = { ...weights };
 
         let score = 0;
+        // Score regular stats
         for (const [k, v] of Object.entries(resultDict)) {
             const weight = weightsCopy[k] || 0;
             score += v * weight;
         }
 
-        // Apply stamina penalty based on race type focus
-        const stamina = resultDict.Stamina || 0;
-        let staminaPenalty = 1.0; // No penalty by default
+        // Add hints contribution using direct weight
+        const totalHints = hintDict.total_hints || 0;
+        const hintsWeight = weightsCopy["Hints"] || 4.0;
+        score += totalHints * hintsWeight;
+
+        return score;
+    }
+
+    private resultsWithPenaltyToScore(
+        rawStats: StatsDict,
+        deltaStats: StatsDict,
+        hintDict: Record<string, number>,
+        weights: Record<string, number>,
+        raceTypes?: RaceTypes,
+    ): number {
+        // Get base score from delta stats
+        const baseScore = this.resultsToScore(deltaStats, hintDict, weights);
+
+        // Calculate stamina penalty based on raw stats
+        let staminaPenaltyPercent = 0; // Penalty as percentage (0.2 = 20%)
 
         if (raceTypes) {
-            // Determine the dominant race type from the actual raceTypes object
+            const stamina = rawStats.Stamina || 0;
+
+            // Determine the active race types
             const activeRaceTypes = Object.entries(raceTypes)
                 .filter(([_, isActive]) => isActive)
                 .map(([raceType, _]) => raceType);
@@ -409,22 +444,58 @@ export class Tierlist {
 
                 // Use the highest threshold among active race types (most demanding)
                 const maxThreshold = Math.max(
-                    ...activeRaceTypes.map(raceType => staminaThresholds[raceType] || 400)
+                    ...activeRaceTypes.map(
+                        (raceType) => staminaThresholds[raceType] || 400,
+                    ),
                 );
 
                 if (stamina < maxThreshold - 100) {
-                    staminaPenalty = 0.8; // 20% penalty
+                    staminaPenaltyPercent = 0.2; // 20% penalty
                 } else if (stamina < maxThreshold) {
-                    staminaPenalty = 0.9; // 10% penalty
+                    staminaPenaltyPercent = 0.1; // 10% penalty
                 }
             }
         }
 
-        return score * staminaPenalty;
+        // Calculate useful hints rate penalty
+        let usefulHintsPenaltyPercent = 0; // Penalty as percentage
+        const usefulHintsRate = hintDict.useful_hints_rate || 0;
+
+        if (usefulHintsRate < 0.25) {
+            usefulHintsPenaltyPercent = 0.2; // 20% penalty
+        } else if (usefulHintsRate < 0.5) {
+            usefulHintsPenaltyPercent = 0.1; // 10% penalty
+        }
+
+        // Calculate stat overbuilt penalty
+        let statOverbuiltPenaltyPercent = 0; // Penalty as percentage
+        const overbuiltThreshold = 1200;
+        
+        // Check each stat for being overbuilt
+        for (const [statName, value] of Object.entries(rawStats)) {
+            if (typeof value === 'number' && value > overbuiltThreshold) {
+                const excessPoints = value - overbuiltThreshold;
+                const excessHundreds = Math.floor(excessPoints / 100);
+                
+                // Base 10% penalty + 10% per 100 points excess, max 50%
+                const statPenalty = Math.min(0.1 + (excessHundreds * 0.05), 0.5);
+                
+                // Take the highest penalty among all overbuilt stats
+                statOverbuiltPenaltyPercent = Math.max(statOverbuiltPenaltyPercent, statPenalty);
+            }
+        }
+
+        // Apply additive penalties (like taxes)
+        const totalPenaltyPercent =
+            staminaPenaltyPercent + usefulHintsPenaltyPercent + statOverbuiltPenaltyPercent;
+        const finalMultiplier = 1.0 - totalPenaltyPercent;
+
+        return baseScore * finalMultiplier;
     }
 
     public getScoreBreakdown(
-        resultDict: StatsDict,
+        rawStats: StatsDict,
+        deltaStats: StatsDict,
         hintDict: Record<string, number>,
         weights: Record<string, number>,
         raceTypes?: RaceTypes,
@@ -433,6 +504,10 @@ export class Tierlist {
         baseScore: number;
         staminaPenalty: number;
         staminaPenaltyReason: string;
+        usefulHintsPenalty: number;
+        usefulHintsPenaltyReason: string;
+        statOverbuiltPenalty: number;
+        statOverbuiltPenaltyReason: string;
         statContributions: Array<{
             stat: string;
             value: number;
@@ -451,18 +526,18 @@ export class Tierlist {
                 Guts: 1.0,
                 Wit: 1.0,
                 "Skill Points": 0.2,
+                Hints: 4.0,
             };
         }
 
-        const weightsCopy = { ...weights };
+        // Calculate base score using delta stats
+        const baseScore = this.resultsToScore(deltaStats, hintDict, weights);
 
-        // Calculate stat contributions
+        // Calculate stat contributions from delta stats
         const statContributions = [];
-        let baseScore = 0;
-        for (const [k, v] of Object.entries(resultDict)) {
-            const weight = weightsCopy[k] || 0;
+        for (const [k, v] of Object.entries(deltaStats)) {
+            const weight = weights[k] || 0;
             const contribution = v * weight;
-            baseScore += contribution;
             statContributions.push({
                 stat: k,
                 value: v,
@@ -471,9 +546,21 @@ export class Tierlist {
             });
         }
 
-        // Calculate stamina penalty details
-        const stamina = resultDict.Stamina || 0;
+        // Add hints contribution to stat contributions
+        const totalHints = hintDict.total_hints || 0;
+        const hintsWeight = weights["Hints"] || 4.0;
+        const hintsContribution = totalHints * hintsWeight;
+        statContributions.push({
+            stat: "Hints",
+            value: totalHints,
+            weight: hintsWeight,
+            contribution: hintsContribution,
+        });
+
+        // Calculate stamina penalty details using raw stats
+        const stamina = rawStats.Stamina || 0;
         let staminaPenalty = 1.0;
+        let staminaPenaltyPercent = 0;
         let staminaPenaltyReason = "No penalty applied";
         let activeRaceTypes: string[] = [];
         let staminaThreshold = 400;
@@ -485,36 +572,102 @@ export class Tierlist {
 
             if (activeRaceTypes.length > 0) {
                 const staminaThresholds: Record<string, number> = {
-                    Sprint: 100,
+                    Sprint: 200,
                     Mile: 300,
                     Medium: 400,
-                    Long: 700,
+                    Long: 500,
                 };
 
                 staminaThreshold = Math.max(
-                    ...activeRaceTypes.map(raceType => staminaThresholds[raceType] || 400)
+                    ...activeRaceTypes.map(
+                        (raceType) => staminaThresholds[raceType] || 400,
+                    ),
                 );
 
                 if (stamina < staminaThreshold - 100) {
+                    staminaPenaltyPercent = 0.2;
                     staminaPenalty = 0.8;
-                    staminaPenaltyReason = `20% penalty: Stamina ${stamina} is significantly below threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
+                    staminaPenaltyReason = `20% penalty: Stamina ${Math.round(stamina)} is significantly below threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
                 } else if (stamina < staminaThreshold) {
+                    staminaPenaltyPercent = 0.1;
                     staminaPenalty = 0.9;
-                    staminaPenaltyReason = `10% penalty: Stamina ${stamina} is below threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
+                    staminaPenaltyReason = `10% penalty: Stamina ${Math.round(stamina)} is below threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
                 } else {
-                    staminaPenaltyReason = `No penalty: Stamina ${stamina} meets threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
+                    staminaPenaltyReason = `No penalty: Stamina ${Math.round(stamina)} meets threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
                 }
             }
         }
 
-        const totalScore = baseScore * staminaPenalty;
+        // Calculate useful hints rate penalty details
+        let usefulHintsPenalty = 1.0;
+        let usefulHintsPenaltyPercent = 0;
+        let usefulHintsPenaltyReason = "No penalty applied";
+        const usefulHintsRate = hintDict.useful_hints_rate || 0;
+
+        if (usefulHintsRate < 0.25) {
+            usefulHintsPenaltyPercent = 0.2;
+            usefulHintsPenalty = 0.8;
+            usefulHintsPenaltyReason = `20% penalty: Useful hints rate ${Math.round(usefulHintsRate * 100)}% is below 25%`;
+        } else if (usefulHintsRate < 0.5) {
+            usefulHintsPenaltyPercent = 0.1;
+            usefulHintsPenalty = 0.9;
+            usefulHintsPenaltyReason = `10% penalty: Useful hints rate ${Math.round(usefulHintsRate * 100)}% is below 50%`;
+        } else {
+            usefulHintsPenaltyReason = `No penalty: Useful hints rate ${Math.round(usefulHintsRate * 100)}% meets threshold`;
+        }
+
+        // Calculate stat overbuilt penalty details
+        let statOverbuiltPenalty = 1.0;
+        let statOverbuiltPenaltyPercent = 0;
+        let statOverbuiltPenaltyReason = "No penalty applied";
+        const overbuiltThreshold = 1200;
+        let overbuiltStats: string[] = [];
+        let maxOverbuiltPenalty = 0;
+
+        // Check each stat for being overbuilt
+        for (const [statName, value] of Object.entries(rawStats)) {
+            if (typeof value === 'number' && value > overbuiltThreshold) {
+                const excessPoints = value - overbuiltThreshold;
+                const excessHundreds = Math.floor(excessPoints / 100);
+                
+                // Base 10% penalty + 10% per 100 points excess, max 50%
+                const statPenalty = Math.min(0.1 + (excessHundreds * 0.1), 0.5);
+                
+                overbuiltStats.push(`${statName}: ${Math.round(value)} (${Math.round(statPenalty * 100)}% penalty)`);
+                
+                // Take the highest penalty among all overbuilt stats
+                if (statPenalty > maxOverbuiltPenalty) {
+                    maxOverbuiltPenalty = statPenalty;
+                }
+            }
+        }
+
+        if (maxOverbuiltPenalty > 0) {
+            statOverbuiltPenaltyPercent = maxOverbuiltPenalty;
+            statOverbuiltPenalty = 1.0 - maxOverbuiltPenalty;
+            statOverbuiltPenaltyReason = `${Math.round(maxOverbuiltPenalty * 100)}% penalty: Overbuilt stats - ${overbuiltStats.join(", ")}`;
+        } else {
+            statOverbuiltPenaltyReason = `No penalty: All stats below ${overbuiltThreshold} threshold`;
+        }
+
+        // Apply additive penalties (like taxes)
+        const totalPenaltyPercent =
+            staminaPenaltyPercent + usefulHintsPenaltyPercent + statOverbuiltPenaltyPercent;
+        const finalMultiplier = 1.0 - totalPenaltyPercent;
+        const totalScore = baseScore * finalMultiplier;
 
         return {
             totalScore,
             baseScore,
             staminaPenalty,
             staminaPenaltyReason,
-            statContributions: statContributions.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution)),
+            usefulHintsPenalty,
+            usefulHintsPenaltyReason,
+            statOverbuiltPenalty,
+            statOverbuiltPenaltyReason,
+            statContributions: statContributions.sort(
+                (a, b) => Math.abs(b.contribution) - Math.abs(a.contribution),
+            ),
             activeRaceTypes,
             staminaThreshold,
         };

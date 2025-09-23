@@ -28,6 +28,10 @@ interface StatPreviewerProps {
         baseScore: number;
         staminaPenalty: number;
         staminaPenaltyReason: string;
+        usefulHintsPenalty: number;
+        usefulHintsPenaltyReason: string;
+        statOverbuiltPenalty: number;
+        statOverbuiltPenaltyReason: string;
         statContributions: Array<{
             stat: string;
             value: number;
@@ -84,14 +88,23 @@ export default function StatPreviewer({
             try {
                 const emptyDeckEvaluator = new DeckEvaluator();
                 const baseStats = emptyDeckEvaluator.evaluateStats();
-                
+
                 const totalStats = {
-                    Speed: Math.round((baseStats.Speed || 0) + deltaStats.Speed),
-                    Stamina: Math.round((baseStats.Stamina || 0) + deltaStats.Stamina),
-                    Power: Math.round((baseStats.Power || 0) + deltaStats.Power),
+                    Speed: Math.round(
+                        (baseStats.Speed || 0) + deltaStats.Speed,
+                    ),
+                    Stamina: Math.round(
+                        (baseStats.Stamina || 0) + deltaStats.Stamina,
+                    ),
+                    Power: Math.round(
+                        (baseStats.Power || 0) + deltaStats.Power,
+                    ),
                     Guts: Math.round((baseStats.Guts || 0) + deltaStats.Guts),
                     Wit: Math.round((baseStats.Wit || 0) + deltaStats.Wit),
-                    "Skill Points": Math.round((baseStats["Skill Points"] || 0) + deltaStats["Skill Points"]),
+                    "Skill Points": Math.round(
+                        (baseStats["Skill Points"] || 0) +
+                            deltaStats["Skill Points"],
+                    ),
                 };
 
                 return {
@@ -99,7 +112,10 @@ export default function StatPreviewer({
                     statDifference: deltaStats,
                 };
             } catch (error) {
-                console.warn("Failed to calculate base stats, falling back to local calculation:", error);
+                console.warn(
+                    "Failed to calculate base stats, falling back to local calculation:",
+                    error,
+                );
             }
         }
 
@@ -210,7 +226,9 @@ export default function StatPreviewer({
             case "Wit":
                 return "/images/icons/Intelligence.png";
             case "Skill Points":
-                return "/images/icons/SkillPoints.png"; // You'll create this
+                return "/images/icons/SkillPoint.png";
+            case "Hints":
+                return "/images/icons/Hint.png";
             default:
                 return "/images/icons/Support.png";
         }
@@ -237,15 +255,21 @@ export default function StatPreviewer({
                 <div className="flex items-center gap-3">
                     {hasContent && (
                         <div className="text-sm text-purple-600 dark:text-purple-400">
-                            NOTE: Total stats exclude events from main story and inspiration
+                            NOTE: Total stats exclude events from main story and
+                            inspiration
                         </div>
                     )}
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
                         className="flex items-center gap-1 px-3 py-1 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 transition-colors"
-                        aria-label={isExpanded ? "Collapse deck preview" : "Expand deck preview"}
+                        aria-label={
+                            isExpanded
+                                ? "Collapse deck preview"
+                                : "Expand deck preview"
+                        }
                     >
-                        {isExpanded ? "▼" : "▶"} {isExpanded ? "Collapse" : "Expand"}
+                        {isExpanded ? "▼" : "▶"}{" "}
+                        {isExpanded ? "Collapse" : "Expand"}
                     </button>
                 </div>
             </div>
@@ -256,7 +280,9 @@ export default function StatPreviewer({
                         {Object.entries(currentStats).map(
                             ([statName, currentValue]) => {
                                 const deltaValue =
-                                    statDifference[statName as keyof StatDifference];
+                                    statDifference[
+                                        statName as keyof StatDifference
+                                    ];
                                 return (
                                     <div
                                         key={statName}
@@ -273,7 +299,8 @@ export default function StatPreviewer({
                                                     // Fallback to emoji if icon fails to load
                                                     const target =
                                                         e.target as HTMLImageElement;
-                                                    const parent = target.parentElement;
+                                                    const parent =
+                                                        target.parentElement;
                                                     if (parent) {
                                                         const fallbackEmojis: Record<
                                                             string,
@@ -284,7 +311,8 @@ export default function StatPreviewer({
                                                             Power: "⚡",
                                                             Guts: "💖",
                                                             Wit: "🧠",
-                                                            "Skill Points": "⭐",
+                                                            "Skill Points":
+                                                                "⭐",
                                                         };
                                                         parent.innerHTML = `<div class="text-2xl">${fallbackEmojis[statName] || "📊"}</div>`;
                                                     }
@@ -309,8 +337,8 @@ export default function StatPreviewer({
                     </div>
 
                     <div className="mt-3 text-xs text-center text-purple-600 dark:text-purple-400">
-                        💡 Shows total stats from your deck with the delta compared to
-                        an empty deck in parentheses
+                        💡 Shows total stats from your deck with the delta
+                        compared to an empty deck in parentheses
                     </div>
 
                     {/* Score Breakdown Section - Always show when expanded */}
@@ -318,74 +346,95 @@ export default function StatPreviewer({
                         <h5 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-4">
                             🔍 Deck Score Breakdown
                         </h5>
-                        
+
                         {scoreBreakdown ? (
                             /* Score Calculation Receipt with real data */
                             <div>
                                 <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                     Score Calculation Receipt
                                 </div>
-                                
+
                                 {/* Receipt Table */}
                                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
                                     {/* Table Header */}
                                     <div className="bg-gray-50 dark:bg-gray-700 px-4 py-2 border-b border-gray-200 dark:border-gray-600">
                                         <div className="grid grid-cols-4 gap-4 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
                                             <div>Stat</div>
-                                            <div className="text-right">Units</div>
-                                            <div className="text-right">Weight</div>
-                                            <div className="text-right">Sum</div>
+                                            <div className="text-right">
+                                                Units
+                                            </div>
+                                            <div className="text-right">
+                                                Weight
+                                            </div>
+                                            <div className="text-right">
+                                                Sum
+                                            </div>
                                         </div>
                                     </div>
-                                    
+
                                     {/* Table Body */}
                                     <div className="divide-y divide-gray-100 dark:divide-gray-600">
-                                        {scoreBreakdown.statContributions.map((stat, index) => (
-                                            <div
-                                                key={stat.stat}
-                                                className={`px-4 py-3 grid grid-cols-4 gap-4 items-center ${
-                                                    index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-25 dark:bg-gray-750'
-                                                }`}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <Image
-                                                        src={getStatIcon(stat.stat)}
-                                                        alt={`${stat.stat} icon`}
-                                                        width={16}
-                                                        height={16}
-                                                        className="object-contain"
-                                                        onError={(e) => {
-                                                            const target = e.target as HTMLImageElement;
-                                                            const parent = target.parentElement;
-                                                            if (parent) {
-                                                                const fallbackEmojis: Record<string, string> = {
+                                        {scoreBreakdown.statContributions.map(
+                                            (stat, index) => (
+                                                <div
+                                                    key={stat.stat}
+                                                    className={`px-4 py-3 grid grid-cols-4 gap-4 items-center ${
+                                                        index % 2 === 0
+                                                            ? "bg-white dark:bg-gray-800"
+                                                            : "bg-gray-25 dark:bg-gray-750"
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <Image
+                                                            src={getStatIcon(
+                                                                stat.stat,
+                                                            )}
+                                                            alt={`${stat.stat} icon`}
+                                                            width={16}
+                                                            height={16}
+                                                            className="object-contain"
+                                                            onError={(e) => {
+                                                                const target =
+                                                                    e.target as HTMLImageElement;
+                                                                const fallbackEmojis: Record<
+                                                                    string,
+                                                                    string
+                                                                > = {
                                                                     Speed: "🏃",
-                                                                    Stamina: "💪",
+                                                                    Stamina:
+                                                                        "💪",
                                                                     Power: "⚡",
                                                                     Guts: "💖",
                                                                     Wit: "🧠",
-                                                                    "Skill Points": "⭐",
+                                                                    "Skill Points":
+                                                                        "⭐",
+                                                                    Hints: "💡",
                                                                 };
-                                                                parent.innerHTML = `<span class="text-sm">${fallbackEmojis[stat.stat] || "📊"}</span>`;
-                                                            }
-                                                        }}
-                                                    />
-                                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                        {stat.stat}
-                                                    </span>
+                                                            }}
+                                                        />
+                                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            {stat.stat}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-right text-sm text-gray-800 dark:text-gray-200 font-mono">
+                                                        {Math.round(stat.value)}
+                                                    </div>
+                                                    <div className="text-right text-sm text-gray-600 dark:text-gray-400 font-mono">
+                                                        ×
+                                                        {stat.weight.toFixed(2)}
+                                                    </div>
+                                                    <div className="text-right text-sm font-semibold text-gray-800 dark:text-gray-200 font-mono">
+                                                        {stat.contribution > 0
+                                                            ? "+"
+                                                            : ""}
+                                                        {stat.contribution.toFixed(
+                                                            1,
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className="text-right text-sm text-gray-800 dark:text-gray-200 font-mono">
-                                                    {Math.round(stat.value)}
-                                                </div>
-                                                <div className="text-right text-sm text-gray-600 dark:text-gray-400 font-mono">
-                                                    ×{stat.weight.toFixed(2)}
-                                                </div>
-                                                <div className="text-right text-sm font-semibold text-gray-800 dark:text-gray-200 font-mono">
-                                                    {stat.contribution > 0 ? '+' : ''}{stat.contribution.toFixed(1)}
-                                                </div>
-                                            </div>
-                                        ))}
-                                        
+                                            ),
+                                        )}
+
                                         {/* Subtotal */}
                                         <div className="px-4 py-3 bg-gray-100 dark:bg-gray-700 border-t-2 border-gray-300 dark:border-gray-500">
                                             <div className="grid grid-cols-4 gap-4 items-center">
@@ -393,11 +442,13 @@ export default function StatPreviewer({
                                                     Subtotal:
                                                 </div>
                                                 <div className="text-right text-base font-bold text-gray-800 dark:text-gray-200 font-mono">
-                                                    {scoreBreakdown.baseScore.toFixed(1)}
+                                                    {scoreBreakdown.baseScore.toFixed(
+                                                        1,
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         {/* Penalties */}
                                         {scoreBreakdown.staminaPenalty < 1 && (
                                             <div className="px-4 py-3 bg-red-50 dark:bg-red-900/20">
@@ -407,19 +458,99 @@ export default function StatPreviewer({
                                                             ⚠️ Stamina Penalty
                                                         </span>
                                                         <div className="text-xs text-red-500 dark:text-red-400">
-                                                            ({(100 - scoreBreakdown.staminaPenalty * 100).toFixed(0)}% reduction)
+                                                            (
+                                                            {(
+                                                                100 -
+                                                                scoreBreakdown.staminaPenalty *
+                                                                    100
+                                                            ).toFixed(0)}
+                                                            % reduction)
                                                         </div>
                                                     </div>
                                                     <div className="text-right text-sm font-semibold text-red-600 dark:text-red-400 font-mono">
-                                                        -{(scoreBreakdown.baseScore - scoreBreakdown.totalScore).toFixed(1)}
+                                                        -
+                                                        {(
+                                                            scoreBreakdown.baseScore *
+                                                            (1 -
+                                                                scoreBreakdown.staminaPenalty)
+                                                        ).toFixed(1)}
                                                     </div>
                                                 </div>
                                                 <div className="mt-1 text-xs text-red-600 dark:text-red-400 col-span-4">
-                                                    {scoreBreakdown.staminaPenaltyReason}
+                                                    {
+                                                        scoreBreakdown.staminaPenaltyReason
+                                                    }
                                                 </div>
                                             </div>
                                         )}
-                                        
+
+                                        {/* Useful Hints Penalty */}
+                                        {scoreBreakdown.usefulHintsPenalty <
+                                            1 && (
+                                            <div className="px-4 py-3 bg-orange-50 dark:bg-orange-900/20">
+                                                <div className="grid grid-cols-4 gap-4 items-center">
+                                                    <div className="col-span-3 flex items-center gap-2">
+                                                        <span className="text-sm text-orange-600 dark:text-orange-400">
+                                                            💡 Hints Penalty
+                                                        </span>
+                                                        <div className="text-xs text-orange-500 dark:text-orange-400">
+                                                            (
+                                                            {(
+                                                                100 -
+                                                                scoreBreakdown.usefulHintsPenalty *
+                                                                    100
+                                                            ).toFixed(0)}
+                                                            % reduction)
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right text-sm font-semibold text-orange-600 dark:text-orange-400 font-mono">
+                                                        -
+                                                        {(
+                                                            scoreBreakdown.baseScore *
+                                                            (1 -
+                                                                scoreBreakdown.usefulHintsPenalty)
+                                                        ).toFixed(1)}
+                                                    </div>
+                                                </div>
+                                                <div className="mt-1 text-xs text-orange-600 dark:text-orange-400 col-span-4">
+                                                    {
+                                                        scoreBreakdown.usefulHintsPenaltyReason
+                                                    }
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Stat Overbuilt Penalty */}
+                                        {scoreBreakdown.statOverbuiltPenalty < 1 && (
+                                            <div className="px-4 py-3 bg-purple-50 dark:bg-purple-900/20">
+                                                <div className="grid grid-cols-4 gap-4 items-center">
+                                                    <div className="col-span-3 flex items-center gap-2">
+                                                        <span className="text-sm text-purple-600 dark:text-purple-400">
+                                                            📊 Overbuilt Penalty
+                                                        </span>
+                                                        <div className="text-xs text-purple-500 dark:text-purple-400">
+                                                            (
+                                                            {(
+                                                                100 -
+                                                                scoreBreakdown.statOverbuiltPenalty * 100
+                                                            ).toFixed(0)}
+                                                            % reduction)
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right text-sm font-semibold text-purple-600 dark:text-purple-400 font-mono">
+                                                        -
+                                                        {(
+                                                            scoreBreakdown.baseScore *
+                                                            (1 - scoreBreakdown.statOverbuiltPenalty)
+                                                        ).toFixed(1)}
+                                                    </div>
+                                                </div>
+                                                <div className="mt-1 text-xs text-purple-600 dark:text-purple-400 col-span-4">
+                                                    {scoreBreakdown.statOverbuiltPenaltyReason}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {/* Final Total */}
                                         <div className="px-4 py-4 bg-green-50 dark:bg-green-900/20 border-t-2 border-green-300 dark:border-green-600">
                                             <div className="grid grid-cols-4 gap-4 items-center">
@@ -427,7 +558,9 @@ export default function StatPreviewer({
                                                     Final Score:
                                                 </div>
                                                 <div className="text-right text-xl font-bold text-green-600 dark:text-green-400 font-mono">
-                                                    {scoreBreakdown.totalScore.toFixed(1)}
+                                                    {scoreBreakdown.totalScore.toFixed(
+                                                        1,
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -440,49 +573,70 @@ export default function StatPreviewer({
                                 <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                     Score Calculation Receipt
                                 </div>
-                                
+
                                 {/* Receipt Table */}
                                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
                                     {/* Table Header */}
                                     <div className="bg-gray-50 dark:bg-gray-700 px-4 py-2 border-b border-gray-200 dark:border-gray-600">
                                         <div className="grid grid-cols-4 gap-4 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
                                             <div>Stat</div>
-                                            <div className="text-right">Units</div>
-                                            <div className="text-right">Weight</div>
-                                            <div className="text-right">Sum</div>
+                                            <div className="text-right">
+                                                Units
+                                            </div>
+                                            <div className="text-right">
+                                                Weight
+                                            </div>
+                                            <div className="text-right">
+                                                Sum
+                                            </div>
                                         </div>
                                     </div>
-                                    
+
                                     {/* Table Body with empty deck values */}
                                     <div className="divide-y divide-gray-100 dark:divide-gray-600">
-                                        {["Speed", "Stamina", "Power", "Guts", "Wit", "Skill Points"].map((statName, index) => (
+                                        {[
+                                            "Speed",
+                                            "Stamina",
+                                            "Power",
+                                            "Guts",
+                                            "Wit",
+                                            "Skill Points",
+                                            "Hints",
+                                        ].map((statName, index) => (
                                             <div
                                                 key={statName}
                                                 className={`px-4 py-3 grid grid-cols-4 gap-4 items-center ${
-                                                    index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-25 dark:bg-gray-750'
+                                                    index % 2 === 0
+                                                        ? "bg-white dark:bg-gray-800"
+                                                        : "bg-gray-25 dark:bg-gray-750"
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <Image
-                                                        src={getStatIcon(statName)}
+                                                        src={getStatIcon(
+                                                            statName,
+                                                        )}
                                                         alt={`${statName} icon`}
                                                         width={16}
                                                         height={16}
                                                         className="object-contain"
                                                         onError={(e) => {
-                                                            const target = e.target as HTMLImageElement;
-                                                            const parent = target.parentElement;
-                                                            if (parent) {
-                                                                const fallbackEmojis: Record<string, string> = {
-                                                                    Speed: "🏃",
-                                                                    Stamina: "💪",
-                                                                    Power: "⚡",
-                                                                    Guts: "💖",
-                                                                    Wit: "🧠",
-                                                                    "Skill Points": "⭐",
-                                                                };
-                                                                parent.innerHTML = `<span class="text-sm">${fallbackEmojis[statName] || "📊"}</span>`;
-                                                            }
+                                                            const target =
+                                                                e.target as HTMLImageElement;
+                                                            const fallbackEmojis: Record<
+                                                                string,
+                                                                string
+                                                            > = {
+                                                                Speed: "🏃",
+                                                                Stamina:
+                                                                    "💪",
+                                                                Power: "⚡",
+                                                                Guts: "💖",
+                                                                Wit: "🧠",
+                                                                "Skill Points":
+                                                                    "⭐",
+                                                                Hints: "💡",
+                                                            };
                                                         }}
                                                     />
                                                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -500,7 +654,7 @@ export default function StatPreviewer({
                                                 </div>
                                             </div>
                                         ))}
-                                        
+
                                         {/* Subtotal */}
                                         <div className="px-4 py-3 bg-gray-100 dark:bg-gray-700 border-t-2 border-gray-300 dark:border-gray-500">
                                             <div className="grid grid-cols-4 gap-4 items-center">
@@ -512,7 +666,7 @@ export default function StatPreviewer({
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         {/* Final Total */}
                                         <div className="px-4 py-4 bg-green-50 dark:bg-green-900/20 border-t-2 border-green-300 dark:border-green-600">
                                             <div className="grid grid-cols-4 gap-4 items-center">
@@ -526,9 +680,10 @@ export default function StatPreviewer({
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div className="mt-3 text-center text-sm text-gray-500 dark:text-gray-400">
-                                    Add support cards to your deck to see calculated values
+                                    Add support cards to your deck to see
+                                    calculated values
                                 </div>
                             </div>
                         )}

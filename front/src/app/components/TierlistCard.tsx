@@ -139,10 +139,14 @@ export default function TierlistCard({
                     }}
                 />
 
-                {/* Score Overlay - only show if score > 0 */}
-                {score > 0 && (
-                    <div className="absolute top-1 right-1 bg-black bg-opacity-80 text-white text-sm px-1.5 py-0.5 rounded z-1 font-bold leading-none">
-                        {Math.round(score)}
+                {/* Score Overlay - show for both positive and negative scores */}
+                {score !== 0 && (
+                    <div className={`absolute top-1 right-1 text-white text-sm px-1.5 py-0.5 rounded z-1 font-bold leading-none ${
+                        score > 0 
+                            ? "bg-black bg-opacity-80" 
+                            : "bg-red-600 bg-opacity-90"
+                    }`}>
+                        {score > 0 ? Math.round(score) : Math.round(score)}
                     </div>
                 )}
 

@@ -1,22 +1,22 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Debug Frontend",
-      "type": "chrome",
-      "request": "launch",
-      "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}/front/src",
-      "skipFiles": ["<node_internals>/**"],
-      "runtimeExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-    },
-    {
-      "name": "Attach to Chrome",
-      "type": "chrome",
-      "request": "attach",
-      "port": 9222,
-      "webRoot": "${workspaceFolder}/front/src",
-      "skipFiles": ["<node_internals>/**"]
-    }
-  ]
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Frontend",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/front/src",
+            "skipFiles": ["<node_internals>/**"],
+            "runtimeExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        },
+        {
+            "name": "Attach to Chrome",
+            "type": "chrome",
+            "request": "attach",
+            "port": 9222,
+            "webRoot": "${workspaceFolder}/front/src",
+            "skipFiles": ["<node_internals>/**"]
+        }
+    ]
 }

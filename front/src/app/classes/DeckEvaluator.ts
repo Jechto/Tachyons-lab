@@ -332,29 +332,118 @@ export class DeckEvaluator {
                 totalFacilityBonus[name] = {};
             }
 
-            // Calculate effective card presence based on training distribution
-            // Multiplier ranges from 0 to 1, where 1 = all cards present, 0 = none present
-            // If there's 1 card, multiplier is always 1 (guaranteed presence)
-            const totalCardsAtFacility = totalFacilityBonus[name]["Total support cards"] || 0;
-            const cardPresenceMultiplier = totalCardsAtFacility <= 1 
-                ? 1  // Single card or no cards = full presence
-                : Math.max(1/totalCardsAtFacility, Math.min(1, (1 + (totalCardsAtFacility - 1) * trainingDistribution[index]) / totalCardsAtFacility));
+            // NEW APPROACH: More realistic card presence calculation
+            // Only one card can be primary trainer, others contribute based on specialty priority
+            const facilityCards = this.deck.filter(card => 
+                card.cardType.type === name && 
+                card.cardType.type !== "Support" && 
+                card.cardType.type !== "Unknown"
+            );
+            
+            let effectiveMoodEffect = 0;
+            let effectiveTrainingEffectiveness = 0;
+            
+            if (facilityCards.length === 0) {
+                // No cards at this facility
+                effectiveMoodEffect = 0;
+                effectiveTrainingEffectiveness = 0;
+            } else if (facilityCards.length === 1) {
+                // Single card: full effect (same as before)
+                const card = facilityCards[0];
+                effectiveMoodEffect = card.cardBonus["Mood Effect"] !== -1 
+                    ? card.cardBonus["Mood Effect"] || 0 
+                    : 0;
+                effectiveTrainingEffectiveness = card.cardBonus["Training Effectiveness"] !== -1
+                    ? card.cardBonus["Training Effectiveness"] || 0
+                    : 0;
+            } else {
+                // Multiple cards: use deterministic expected value approach
+                // Each card has 1/n chance of being primary, others contribute partially
+                for (const primaryCard of facilityCards) {
+                    const primaryWeight = 1.0 / facilityCards.length;
+                    
+                    // Primary card contribution (full effect)
+                    let moodContribution = primaryCard.cardBonus["Mood Effect"] !== -1 
+                        ? primaryCard.cardBonus["Mood Effect"] || 0 
+                        : 0;
+                    let trainingContribution = primaryCard.cardBonus["Training Effectiveness"] !== -1
+                        ? primaryCard.cardBonus["Training Effectiveness"] || 0
+                        : 0;
+                    
+                    // Secondary cards contribution (partial effect based on specialty priority)
+                    for (const secondaryCard of facilityCards) {
+                        if (secondaryCard !== primaryCard) {
+                            const specialtyPriority = secondaryCard.cardBonus["Specialty Priority"] !== -1
+                                ? secondaryCard.cardBonus["Specialty Priority"] || 0
+                                : 0;
+                            const presenceChance = 0.2 + (specialtyPriority / 100); // 20% base + specialty bonus
+                            
+                            const secondaryMood = secondaryCard.cardBonus["Mood Effect"] !== -1
+                                ? secondaryCard.cardBonus["Mood Effect"] || 0
+                                : 0;
+                            const secondaryTraining = secondaryCard.cardBonus["Training Effectiveness"] !== -1
+                                ? secondaryCard.cardBonus["Training Effectiveness"] || 0
+                                : 0;
+                            
+                            moodContribution += secondaryMood * presenceChance;
+                            trainingContribution += secondaryTraining * presenceChance;
+                        }
+                    }
+                    
+                    // Add weighted contribution to totals
+                    effectiveMoodEffect += moodContribution * primaryWeight;
+                    effectiveTrainingEffectiveness += trainingContribution * primaryWeight;
+                }
+            }
 
-            const moodEffect =
-                ((totalFacilityBonus[name]["Mood Effect"] || 0) * cardPresenceMultiplier) / 100 + 1;
-            const trainingEffectivenessRaw =
-                totalFacilityBonus[name]["Training Effectiveness"] || 0;
+            const moodEffect = effectiveMoodEffect / 100 + 1;
             const trainingEffectiveness = Math.max(
-                trainingEffectivenessRaw / 100 + 1,
+                effectiveTrainingEffectiveness / 100 + 1,
                 1,
             ); // Ensure it's never below 1
-            const friendshipBonus =
-                ((totalFacilityBonus[name]["Friendship Bonus"] || 0) * cardPresenceMultiplier) / 100 + 1;
+            
+            // Calculate effective friendship bonus using same approach as mood/training
+            let effectiveFriendshipBonus = 0;
+            if (facilityCards.length === 0) {
+                effectiveFriendshipBonus = 0;
+            } else if (facilityCards.length === 1) {
+                const card = facilityCards[0];
+                effectiveFriendshipBonus = card.cardBonus["Friendship Bonus"] !== -1
+                    ? card.cardBonus["Friendship Bonus"] || 0
+                    : 0;
+            } else {
+                // Multiple cards: use same deterministic approach
+                for (const primaryCard of facilityCards) {
+                    const primaryWeight = 1.0 / facilityCards.length;
+                    let friendshipContribution = primaryCard.cardBonus["Friendship Bonus"] !== -1
+                        ? primaryCard.cardBonus["Friendship Bonus"] || 0
+                        : 0;
+                    
+                    for (const secondaryCard of facilityCards) {
+                        if (secondaryCard !== primaryCard) {
+                            const specialtyPriority = secondaryCard.cardBonus["Specialty Priority"] !== -1
+                                ? secondaryCard.cardBonus["Specialty Priority"] || 0
+                                : 0;
+                            const presenceChance = 0.2 + (specialtyPriority / 100);
+                            
+                            const secondaryFriendship = secondaryCard.cardBonus["Friendship Bonus"] !== -1
+                                ? secondaryCard.cardBonus["Friendship Bonus"] || 0
+                                : 0;
+                            
+                            friendshipContribution += secondaryFriendship * presenceChance;
+                        }
+                    }
+                    
+                    effectiveFriendshipBonus += friendshipContribution * primaryWeight;
+                }
+            }
+            
+            const friendshipBonus = effectiveFriendshipBonus / 100 + 1;
 
             // Debug logging
-            if (isNaN(trainingEffectivenessRaw)) {
+            if (isNaN(effectiveTrainingEffectiveness)) {
                 console.warn(`Training effectiveness is NaN for ${name}:`, {
-                    raw: trainingEffectivenessRaw,
+                    raw: effectiveTrainingEffectiveness,
                     facilityBonus:
                         totalFacilityBonus[name]["Training Effectiveness"],
                     totalFacilityBonus: totalFacilityBonus[name],
@@ -385,7 +474,6 @@ export class DeckEvaluator {
                         Math.floor(
                             stat *
                                 facilityMultiplier *
-								cardPresenceMultiplier *
                                 moodBonus *
                                 moodEffect *
                                 trainingEffectiveness *
@@ -397,7 +485,6 @@ export class DeckEvaluator {
                         Math.floor(
                             stat *
                                 facilityMultiplier *
-								cardPresenceMultiplier *
                                 moodBonus *
                                 trainingEffectiveness,
                         ),
@@ -414,17 +501,59 @@ export class DeckEvaluator {
                     }
                 }
 
-                // Add facility bonuses with card presence scaling
-                averageStatsPerTurn[0] +=
-                    ((totalFacilityBonus[name]["Speed Bonus"] || 0) * cardPresenceMultiplier);
-                averageStatsPerTurn[1] +=
-                    ((totalFacilityBonus[name]["Stamina Bonus"] || 0) * cardPresenceMultiplier);
-                averageStatsPerTurn[2] +=
-                    ((totalFacilityBonus[name]["Power Bonus"] || 0) * cardPresenceMultiplier);
-                averageStatsPerTurn[3] +=
-                    ((totalFacilityBonus[name]["Guts Bonus"] || 0) * cardPresenceMultiplier);
-                averageStatsPerTurn[4] +=
-                    ((totalFacilityBonus[name]["Wit Bonus"] || 0) * cardPresenceMultiplier);
+                // Calculate effective stat bonuses using same approach as mood/training
+                let effectiveStatBonuses = [0, 0, 0, 0, 0]; // Speed, Stamina, Power, Guts, Wit
+                
+                if (facilityCards.length === 0) {
+                    effectiveStatBonuses = [0, 0, 0, 0, 0];
+                } else if (facilityCards.length === 1) {
+                    const card = facilityCards[0];
+                    effectiveStatBonuses = [
+                        card.cardBonus["Speed Bonus"] !== -1 ? card.cardBonus["Speed Bonus"] || 0 : 0,
+                        card.cardBonus["Stamina Bonus"] !== -1 ? card.cardBonus["Stamina Bonus"] || 0 : 0,
+                        card.cardBonus["Power Bonus"] !== -1 ? card.cardBonus["Power Bonus"] || 0 : 0,
+                        card.cardBonus["Guts Bonus"] !== -1 ? card.cardBonus["Guts Bonus"] || 0 : 0,
+                        card.cardBonus["Wit Bonus"] !== -1 ? card.cardBonus["Wit Bonus"] || 0 : 0,
+                    ];
+                } else {
+                    // Multiple cards: use deterministic approach
+                    for (const primaryCard of facilityCards) {
+                        const primaryWeight = 1.0 / facilityCards.length;
+                        let statContributions = [
+                            primaryCard.cardBonus["Speed Bonus"] !== -1 ? primaryCard.cardBonus["Speed Bonus"] || 0 : 0,
+                            primaryCard.cardBonus["Stamina Bonus"] !== -1 ? primaryCard.cardBonus["Stamina Bonus"] || 0 : 0,
+                            primaryCard.cardBonus["Power Bonus"] !== -1 ? primaryCard.cardBonus["Power Bonus"] || 0 : 0,
+                            primaryCard.cardBonus["Guts Bonus"] !== -1 ? primaryCard.cardBonus["Guts Bonus"] || 0 : 0,
+                            primaryCard.cardBonus["Wit Bonus"] !== -1 ? primaryCard.cardBonus["Wit Bonus"] || 0 : 0,
+                        ];
+                        
+                        for (const secondaryCard of facilityCards) {
+                            if (secondaryCard !== primaryCard) {
+                                const specialtyPriority = secondaryCard.cardBonus["Specialty Priority"] !== -1
+                                    ? secondaryCard.cardBonus["Specialty Priority"] || 0
+                                    : 0;
+                                const presenceChance = 0.2 + (specialtyPriority / 100);
+                                
+                                statContributions[0] += (secondaryCard.cardBonus["Speed Bonus"] !== -1 ? secondaryCard.cardBonus["Speed Bonus"] || 0 : 0) * presenceChance;
+                                statContributions[1] += (secondaryCard.cardBonus["Stamina Bonus"] !== -1 ? secondaryCard.cardBonus["Stamina Bonus"] || 0 : 0) * presenceChance;
+                                statContributions[2] += (secondaryCard.cardBonus["Power Bonus"] !== -1 ? secondaryCard.cardBonus["Power Bonus"] || 0 : 0) * presenceChance;
+                                statContributions[3] += (secondaryCard.cardBonus["Guts Bonus"] !== -1 ? secondaryCard.cardBonus["Guts Bonus"] || 0 : 0) * presenceChance;
+                                statContributions[4] += (secondaryCard.cardBonus["Wit Bonus"] !== -1 ? secondaryCard.cardBonus["Wit Bonus"] || 0 : 0) * presenceChance;
+                            }
+                        }
+                        
+                        for (let i = 0; i < 5; i++) {
+                            effectiveStatBonuses[i] += statContributions[i] * primaryWeight;
+                        }
+                    }
+                }
+
+                // Add effective stat bonuses
+                averageStatsPerTurn[0] += effectiveStatBonuses[0];
+                averageStatsPerTurn[1] += effectiveStatBonuses[1];
+                averageStatsPerTurn[2] += effectiveStatBonuses[2];
+                averageStatsPerTurn[3] += effectiveStatBonuses[3];
+                averageStatsPerTurn[4] += effectiveStatBonuses[4];
 
                 totalStatsGained.Speed += averageStatsPerTurn[0];
                 totalStatsGained.Stamina += averageStatsPerTurn[1];

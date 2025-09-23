@@ -6,6 +6,7 @@ import {
     RunningTypes,
     StatsDict,
 } from "../types/cardTypes";
+import { ACTIVE_PENALTY_CONFIG, PenaltyConfig } from "../config/penaltyConfig";
 
 interface TierlistCard {
     id: number;
@@ -418,6 +419,7 @@ export class Tierlist {
         hintDict: Record<string, number>,
         weights: Record<string, number>,
         raceTypes?: RaceTypes,
+        penaltyConfig: PenaltyConfig = ACTIVE_PENALTY_CONFIG,
     ): number {
         // Get base score from delta stats
         const baseScore = this.resultsToScore(deltaStats, hintDict, weights);
@@ -434,13 +436,8 @@ export class Tierlist {
                 .map(([raceType, _]) => raceType);
 
             if (activeRaceTypes.length > 0) {
-                // Set stamina thresholds based on race types
-                const staminaThresholds: Record<string, number> = {
-                    Sprint: 100,
-                    Mile: 300,
-                    Medium: 400,
-                    Long: 700,
-                };
+                // Use stamina thresholds from config
+                const staminaThresholds = penaltyConfig.stamina.thresholds;
 
                 // Use the highest threshold among active race types (most demanding)
                 const maxThreshold = Math.max(
@@ -449,10 +446,10 @@ export class Tierlist {
                     ),
                 );
 
-                if (stamina < maxThreshold - 100) {
-                    staminaPenaltyPercent = 0.2; // 20% penalty
+                if (stamina < maxThreshold - penaltyConfig.stamina.penalties.buffer) {
+                    staminaPenaltyPercent = penaltyConfig.stamina.penalties.major;
                 } else if (stamina < maxThreshold) {
-                    staminaPenaltyPercent = 0.1; // 10% penalty
+                    staminaPenaltyPercent = penaltyConfig.stamina.penalties.minor;
                 }
             }
         }
@@ -461,24 +458,26 @@ export class Tierlist {
         let usefulHintsPenaltyPercent = 0; // Penalty as percentage
         const usefulHintsRate = hintDict.useful_hints_rate || 0;
 
-        if (usefulHintsRate < 0.25) {
-            usefulHintsPenaltyPercent = 0.2; // 20% penalty
-        } else if (usefulHintsRate < 0.5) {
-            usefulHintsPenaltyPercent = 0.1; // 10% penalty
+        if (usefulHintsRate < penaltyConfig.hints.thresholds.major) {
+            usefulHintsPenaltyPercent = penaltyConfig.hints.penalties.major;
+        } else if (usefulHintsRate < penaltyConfig.hints.thresholds.minor) {
+            usefulHintsPenaltyPercent = penaltyConfig.hints.penalties.minor;
         }
 
         // Calculate stat overbuilt penalty
         let statOverbuiltPenaltyPercent = 0; // Penalty as percentage
-        const overbuiltThreshold = 1200;
         
         // Check each stat for being overbuilt
         for (const [statName, value] of Object.entries(rawStats)) {
-            if (typeof value === 'number' && value > overbuiltThreshold) {
-                const excessPoints = value - overbuiltThreshold;
-                const excessHundreds = Math.floor(excessPoints / 100);
+            if (typeof value === 'number' && value > penaltyConfig.statOverbuilt.threshold) {
+                const excessPoints = value - penaltyConfig.statOverbuilt.threshold;
+                const excessIncrements = Math.floor(excessPoints / penaltyConfig.statOverbuilt.incrementSize);
                 
-                // Base 10% penalty + 10% per 100 points excess, max 50%
-                const statPenalty = Math.min(0.1 + (excessHundreds * 0.05), 0.5);
+                // Base penalty + additional penalty per increment, max cap
+                const statPenalty = Math.min(
+                    penaltyConfig.statOverbuilt.basePenalty + (excessIncrements * penaltyConfig.statOverbuilt.incrementPenalty), 
+                    penaltyConfig.statOverbuilt.maxPenalty
+                );
                 
                 // Take the highest penalty among all overbuilt stats
                 statOverbuiltPenaltyPercent = Math.max(statOverbuiltPenaltyPercent, statPenalty);
@@ -499,6 +498,7 @@ export class Tierlist {
         hintDict: Record<string, number>,
         weights: Record<string, number>,
         raceTypes?: RaceTypes,
+        penaltyConfig: PenaltyConfig = ACTIVE_PENALTY_CONFIG,
     ): {
         totalScore: number;
         baseScore: number;
@@ -571,12 +571,7 @@ export class Tierlist {
                 .map(([raceType, _]) => raceType);
 
             if (activeRaceTypes.length > 0) {
-                const staminaThresholds: Record<string, number> = {
-                    Sprint: 200,
-                    Mile: 300,
-                    Medium: 400,
-                    Long: 500,
-                };
+                const staminaThresholds = penaltyConfig.stamina.thresholds;
 
                 staminaThreshold = Math.max(
                     ...activeRaceTypes.map(
@@ -584,14 +579,14 @@ export class Tierlist {
                     ),
                 );
 
-                if (stamina < staminaThreshold - 100) {
-                    staminaPenaltyPercent = 0.2;
-                    staminaPenalty = 0.8;
-                    staminaPenaltyReason = `20% penalty: Stamina ${Math.round(stamina)} is significantly below threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
+                if (stamina < staminaThreshold - penaltyConfig.stamina.penalties.buffer) {
+                    staminaPenaltyPercent = penaltyConfig.stamina.penalties.major;
+                    staminaPenalty = 1 - staminaPenaltyPercent;
+                    staminaPenaltyReason = `${Math.round(staminaPenaltyPercent * 100)}% penalty: Stamina ${Math.round(stamina)} is significantly below threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
                 } else if (stamina < staminaThreshold) {
-                    staminaPenaltyPercent = 0.1;
-                    staminaPenalty = 0.9;
-                    staminaPenaltyReason = `10% penalty: Stamina ${Math.round(stamina)} is below threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
+                    staminaPenaltyPercent = penaltyConfig.stamina.penalties.minor;
+                    staminaPenalty = 1 - staminaPenaltyPercent;
+                    staminaPenaltyReason = `${Math.round(staminaPenaltyPercent * 100)}% penalty: Stamina ${Math.round(stamina)} is below threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
                 } else {
                     staminaPenaltyReason = `No penalty: Stamina ${Math.round(stamina)} meets threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
                 }
@@ -604,14 +599,14 @@ export class Tierlist {
         let usefulHintsPenaltyReason = "No penalty applied";
         const usefulHintsRate = hintDict.useful_hints_rate || 0;
 
-        if (usefulHintsRate < 0.25) {
-            usefulHintsPenaltyPercent = 0.2;
-            usefulHintsPenalty = 0.8;
-            usefulHintsPenaltyReason = `20% penalty: Useful hints rate ${Math.round(usefulHintsRate * 100)}% is below 25%`;
-        } else if (usefulHintsRate < 0.5) {
-            usefulHintsPenaltyPercent = 0.1;
-            usefulHintsPenalty = 0.9;
-            usefulHintsPenaltyReason = `10% penalty: Useful hints rate ${Math.round(usefulHintsRate * 100)}% is below 50%`;
+        if (usefulHintsRate < penaltyConfig.hints.thresholds.major) {
+            usefulHintsPenaltyPercent = penaltyConfig.hints.penalties.major;
+            usefulHintsPenalty = 1 - usefulHintsPenaltyPercent;
+            usefulHintsPenaltyReason = `${Math.round(usefulHintsPenaltyPercent * 100)}% penalty: Useful hints rate ${Math.round(usefulHintsRate * 100)}% is below ${Math.round(penaltyConfig.hints.thresholds.major * 100)}%`;
+        } else if (usefulHintsRate < penaltyConfig.hints.thresholds.minor) {
+            usefulHintsPenaltyPercent = penaltyConfig.hints.penalties.minor;
+            usefulHintsPenalty = 1 - usefulHintsPenaltyPercent;
+            usefulHintsPenaltyReason = `${Math.round(usefulHintsPenaltyPercent * 100)}% penalty: Useful hints rate ${Math.round(usefulHintsRate * 100)}% is below ${Math.round(penaltyConfig.hints.thresholds.minor * 100)}%`;
         } else {
             usefulHintsPenaltyReason = `No penalty: Useful hints rate ${Math.round(usefulHintsRate * 100)}% meets threshold`;
         }
@@ -620,18 +615,20 @@ export class Tierlist {
         let statOverbuiltPenalty = 1.0;
         let statOverbuiltPenaltyPercent = 0;
         let statOverbuiltPenaltyReason = "No penalty applied";
-        const overbuiltThreshold = 1200;
         let overbuiltStats: string[] = [];
         let maxOverbuiltPenalty = 0;
 
         // Check each stat for being overbuilt
         for (const [statName, value] of Object.entries(rawStats)) {
-            if (typeof value === 'number' && value > overbuiltThreshold) {
-                const excessPoints = value - overbuiltThreshold;
-                const excessHundreds = Math.floor(excessPoints / 100);
+            if (typeof value === 'number' && value > penaltyConfig.statOverbuilt.threshold) {
+                const excessPoints = value - penaltyConfig.statOverbuilt.threshold;
+                const excessIncrements = Math.floor(excessPoints / penaltyConfig.statOverbuilt.incrementSize);
                 
-                // Base 10% penalty + 10% per 100 points excess, max 50%
-                const statPenalty = Math.min(0.1 + (excessHundreds * 0.1), 0.5);
+                // Base penalty + additional penalty per increment, max cap
+                const statPenalty = Math.min(
+                    penaltyConfig.statOverbuilt.basePenalty + (excessIncrements * penaltyConfig.statOverbuilt.incrementPenalty), 
+                    penaltyConfig.statOverbuilt.maxPenalty
+                );
                 
                 overbuiltStats.push(`${statName}: ${Math.round(value)} (${Math.round(statPenalty * 100)}% penalty)`);
                 
@@ -647,7 +644,7 @@ export class Tierlist {
             statOverbuiltPenalty = 1.0 - maxOverbuiltPenalty;
             statOverbuiltPenaltyReason = `${Math.round(maxOverbuiltPenalty * 100)}% penalty: Overbuilt stats - ${overbuiltStats.join(", ")}`;
         } else {
-            statOverbuiltPenaltyReason = `No penalty: All stats below ${overbuiltThreshold} threshold`;
+            statOverbuiltPenaltyReason = `No penalty: All stats below ${penaltyConfig.statOverbuilt.threshold} threshold`;
         }
 
         // Apply additive penalties (like taxes)

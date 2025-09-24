@@ -1,6 +1,7 @@
 import Image from "next/image";
 import CardTooltip from "./CardTooltip";
 import { StatsDict, HintResult } from "../types/cardTypes";
+import { getAssetPath } from "../utils/paths";
 
 interface TierlistCardProps {
     id: number;
@@ -86,19 +87,19 @@ export default function TierlistCard({
     const getTypeIcon = (type: string): string => {
         switch (type) {
             case "Speed":
-                return "/images/icons/Speed.png";
+                return getAssetPath("images/icons/Speed.png");
             case "Stamina":
-                return "/images/icons/Stamina.png";
+                return getAssetPath("images/icons/Stamina.png");
             case "Power":
-                return "/images/icons/Power.png";
+                return getAssetPath("images/icons/Power.png");
             case "Guts":
-                return "/images/icons/Guts.png";
+                return getAssetPath("images/icons/Guts.png");
             case "Wit":
-                return "/images/icons/Intelligence.png";
+                return getAssetPath("images/icons/Intelligence.png");
             case "Support":
-                return "/images/icons/Support.png";
+                return getAssetPath("images/icons/Support.png");
             default:
-                return "/images/icons/Support.png";
+                return getAssetPath("images/icons/Support.png");
         }
     };
 
@@ -137,7 +138,7 @@ export default function TierlistCard({
                 } ${!isInDeck || inDeckView ? getRarityGlow(cardRarity) : ""}`}
             >
                 <Image
-                    src={`/images/cards/${id}.png`}
+                    src={getAssetPath(`images/cards/${id}.png`)}
                     alt={cardName}
                     fill
                     className="object-cover object-center"

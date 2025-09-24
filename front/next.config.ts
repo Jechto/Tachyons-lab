@@ -12,16 +12,6 @@ const nextConfig = {
         assetPrefix: "/Tachyons-lab", // Prefix for assets
     }),
     distDir: ".next", // optional, default build dir
-    // Enable source maps for debugging
-    webpack: (config: Record<string, unknown>, { dev }: { dev: boolean }) => {
-        if (dev) {
-            config.devtool = "eval-source-map";
-        }
-        return config;
-    },
-    experimental: {
-        turbo: true, // if you want Turbopack enabled
-    },
 };
 
 export default nextConfig;

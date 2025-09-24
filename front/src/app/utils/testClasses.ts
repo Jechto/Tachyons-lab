@@ -63,7 +63,7 @@ export function testClasses() {
         const testData = allData;
         console.log(`Testing tierlist with ${testData.length} cards...`);
 
-        let deck_to_test = new DeckEvaluator();
+        const deck_to_test = new DeckEvaluator();
         deck_to_test.addCard(new SupportCard(30028, 4, allData));
         deck_to_test.addCard(new SupportCard(30002, 4, allData));
         deck_to_test.addCard(new SupportCard(30015, 4, allData));
@@ -76,13 +76,18 @@ export function testClasses() {
         );
 
         console.log("✓ Tierlist generation successful");
-        console.log("Deck score:", result.deck.score);
-        console.log("Tierlist categories:", Object.keys(result.tierlist));
+        
+        if ('deck' in result) {
+            console.log("Deck score:", result.deck.score);
+            console.log("Tierlist categories:", Object.keys(result.tierlist));
 
-        for (const [category, cards] of Object.entries(result.tierlist)) {
-            console.log(
-                `${category}: ${cards.length} cards, top score: ${cards[0]?.score || "N/A"}`,
-            );
+            for (const [category, cards] of Object.entries(result.tierlist)) {
+                console.log(
+                    `${category}: ${cards.length} cards, top score: ${cards[0]?.score || "N/A"}`,
+                );
+            }
+        } else {
+            console.log("Error in tierlist generation:", result.error);
         }
 
         console.log("\n🎉 All tests passed successfully!");

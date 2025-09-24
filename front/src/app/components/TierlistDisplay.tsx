@@ -1,16 +1,6 @@
+import { StatsDict } from "../types/cardTypes";
 import TierlistCard from "./TierlistCard";
-
-interface TierlistEntry {
-    id: number;
-    card_name: string;
-    card_rarity: string;
-    limit_break: number;
-    card_type: string;
-    hints: any;
-    hintTypes: string[];
-    stats: any;
-    score: number;
-}
+import { TierlistEntry } from "../classes/Tierlist";
 
 interface TierlistDisplayProps {
     tierlistData: Record<string, TierlistEntry[]>;
@@ -177,7 +167,7 @@ export default function TierlistDisplay({
                                             onClick={() => onCardClick?.(card)}
                                             isInDeck={isDisabled}
                                             disabledReason={disabledInfo.reason}
-                                            deltaStats={card.stats}
+                                            deltaStats={card.stats_diff_only_added_to_deck}
                                             hints={card.hints}
                                             hintTypes={card.hintTypes}
                                         />

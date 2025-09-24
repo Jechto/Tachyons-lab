@@ -13,7 +13,7 @@ const nextConfig = {
     }),
     distDir: ".next", // optional, default build dir
     // Enable source maps for debugging
-    webpack: (config: any, { dev }: { dev: boolean }) => {
+    webpack: (config: Record<string, unknown>, { dev }: { dev: boolean }) => {
         if (dev) {
             config.devtool = "eval-source-map";
         }

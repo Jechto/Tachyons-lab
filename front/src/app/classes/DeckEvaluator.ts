@@ -255,16 +255,22 @@ export class DeckEvaluator {
 
         // Add event stats
         for (const card of this.deck) {
-            for (const [stat, value] of Object.entries(totalStatsGained)) {
-                const eventValue = (card.eventsStatReward as any)[stat] || 0;
-                (totalStatsGained as any)[stat] +=
-                    eventValue * (1 + eventEffectiveness);
+            // Add Speed, Stamina, Power, and Guts from events
+            totalStatsGained.Speed += (card.eventsStatReward.Speed || 0) * (1 + eventEffectiveness);
+            totalStatsGained.Stamina += (card.eventsStatReward.Stamina || 0) * (1 + eventEffectiveness);
+            totalStatsGained.Power += (card.eventsStatReward.Power || 0) * (1 + eventEffectiveness);
+            totalStatsGained.Guts += (card.eventsStatReward.Guts || 0) * (1 + eventEffectiveness);
+            
+            // Add Wit if present
+            if (card.eventsStatReward.Wit) {
+                totalStatsGained.Wit = (totalStatsGained.Wit || 0) + card.eventsStatReward.Wit * (1 + eventEffectiveness);
             }
+
             totalEnergySpent +=
-                ((card.eventsStatReward as any).Energy || 0) *
+                (card.eventsStatReward.Energy || 0) *
                 (1 + eventRecovery);
             totalStatsGained["Skill Points"]! +=
-                ((card.eventsStatReward as any).Potential || 0) *
+                (card.eventsStatReward.Potential || 0) *
                 (1 + eventEffectiveness);
 
             // Add initial stats
@@ -519,7 +525,7 @@ export class DeckEvaluator {
                     // Multiple cards: use deterministic approach
                     for (const primaryCard of facilityCards) {
                         const primaryWeight = 1.0 / facilityCards.length;
-                        let statContributions = [
+                        const statContributions = [
                             primaryCard.cardBonus["Speed Bonus"] !== -1 ? primaryCard.cardBonus["Speed Bonus"] || 0 : 0,
                             primaryCard.cardBonus["Stamina Bonus"] !== -1 ? primaryCard.cardBonus["Stamina Bonus"] || 0 : 0,
                             primaryCard.cardBonus["Power Bonus"] !== -1 ? primaryCard.cardBonus["Power Bonus"] || 0 : 0,

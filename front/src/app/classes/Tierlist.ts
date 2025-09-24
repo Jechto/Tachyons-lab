@@ -5,6 +5,7 @@ import {
     RaceTypes,
     RunningTypes,
     StatsDict,
+    HintResult,
 } from "../types/cardTypes";
 import { ACTIVE_PENALTY_CONFIG, PenaltyConfig } from "../config/penaltyConfig";
 
@@ -14,7 +15,7 @@ interface TierlistCard {
     card_rarity: string;
     limit_break: number;
     card_type: string;
-    hints: any;
+    hints: HintResult;
 }
 
 interface TierlistDeck {
@@ -42,19 +43,20 @@ interface TierlistDeck {
     };
 }
 
-interface TierlistEntry {
+export interface TierlistEntry {
     id: number;
     card_name: string;
     card_rarity: string;
     limit_break: number;
     card_type: string;
-    hints: any;
+    hints: HintResult;
     hintTypes: string[];
     stats: StatsDict;
+    stats_diff_only_added_to_deck: StatsDict;
     score: number;
 }
 
-interface TierlistResponse {
+export interface TierlistSuccess {
     tierlist: Record<string, TierlistEntry[]>;
     deck: TierlistDeck;
     inputDeck: {
@@ -64,6 +66,12 @@ interface TierlistResponse {
     };
 }
 
+export interface TierlistError {
+    success: false;
+    error: string;
+}
+
+export type TierlistResponse = TierlistSuccess | TierlistError;
 export interface LimitBreakFilter {
     R: number[]; // Which limit breaks to include for R cards (0-4)
     SR: number[]; // Which limit breaks to include for SR cards (0-4)
@@ -155,9 +163,9 @@ export class Tierlist {
         };
 
         // Calculate average weights for all selected race types
-        const selectedRaceTypes = [];
-        for (const key of ["Long", "Medium", "Mile", "Sprint"]) {
-            if ((raceTypes as any)[key]) {
+        const selectedRaceTypes: string[] = [];
+        for (const key of ["Long", "Medium", "Mile", "Sprint"] as const) {
+            if (raceTypes[key as keyof RaceTypes]) {
                 selectedRaceTypes.push(key);
             }
         }
@@ -176,7 +184,7 @@ export class Tierlist {
 
             // Sum up weights from all selected race types
             for (const raceType of selectedRaceTypes) {
-                const raceWeights = (allWeights as any)[raceType];
+                const raceWeights = allWeights[raceType as keyof typeof allWeights];
                 for (const [stat, weight] of Object.entries(raceWeights)) {
                     weights[stat] = (weights[stat] || 0) + (weight as number);
                 }
@@ -247,16 +255,7 @@ export class Tierlist {
         }
 
         // Calculate deck stats delta
-        deck.stats = {
-            Speed: 0,
-            Stamina: 0,
-            Power: 0,
-            Guts: 0,
-        };
-        for (const k of Object.keys(baseResultForDeck)) {
-            (deck.stats as any)[k] =
-                (baseResultForDeck as any)[k] - (baseResultEmptyDeck as any)[k];
-        }
+        deck.stats = this.calculateStatsDelta(baseResultForDeck, baseResultEmptyDeck);
         deck.hints = hintsForDeck;
 
         // Calculate deck score using delta stats (consistent with individual card scoring)
@@ -277,6 +276,8 @@ export class Tierlist {
             raceTypes,
         );
 
+        console.log("Deck score breakdown:", deck.scoreBreakdown);
+        console.log("Deck stats:", deck.stats);
         const results: TierlistEntry[] = [];
 
         // Iterate through all cards in data
@@ -313,13 +314,9 @@ export class Tierlist {
                     );
                     const deckHints = tempDeck.evaluateHints();
 
-                    const deltaStat: any = {};
                     // Calculate delta from empty deck (consistent with deck.score calculation)
-                    for (const k of Object.keys(result)) {
-                        deltaStat[k] =
-                            (result as any)[k] - (baseResultEmptyDeck as any)[k];
-                    }
-
+                    const deltaStat = this.calculateStatsDelta(result, baseResultEmptyDeck);
+                    const deltaCardStat = this.calculateStatsDelta(result, baseResultForDeck);
                     // Calculate what the new deck's total score would be with this card added
                     const newDeckScore = this.resultsWithPenaltyToScore(
                         result, // total stats of deck + this card
@@ -346,6 +343,7 @@ export class Tierlist {
                         hints: cardHints,
                         hintTypes: hintTypes,
                         stats: deltaStat,
+                        stats_diff_only_added_to_deck: deltaCardStat,
                         score: cardImpact,
                     });
                 } catch (error) {
@@ -358,7 +356,7 @@ export class Tierlist {
                 }
             }
         }
-
+         console.log("Results", results)
         // Group and sort results by card_type
         const grouped: Record<string, TierlistEntry[]> = {};
         for (const entry of results) {
@@ -621,7 +619,7 @@ export class Tierlist {
         let statOverbuiltPenalty = 1.0;
         let statOverbuiltPenaltyPercent = 0;
         let statOverbuiltPenaltyReason = "No penalty applied";
-        let overbuiltStats: string[] = [];
+        const overbuiltStats: string[] = [];
         let maxOverbuiltPenalty = 0;
 
         // Check each stat for being overbuilt
@@ -675,7 +673,38 @@ export class Tierlist {
             staminaThreshold,
         };
     }
+    private calculateStatsDelta(stats1: StatsDict, stats2: StatsDict): StatsDict {
+        const result: StatsDict = {
+            Speed: (stats1.Speed || 0) - (stats2.Speed || 0),
+            Stamina: (stats1.Stamina || 0) - (stats2.Stamina || 0),
+            Power: (stats1.Power || 0) - (stats2.Power || 0),
+            Guts: (stats1.Guts || 0) - (stats2.Guts || 0),
+        };
 
+        // Handle optional properties - butnp,it and Skill Points since they're commonly used
+        if (stats1.Intelligence !== undefined || stats2.Intelligence !== undefined) {
+            result.Intelligence = (stats1.Intelligence || 0) - (stats2.Intelligence || 0);
+        }
+        
+        // Always include Wit and Skill Points as they're part of the standard calculations
+        result.Wit = (stats1.Wit || 0) - (stats2.Wit || 0);
+        result["Skill Points"] = (stats1["Skill Points"] || 0) - (stats2["Skill Points"] || 0);
+        
+        if (stats1.Energy !== undefined || stats2.Energy !== undefined) {
+            result.Energy = (stats1.Energy || 0) - (stats2.Energy || 0);
+        }
+        if (stats1.Potential !== undefined || stats2.Potential !== undefined) {
+            result.Potential = (stats1.Potential || 0) - (stats2.Potential || 0);
+        }
+        if (stats1.Bond !== undefined || stats2.Bond !== undefined) {
+            result.Bond = (stats1.Bond || 0) - (stats2.Bond || 0);
+        }
+        if (stats1["Skill Hint"] !== undefined || stats2["Skill Hint"] !== undefined) {
+            result["Skill Hint"] = (stats1["Skill Hint"] || 0) - (stats2["Skill Hint"] || 0);
+        }
+
+        return result;
+    }
     private deepCopyDeck(deck: DeckEvaluator): DeckEvaluator {
         const newDeck = new DeckEvaluator();
         // Note: This is a shallow copy of cards. For a true deep copy,

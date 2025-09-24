@@ -52,35 +52,35 @@ export default function TierlistDisplay({
             color: "bg-orange-500",
             textColor: "text-white",
             minScore: getPercentileScore(15),
-            maxScore: getPercentileScore(5) - 0.01,
+            maxScore: getPercentileScore(5),
         },
         {
             name: "B",
             color: "bg-yellow-500",
             textColor: "text-black",
             minScore: getPercentileScore(35),
-            maxScore: getPercentileScore(15) - 0.01,
+            maxScore: getPercentileScore(15),
         },
         {
             name: "C",
             color: "bg-green-500",
             textColor: "text-white",
             minScore: getPercentileScore(55),
-            maxScore: getPercentileScore(35) - 0.01,
+            maxScore: getPercentileScore(35),
         },
         {
             name: "D",
             color: "bg-blue-500",
             textColor: "text-white",
             minScore: getPercentileScore(75),
-            maxScore: getPercentileScore(55) - 0.01,
+            maxScore: getPercentileScore(55),
         },
         {
             name: "E",
             color: "bg-purple-500",
             textColor: "text-white",
             minScore: getPercentileScore(90),
-            maxScore: getPercentileScore(75) - 0.01,
+            maxScore: getPercentileScore(75),
         },
         {
             name: "F",
@@ -99,11 +99,15 @@ export default function TierlistDisplay({
     ];
 
     const assignTier = (score: number): TierDefinition => {
-        return (
-            dynamicTiers.find(
-                (tier) => score >= tier.minScore && score <= tier.maxScore,
-            ) || dynamicTiers[dynamicTiers.length - 1]
-        );
+        // Find the first tier where the score is >= minScore
+        // Since tiers are ordered from high to low, this will give us the correct tier
+        for (let i = 0; i < dynamicTiers.length; i++) {
+            if (score >= dynamicTiers[i].minScore) {
+                return dynamicTiers[i];
+            }
+        }
+        // If no tier found, return the lowest tier (G)
+        return dynamicTiers[dynamicTiers.length - 1];
     };
 
     // Group cards by tier
@@ -117,8 +121,10 @@ export default function TierlistDisplay({
                 .sort((a, b) => b.score - a.score); // Sort by score descending within tier
             return acc;
         },
-        {} as Record<string, TierlistEntry[]>,
+                {} as Record<string, TierlistEntry[]>,
     );
+
+
 
     return (
         <div className="w-full space-y-4">

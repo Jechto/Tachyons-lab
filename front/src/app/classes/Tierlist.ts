@@ -120,8 +120,6 @@ export class Tierlist {
             };
         }
 
-        console.log(raceTypes);
-
         let weights: Record<string, number> = {};
         const allWeights = {
             Sprint: {
@@ -194,11 +192,6 @@ export class Tierlist {
             for (const stat in weights) {
                 weights[stat] = weights[stat] / selectedRaceTypes.length;
             }
-
-            console.log(
-                `Using average weights for ${selectedRaceTypes.join(", ")}:`,
-                weights,
-            );
         }
 
         // Create a deep copy of the deck
@@ -276,8 +269,6 @@ export class Tierlist {
             raceTypes,
         );
 
-        console.log("Deck score breakdown:", deck.scoreBreakdown);
-        console.log("Deck stats:", deck.stats);
         const results: TierlistEntry[] = [];
 
         // Iterate through all cards in data
@@ -330,6 +321,8 @@ export class Tierlist {
                     const currentDeckScore = deck.score;
                     const cardImpact = newDeckScore - currentDeckScore;
 
+
+
                     // Extract hint types for this card
                     const cardInstance = new SupportCard(cardId, limitBreak, allData);
                     const hintTypes = cardInstance.extractHintTypes();
@@ -356,7 +349,7 @@ export class Tierlist {
                 }
             }
         }
-         console.log("Results", results)
+
         // Group and sort results by card_type
         const grouped: Record<string, TierlistEntry[]> = {};
         for (const entry of results) {
@@ -493,7 +486,9 @@ export class Tierlist {
             staminaPenaltyPercent + usefulHintsPenaltyPercent + statOverbuiltPenaltyPercent;
         const finalMultiplier = 1.0 - totalPenaltyPercent;
 
-        return baseScore * finalMultiplier;
+        const finalScore = baseScore * finalMultiplier;
+
+        return finalScore;
     }
 
     public getScoreBreakdown(

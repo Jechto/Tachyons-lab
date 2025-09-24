@@ -304,7 +304,7 @@ export default function Home() {
                 }}
             />
             
-            <div className="flex min-h-screen flex-col items-center justify-center p-24">
+            <div className="flex min-h-screen flex-col items-center justify-center p-24 max-w-8xl mx-auto">
             <header className="text-center mb-8">
                 <h1 className="text-6xl font-bold mb-4">
                     Tachyons Lab

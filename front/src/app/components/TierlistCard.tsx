@@ -1,6 +1,6 @@
 import Image from "next/image";
 import CardTooltip from "./CardTooltip";
-import { StatsDict } from "../types/cardTypes";
+import { StatsDict, HintResult } from "../types/cardTypes";
 
 interface TierlistCardProps {
     id: number;
@@ -16,7 +16,7 @@ interface TierlistCardProps {
     disabledReason?: string; // Optional reason for why the card is disabled
     // New props for tooltip
     deltaStats?: StatsDict;
-    hints?: any; // Contains useful_hints_rate and other hint data
+    hints?: HintResult; // Contains useful_hints_rate and other hint data
     hintTypes?: string[]; // Types of hints this card produces
 }
 
@@ -115,7 +115,7 @@ export default function TierlistCard({
         }
     };
 
-    const hintsMatchPercentage = hints?.useful_hints_rate ? hints.useful_hints_rate * 100 : 0;
+    const hintsMatchPercentage = hints?.useful_hints_rate ? (hints.useful_hints_rate as number) * 100 : 0;
 
     const cardContent = (
         <div

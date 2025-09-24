@@ -5,6 +5,7 @@ import {
     RaceTypes,
     RunningTypes,
     StatsDict,
+    HintResult,
 } from "../types/cardTypes";
 import { ACTIVE_PENALTY_CONFIG, PenaltyConfig } from "../config/penaltyConfig";
 
@@ -14,7 +15,7 @@ interface TierlistCard {
     card_rarity: string;
     limit_break: number;
     card_type: string;
-    hints: any;
+    hints: HintResult;
 }
 
 interface TierlistDeck {
@@ -42,20 +43,20 @@ interface TierlistDeck {
     };
 }
 
-interface TierlistEntry {
+export interface TierlistEntry {
     id: number;
     card_name: string;
     card_rarity: string;
     limit_break: number;
     card_type: string;
-    hints: any;
+    hints: HintResult;
     hintTypes: string[];
     stats: StatsDict;
     stats_diff_only_added_to_deck: StatsDict;
     score: number;
 }
 
-interface TierlistResponse {
+export interface TierlistSuccess {
     tierlist: Record<string, TierlistEntry[]>;
     deck: TierlistDeck;
     inputDeck: {
@@ -64,6 +65,13 @@ interface TierlistResponse {
         runningTypes: RunningTypes;
     };
 }
+
+export interface TierlistError {
+    success: false;
+    error: string;
+}
+
+export type TierlistResponse = TierlistSuccess | TierlistError;
 
 export interface LimitBreakFilter {
     R: number[]; // Which limit breaks to include for R cards (0-4)
@@ -156,9 +164,9 @@ export class Tierlist {
         };
 
         // Calculate average weights for all selected race types
-        const selectedRaceTypes = [];
-        for (const key of ["Long", "Medium", "Mile", "Sprint"]) {
-            if ((raceTypes as any)[key]) {
+        const selectedRaceTypes: string[] = [];
+        for (const key of ["Long", "Medium", "Mile", "Sprint"] as const) {
+            if (raceTypes[key as keyof RaceTypes]) {
                 selectedRaceTypes.push(key);
             }
         }
@@ -177,7 +185,7 @@ export class Tierlist {
 
             // Sum up weights from all selected race types
             for (const raceType of selectedRaceTypes) {
-                const raceWeights = (allWeights as any)[raceType];
+                const raceWeights = allWeights[raceType as keyof typeof allWeights];
                 for (const [stat, weight] of Object.entries(raceWeights)) {
                     weights[stat] = (weights[stat] || 0) + (weight as number);
                 }
@@ -613,7 +621,7 @@ export class Tierlist {
         let statOverbuiltPenalty = 1.0;
         let statOverbuiltPenaltyPercent = 0;
         let statOverbuiltPenaltyReason = "No penalty applied";
-        let overbuiltStats: string[] = [];
+        const overbuiltStats: string[] = [];
         let maxOverbuiltPenalty = 0;
 
         // Check each stat for being overbuilt

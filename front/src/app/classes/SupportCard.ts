@@ -2,7 +2,9 @@ import { parseSignedInt } from "../utils/helpers";
 import {
     CardData,
     CardBonus,
+    CardEffect,
     StatsDict,
+    HintData,
     HintEvaluation,
     HintResult,
     AllEvents,
@@ -31,7 +33,7 @@ export class SupportCard {
     public readonly cardUma: { name: string; id: number };
     public readonly cardType: { type: string; id: number };
     public readonly rarity: number;
-    public readonly hints: any[];
+    public readonly hints: HintData[];
     public readonly eventsStatReward: StatsDict;
     public readonly cardBonus: CardBonus;
     public turnsToMaxBond: number = 0;
@@ -100,7 +102,7 @@ export class SupportCard {
             "Wit Friendship Recovery",
         ];
 
-        const cardBonus: any = {};
+        const cardBonus = {} as Record<string, number>;
         effectNames.forEach((name) => {
             cardBonus[name] = -1;
         });
@@ -111,7 +113,8 @@ export class SupportCard {
         for (const effect of effects) {
             const typeName = effect.type_name;
             if (typeName in cardBonus) {
-                cardBonus[typeName] = (effect as any)[lbKey] ?? -1;
+                const value = (effect as CardEffect)[lbKey as keyof CardEffect];
+                cardBonus[typeName] = typeof value === 'number' ? value : -1;
             }
         }
 
@@ -132,7 +135,7 @@ export class SupportCard {
             }
         }
 
-        this.cardBonus = cardBonus as CardBonus;
+        this.cardBonus = cardBonus as unknown as CardBonus;
     }
 
     private evalStatArray(statDict: StatsDict): number {
@@ -149,7 +152,7 @@ export class SupportCard {
 
         let sum = 0;
         for (const [key, weight] of Object.entries(weights)) {
-            const value = (statDict as any)[key] || 0;
+            const value = (statDict as unknown as Record<string, number>)[key] || 0;
             sum += value * weight;
         }
         return sum;
@@ -168,7 +171,7 @@ export class SupportCard {
             "Skill Hint",
         ];
 
-        const totalBestStats: any = {};
+        const totalBestStats: Record<string, number> = {};
         statKeys.forEach((key) => {
             totalBestStats[key] = 0;
         });
@@ -176,13 +179,13 @@ export class SupportCard {
         const processEvents = (events: EventData[]) => {
             for (const arrowEvent of events) {
                 let bestEval = 0;
-                const bestStats: any = {};
+                const bestStats: Record<string, number> = {};
                 statKeys.forEach((key) => {
                     bestStats[key] = 0;
                 });
 
                 for (const choice of arrowEvent.choices || []) {
-                    const currentStatsForChoice: any = {};
+                    const currentStatsForChoice: Record<string, number> = {};
                     statKeys.forEach((key) => {
                         currentStatsForChoice[key] = 0;
                     });
@@ -197,7 +200,7 @@ export class SupportCard {
                     }
 
                     const evalResult = this.evalStatArray(
-                        currentStatsForChoice,
+                        currentStatsForChoice as unknown as StatsDict,
                     );
                     if (evalResult > bestEval) {
                         bestEval = evalResult;
@@ -215,10 +218,10 @@ export class SupportCard {
         processEvents(allEvents.chain_events || []);
         processEvents(allEvents.dates || []);
 
-        return totalBestStats;
+        return totalBestStats as unknown as StatsDict;
     }
 
-    private parseCondition(conditionStr?: string): any {
+    private parseCondition(conditionStr?: string): Record<string, unknown> {
         if (!conditionStr || conditionStr.trim() === "") {
             return {};
         }
@@ -261,14 +264,16 @@ export class SupportCard {
         }
     }
 
-    private parseTrigger(condition: any, triggerType: string): number {
+    private parseTrigger(condition: unknown, triggerType: string): number {
         if (!condition) {
             return 0;
         }
 
+        const conditionObj = condition as Record<string, unknown>;
+        
         // If this is an OR node
-        if (condition.or) {
-            for (const sub of condition.or) {
+        if (conditionObj.or) {
+            for (const sub of conditionObj.or as unknown[]) {
                 const result = this.parseTrigger(sub, triggerType);
                 if (result !== 0) {
                     return result;
@@ -278,8 +283,8 @@ export class SupportCard {
         }
 
         // If this is an AND node
-        if (condition.and) {
-            for (const sub of condition.and) {
+        if (conditionObj.and) {
+            for (const sub of conditionObj.and as unknown[]) {
                 const result = this.parseTrigger(sub, triggerType);
                 if (result !== 0) {
                     return result;
@@ -289,12 +294,12 @@ export class SupportCard {
         }
 
         // Otherwise, check if this node is the trigger_type
-        if (condition[triggerType]) {
-            const val = condition[triggerType];
+        if (conditionObj[triggerType]) {
+            const val = conditionObj[triggerType] as Record<string, unknown>;
             // val can be a dict like {"op": "==", "value": "1"}
             if (typeof val === "object" && val.op === "==") {
                 try {
-                    return parseInt(val.value || "0");
+                    return parseInt((val.value as string) || "0");
                 } catch {
                     return 0;
                 }

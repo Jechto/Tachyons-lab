@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Tierlist, LimitBreakFilter } from "./classes/Tierlist";
+import { Tierlist, LimitBreakFilter, TierlistResponse, TierlistEntry, TierlistError } from "./classes/Tierlist";
 import { DeckEvaluator } from "./classes/DeckEvaluator";
 import { SupportCard } from "./classes/SupportCard";
 import allDataRaw from "./data/data.json";
@@ -33,7 +33,7 @@ export default function Home() {
     const [selectedStyles, setSelectedStyles] = useState<RunningStyle[]>([
         "Pace Chaser",
     ]);
-    const [tierlistResult, setTierlistResult] = useState<any>(null);
+    const [tierlistResult, setTierlistResult] = useState<TierlistResponse | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
 
     // Filter state
@@ -93,7 +93,7 @@ export default function Home() {
     };
 
     // Deck management functions
-    const handleCardClick = async (card: any) => {
+      const handleCardClick = (card: TierlistEntry) => {
         const cardKey = `${card.id}-${card.limit_break}`;
         const cardId = card.id;
         const newLimitBreak = card.limit_break;
@@ -260,7 +260,7 @@ export default function Home() {
             );
             setTierlistResult(result);
         } catch (error) {
-            setTierlistResult({ success: false, error: error?.toString() });
+            setTierlistResult({ success: false, error: error?.toString() } as TierlistError);
         } finally {
             setIsGenerating(false);
         }
@@ -492,10 +492,11 @@ export default function Home() {
                                 
                                 // Find the corresponding tierlist entry for tooltip data
                                 const findTierlistEntry = () => {
-                                    if (!tierlistResult?.tierlist) return null;
+                                    if (!tierlistResult || !('tierlist' in tierlistResult)) return null;
                                     
+                                    const successResult = tierlistResult;
                                     // Search through all tiers for the matching card
-                                    for (const tier of Object.values(tierlistResult.tierlist)) {
+                                    for (const tier of Object.values(successResult.tierlist)) {
                                         if (Array.isArray(tier)) {
                                             const entry = tier.find(entry => 
                                                 entry.id === card.id && 
@@ -621,8 +622,8 @@ export default function Home() {
                 <StatPreviewer
                     currentDeck={currentDeck}
                     allData={allDataRaw as CardData[]}
-                    deckStats={tierlistResult?.deck?.stats}
-                    scoreBreakdown={tierlistResult?.deck?.scoreBreakdown}
+                    deckStats={tierlistResult && 'deck' in tierlistResult ? tierlistResult.deck.stats : undefined}
+                    scoreBreakdown={tierlistResult && 'deck' in tierlistResult ? tierlistResult.deck.scoreBreakdown : undefined}
                 />
             </div>
 
@@ -630,10 +631,10 @@ export default function Home() {
             {tierlistResult && (
                 <div className="w-full max-w-6xl space-y-6 mb-8">
                     {/* Visual Tierlist */}
-                    {tierlistResult.success !== false && (
+                    {'tierlist' in tierlistResult && (
                         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600">
                             <TierlistDisplay
-                                tierlistData={tierlistResult.tierlist}
+                                tierlistData={'tierlist' in tierlistResult ? tierlistResult.tierlist : {}}
                                 onCardClick={handleCardClick}
                                 deckCardIds={deckCardIds}
                                 isCardDisabled={isCardDisabled}
@@ -647,7 +648,7 @@ export default function Home() {
                         <details className="w-full">
                             <summary className="cursor-pointer text-xl font-bold mb-4 text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400">
                                 📊 Raw JSON Results:{" "}
-                                {tierlistResult.success === false
+                                {'error' in tierlistResult
                                     ? "❌ Failed"
                                     : "✅ Success"}{" "}
                                 (Click to expand)

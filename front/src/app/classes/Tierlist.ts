@@ -247,16 +247,7 @@ export class Tierlist {
         }
 
         // Calculate deck stats delta
-        deck.stats = {
-            Speed: 0,
-            Stamina: 0,
-            Power: 0,
-            Guts: 0,
-        };
-        for (const k of Object.keys(baseResultForDeck)) {
-            (deck.stats as any)[k] =
-                (baseResultForDeck as any)[k] - (baseResultEmptyDeck as any)[k];
-        }
+        deck.stats = this.calculateStatsDelta(baseResultForDeck, baseResultEmptyDeck);
         deck.hints = hintsForDeck;
 
         // Calculate deck score using delta stats (consistent with individual card scoring)
@@ -276,6 +267,9 @@ export class Tierlist {
             weights,
             raceTypes,
         );
+
+        console.log("Deck score breakdown:", deck.scoreBreakdown);
+        console.log("Deck stats:", deck.stats);
 
         const results: TierlistEntry[] = [];
 
@@ -313,12 +307,8 @@ export class Tierlist {
                     );
                     const deckHints = tempDeck.evaluateHints();
 
-                    const deltaStat: any = {};
                     // Calculate delta from empty deck (consistent with deck.score calculation)
-                    for (const k of Object.keys(result)) {
-                        deltaStat[k] =
-                            (result as any)[k] - (baseResultEmptyDeck as any)[k];
-                    }
+                    const deltaStat = this.calculateStatsDelta(result, baseResultEmptyDeck);
 
                     // Calculate what the new deck's total score would be with this card added
                     const newDeckScore = this.resultsWithPenaltyToScore(
@@ -674,6 +664,39 @@ export class Tierlist {
             activeRaceTypes,
             staminaThreshold,
         };
+    }
+
+    private calculateStatsDelta(stats1: StatsDict, stats2: StatsDict): StatsDict {
+        const result: StatsDict = {
+            Speed: (stats1.Speed || 0) - (stats2.Speed || 0),
+            Stamina: (stats1.Stamina || 0) - (stats2.Stamina || 0),
+            Power: (stats1.Power || 0) - (stats2.Power || 0),
+            Guts: (stats1.Guts || 0) - (stats2.Guts || 0),
+        };
+
+        // Handle optional properties - butnp,it and Skill Points since they're commonly used
+        if (stats1.Intelligence !== undefined || stats2.Intelligence !== undefined) {
+            result.Intelligence = (stats1.Intelligence || 0) - (stats2.Intelligence || 0);
+        }
+        
+        // Always include Wit and Skill Points as they're part of the standard calculations
+        result.Wit = (stats1.Wit || 0) - (stats2.Wit || 0);
+        result["Skill Points"] = (stats1["Skill Points"] || 0) - (stats2["Skill Points"] || 0);
+        
+        if (stats1.Energy !== undefined || stats2.Energy !== undefined) {
+            result.Energy = (stats1.Energy || 0) - (stats2.Energy || 0);
+        }
+        if (stats1.Potential !== undefined || stats2.Potential !== undefined) {
+            result.Potential = (stats1.Potential || 0) - (stats2.Potential || 0);
+        }
+        if (stats1.Bond !== undefined || stats2.Bond !== undefined) {
+            result.Bond = (stats1.Bond || 0) - (stats2.Bond || 0);
+        }
+        if (stats1["Skill Hint"] !== undefined || stats2["Skill Hint"] !== undefined) {
+            result["Skill Hint"] = (stats1["Skill Hint"] || 0) - (stats2["Skill Hint"] || 0);
+        }
+
+        return result;
     }
 
     private deepCopyDeck(deck: DeckEvaluator): DeckEvaluator {

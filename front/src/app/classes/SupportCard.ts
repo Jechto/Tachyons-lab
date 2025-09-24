@@ -134,7 +134,6 @@ export class SupportCard {
                 }
             }
         }
-
         this.cardBonus = cardBonus as unknown as CardBonus;
     }
 
@@ -172,6 +171,7 @@ export class SupportCard {
         ];
 
         const totalBestStats: Record<string, number> = {};
+        const totalBestStats: any = {};
         statKeys.forEach((key) => {
             totalBestStats[key] = 0;
         });

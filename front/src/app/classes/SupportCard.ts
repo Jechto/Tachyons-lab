@@ -171,6 +171,7 @@ export class SupportCard {
         ];
 
         const totalBestStats: Record<string, number> = {};
+        const totalBestStats: any = {};
         statKeys.forEach((key) => {
             totalBestStats[key] = 0;
         });

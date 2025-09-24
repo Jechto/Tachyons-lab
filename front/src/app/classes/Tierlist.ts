@@ -72,7 +72,6 @@ export interface TierlistError {
 }
 
 export type TierlistResponse = TierlistSuccess | TierlistError;
-
 export interface LimitBreakFilter {
     R: number[]; // Which limit breaks to include for R cards (0-4)
     SR: number[]; // Which limit breaks to include for SR cards (0-4)
@@ -279,7 +278,6 @@ export class Tierlist {
 
         console.log("Deck score breakdown:", deck.scoreBreakdown);
         console.log("Deck stats:", deck.stats);
-
         const results: TierlistEntry[] = [];
 
         // Iterate through all cards in data
@@ -675,7 +673,6 @@ export class Tierlist {
             staminaThreshold,
         };
     }
-
     private calculateStatsDelta(stats1: StatsDict, stats2: StatsDict): StatsDict {
         const result: StatsDict = {
             Speed: (stats1.Speed || 0) - (stats2.Speed || 0),
@@ -708,7 +705,6 @@ export class Tierlist {
 
         return result;
     }
-
     private deepCopyDeck(deck: DeckEvaluator): DeckEvaluator {
         const newDeck = new DeckEvaluator();
         // Note: This is a shallow copy of cards. For a true deep copy,

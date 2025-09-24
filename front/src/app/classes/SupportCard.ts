@@ -134,7 +134,6 @@ export class SupportCard {
                 }
             }
         }
-
         this.cardBonus = cardBonus as unknown as CardBonus;
     }
 

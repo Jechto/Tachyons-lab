@@ -1,6 +1,7 @@
 import TierlistCard from "./TierlistCard";
 
 interface TierlistEntry {
+    stats_diff_only_added_to_deck: StatsDict | undefined;
     id: number;
     card_name: string;
     card_rarity: string;
@@ -177,7 +178,7 @@ export default function TierlistDisplay({
                                             onClick={() => onCardClick?.(card)}
                                             isInDeck={isDisabled}
                                             disabledReason={disabledInfo.reason}
-                                            deltaStats={card.stats}
+                                            deltaStats={card.stats_diff_only_added_to_deck}
                                             hints={card.hints}
                                             hintTypes={card.hintTypes}
                                         />

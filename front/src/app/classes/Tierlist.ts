@@ -51,6 +51,7 @@ interface TierlistEntry {
     hints: any;
     hintTypes: string[];
     stats: StatsDict;
+    stats_diff_only_added_to_deck: StatsDict;
     score: number;
 }
 
@@ -309,7 +310,7 @@ export class Tierlist {
 
                     // Calculate delta from empty deck (consistent with deck.score calculation)
                     const deltaStat = this.calculateStatsDelta(result, baseResultEmptyDeck);
-
+                    const deltaCardStat = this.calculateStatsDelta(result, baseResultForDeck);
                     // Calculate what the new deck's total score would be with this card added
                     const newDeckScore = this.resultsWithPenaltyToScore(
                         result, // total stats of deck + this card
@@ -336,6 +337,7 @@ export class Tierlist {
                         hints: cardHints,
                         hintTypes: hintTypes,
                         stats: deltaStat,
+                        stats_diff_only_added_to_deck: deltaCardStat,
                         score: cardImpact,
                     });
                 } catch (error) {
@@ -348,7 +350,7 @@ export class Tierlist {
                 }
             }
         }
-
+         console.log("Results", results)
         // Group and sort results by card_type
         const grouped: Record<string, TierlistEntry[]> = {};
         for (const entry of results) {

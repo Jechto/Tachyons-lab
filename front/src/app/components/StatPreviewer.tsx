@@ -3,6 +3,7 @@ import Image from "next/image";
 import { DeckEvaluator } from "../classes/DeckEvaluator";
 import { SupportCard } from "../classes/SupportCard";
 import { CardData } from "../types/cardTypes";
+import { getAssetPath } from "../utils/paths";
 
 interface DeckCard {
     id: number;
@@ -216,21 +217,21 @@ export default function StatPreviewer({
     const getStatIcon = (statName: string): string => {
         switch (statName) {
             case "Speed":
-                return "/images/icons/Speed.png";
+                return getAssetPath("images/icons/Speed.png");
             case "Stamina":
-                return "/images/icons/Stamina.png";
+                return getAssetPath("images/icons/Stamina.png");
             case "Power":
-                return "/images/icons/Power.png";
+                return getAssetPath("images/icons/Power.png");
             case "Guts":
-                return "/images/icons/Guts.png";
+                return getAssetPath("images/icons/Guts.png");
             case "Wit":
-                return "/images/icons/Intelligence.png";
+                return getAssetPath("images/icons/Intelligence.png");
             case "Skill Points":
-                return "/images/icons/SkillPoint.png";
+                return getAssetPath("images/icons/SkillPoint.png");
             case "Hints":
-                return "/images/icons/Hint.png";
+                return getAssetPath("images/icons/Hint.png");
             default:
-                return "/images/icons/Support.png";
+                return getAssetPath("images/icons/Support.png");
         }
     };
 

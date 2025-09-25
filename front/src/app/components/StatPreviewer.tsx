@@ -338,8 +338,8 @@ export default function StatPreviewer({
                     </div>
 
                     <div className="mt-3 text-xs text-center text-purple-600 dark:text-purple-400">
-                        💡 Shows total stats from your deck with the delta
-                        compared to an empty deck in parentheses
+                        💡 Shows total stats acquired from training and running with your deck.
+                        Numbers in brackets show the delta compared to an empty deck
                     </div>
 
                     {/* Score Breakdown Section - Always show when expanded */}
@@ -429,7 +429,7 @@ export default function StatPreviewer({
                                                             ? "+"
                                                             : ""}
                                                         {stat.contribution.toFixed(
-                                                            1,
+                                                            0,
                                                         )}
                                                     </div>
                                                 </div>
@@ -444,7 +444,7 @@ export default function StatPreviewer({
                                                 </div>
                                                 <div className="text-right text-base font-bold text-gray-800 dark:text-gray-200 font-mono">
                                                     {scoreBreakdown.baseScore.toFixed(
-                                                        1,
+                                                        0,
                                                     )}
                                                 </div>
                                             </div>
@@ -474,7 +474,7 @@ export default function StatPreviewer({
                                                             scoreBreakdown.baseScore *
                                                             (1 -
                                                                 scoreBreakdown.staminaPenalty)
-                                                        ).toFixed(1)}
+                                                        ).toFixed(0)}
                                                     </div>
                                                 </div>
                                                 <div className="mt-1 text-xs text-red-600 dark:text-red-400 col-span-4">
@@ -510,7 +510,7 @@ export default function StatPreviewer({
                                                             scoreBreakdown.baseScore *
                                                             (1 -
                                                                 scoreBreakdown.usefulHintsPenalty)
-                                                        ).toFixed(1)}
+                                                        ).toFixed(0)}
                                                     </div>
                                                 </div>
                                                 <div className="mt-1 text-xs text-orange-600 dark:text-orange-400 col-span-4">
@@ -543,7 +543,7 @@ export default function StatPreviewer({
                                                         {(
                                                             scoreBreakdown.baseScore *
                                                             (1 - scoreBreakdown.statOverbuiltPenalty)
-                                                        ).toFixed(1)}
+                                                        ).toFixed(0)}
                                                     </div>
                                                 </div>
                                                 <div className="mt-1 text-xs text-purple-600 dark:text-purple-400 col-span-4">
@@ -560,7 +560,7 @@ export default function StatPreviewer({
                                                 </div>
                                                 <div className="text-right text-xl font-bold text-green-600 dark:text-green-400 font-mono">
                                                     {scoreBreakdown.totalScore.toFixed(
-                                                        1,
+                                                        0,
                                                     )}
                                                 </div>
                                             </div>

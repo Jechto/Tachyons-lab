@@ -12,6 +12,7 @@ interface CardTooltipProps {
     hintsMatchPercentage: number;
     hintTypes?: string[];
     className?: string;
+    isInDeck?: boolean;
 }
 
 function formatStatChange(value: number, statName: string): string {
@@ -30,7 +31,8 @@ export default function CardTooltip({
     deltaStats,
     hintsMatchPercentage,
     hintTypes = [],
-    className = ""
+    className = "",
+    isInDeck = false
 }: CardTooltipProps) {
     const [isVisible, setIsVisible] = useState(false);
     const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -180,8 +182,8 @@ export default function CardTooltip({
                             </div>
                         )}
                         
-                        {/* Delta Stats */}
-                        {deltaStatsDisplay.length > 0 && (
+                        {/* Delta Stats - only show if card is not in deck */}
+                        {!isInDeck && deltaStatsDisplay.length > 0 && (
                             <div>
                                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Stat Changes:

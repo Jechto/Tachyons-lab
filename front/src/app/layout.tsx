@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     title: "Tachyons Lab - Uma Musume Tierlist and Deckbuilder Tool",
     description: "Free Uma Musume support card tierlist generator and deckbuilder. Optimize your support card deck with AI-powered recommendations for different race types and running styles.",
     keywords: "Uma Musume, tierlist, deckbuilder, support cards, optimization, racing, horse girls, Cygames",
-    authors: [{ name: "Tachyons Lab" }],
+    authors: [{ name: "Jechto" }],
     openGraph: {
         title: "Tachyons Lab - Uma Musume Tierlist & Deckbuilder",
         description: "Free Uma Musume support card optimization tool with tierlist generation and deckbuilding",

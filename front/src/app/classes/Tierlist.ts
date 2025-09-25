@@ -128,8 +128,8 @@ export class Tierlist {
                 Power: 0.75,
                 Guts: 0.5,
                 Wit: 0.75,
-                "Skill Points": 0.2,
-                Hints: 4.0,
+                "Skill Points": 0.4,
+                Hints: 5.0,
             },
             Mile: {
                 Speed: 2.25,
@@ -137,8 +137,8 @@ export class Tierlist {
                 Power: 0.75,
                 Guts: 0.5,
                 Wit: 0.75,
-                "Skill Points": 0.2,
-                Hints: 4.0,
+                "Skill Points": 0.4,
+                Hints: 6.0,
             },
             Medium: {
                 Speed: 1.75,
@@ -146,8 +146,8 @@ export class Tierlist {
                 Power: 0.75,
                 Guts: 0.5,
                 Wit: 0.75,
-                "Skill Points": 0.2,
-                Hints: 4.0,
+                "Skill Points": 0.4,
+                Hints: 6.0,
             },
             Long: {
                 Speed: 1.25,
@@ -155,8 +155,8 @@ export class Tierlist {
                 Power: 0.75,
                 Guts: 0.5,
                 Wit: 0.75,
-                "Skill Points": 0.2,
-                Hints: 4.0,
+                "Skill Points": 0.4,
+                Hints: 6.0,
             },
         };
 

@@ -304,7 +304,7 @@ export default function Home() {
                 }}
             />
             
-            <div className="flex min-h-screen flex-col items-center justify-center p-24 max-w-8xl mx-auto">
+            <div className="flex min-h-screen flex-col items-center justify-center p-24 max-w-7xl mx-auto">
             <header className="text-center mb-8">
                 <h1 className="text-6xl font-bold mb-4">
                     Tachyons Lab
@@ -459,7 +459,7 @@ export default function Home() {
                         }
                         className="bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-8 rounded-lg transition-colors"
                     >
-                        {isGenerating ? "🔄 Generating..." : "🏆 Get Tierlist"}
+                        {isGenerating ? "Generating..." : "Get Tierlist"}
                     </button>
                 </div>
 
@@ -563,7 +563,7 @@ export default function Home() {
                         {currentDeck.length > 0 && (
                             <div className="mt-4 pt-3 border-t border-blue-200 dark:border-blue-600">
                                 <h5 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
-                                    📖 View Cards on Gametora:
+                                    View Cards on Gametora:
                                 </h5>
                                 <div className="flex flex-wrap gap-2">
                                     {currentDeck.map((card) => {
@@ -608,7 +608,7 @@ export default function Home() {
                             </p>
                             {canAutoRegenerate() && (
                                 <p className="text-xs mt-2 text-blue-600 dark:text-blue-400">
-                                    🔄 Tierlist will auto-update as you build
+                                    Tierlist will auto-update as you build
                                     your deck
                                 </p>
                             )}
@@ -642,42 +642,8 @@ export default function Home() {
                             />
                         </div>
                     )}
-
-                    {/* JSON Results (Collapsible) */}
-                    <div className="hidden bg-gray-100 dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600">
-                        <details className="w-full">
-                            <summary className="cursor-pointer text-xl font-bold mb-4 text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400">
-                                📊 Raw JSON Results:{" "}
-                                {'error' in tierlistResult
-                                    ? "❌ Failed"
-                                    : "✅ Success"}{" "}
-                                (Click to expand)
-                            </summary>
-                            <div className="max-h-96 overflow-auto bg-white dark:bg-gray-900 p-4 rounded border mt-4">
-                                <pre className="text-sm text-gray-800 dark:text-gray-200">
-                                    {JSON.stringify(tierlistResult, null, 2)}
-                                </pre>
-                            </div>
-                        </details>
-                    </div>
                 </div>
             )}
-
-            <div className="hidden flex gap-6 mb-12">
-                <a
-                    href="/test"
-                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
-                >
-                    🧪 Testing & Debug
-                </a>
-
-                <button
-                    disabled
-                    className="bg-gray-400 text-white font-bold py-3 px-6 rounded-lg cursor-not-allowed"
-                >
-                    🃏 Deckbuilder (Coming Soon)
-                </button>
-            </div>
 
             <div className="mt-8 text-center text-gray-500 dark:text-gray-400">
                 <p className="text-lg font-medium mb-4">Uma Musume support card optimization tools</p>

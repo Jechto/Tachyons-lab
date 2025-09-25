@@ -11,6 +11,11 @@ import {
     EventData,
 } from "../types/cardTypes";
 
+/**
+ * SupportCard - Quantitative analysis engine for card performance
+ * Applies scientific methodology to calculate training effectiveness
+ * Following the Tachyon principle: Precision through mathematical modeling
+ */
 export class SupportCard {
     private static readonly nameToLmb: Record<number, string> = {
         0: "0lb",

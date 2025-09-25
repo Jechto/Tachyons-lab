@@ -368,7 +368,7 @@ export default function StatPreviewer({
                                                 Weight
                                             </div>
                                             <div className="text-right">
-                                                Sum
+                                                ∑
                                             </div>
                                         </div>
                                     </div>
@@ -588,7 +588,7 @@ export default function StatPreviewer({
                                                 Weight
                                             </div>
                                             <div className="text-right">
-                                                Sum
+                                                ∑
                                             </div>
                                         </div>
                                     </div>

@@ -305,17 +305,44 @@ export default function Home() {
             />
             
             <div className="flex min-h-screen flex-col items-center justify-center p-24 max-w-7xl mx-auto">
-            <header className="text-center mb-8">
-                <h1 className="text-6xl font-bold mb-4">
-                    Tachyons Lab
-                </h1>
-                <h2 className="text-2xl mb-4 text-gray-600 dark:text-gray-400">
-                    Uma Musume Tierlist and Deckbuilder
-                </h2>
-                <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
-                    Generate optimized support card tierlists and build perfect decks for your Uma Musume races. 
-                    Analyze card synergies, stat distributions, and hint effectiveness for any racing strategy.
-                </p>
+            <header className="text-center mb-8 relative min-h-[250px]">
+                {/* Logo Background - positioned much higher up */}
+                <div className="absolute -top-16 md:-top-20 left-1/2 transform -translate-x-1/2 pointer-events-none">
+                    <div className="relative">
+                        {/* Medium-sized logo for desktop */}
+                        <Image
+                            src="/images/logo/logo512.png"
+                            alt="Tachyons Lab Logo"
+                            width={200}
+                            height={200}
+                            className="opacity-40 dark:opacity-30 hidden md:block"
+                            priority
+                        />
+                        {/* Smaller logo for mobile */}
+                        <Image
+                            src="/images/logo/logo128.png"
+                            alt="Tachyons Lab Logo"
+                            width={160}
+                            height={160}
+                            className="opacity-40 dark:opacity-30 md:hidden"
+                            priority
+                        />
+                    </div>
+                </div>
+                
+                {/* Text Content - moved up significantly for better positioning */}
+                <div className="relative z-10 pt-8 md:pt-12">
+                    <h1 className="text-6xl font-bold mb-4">
+                        Tachyons Lab
+                    </h1>
+                    <h2 className="text-2xl mb-4 text-gray-600 dark:text-gray-400">
+                        Uma Musume Tierlist and Deckbuilder
+                    </h2>
+                    <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
+                        Generate optimized support card tierlists and build perfect decks for your Uma Musume races. 
+                        Analyze card synergies, stat distributions, and hint effectiveness for any racing strategy.
+                    </p>
+                </div>
             </header>
 
             {/* Tierlist Configuration Form */}

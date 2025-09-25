@@ -129,7 +129,7 @@ export class Tierlist {
                 Guts: 0.5,
                 Wit: 0.75,
                 "Skill Points": 0.4,
-                Hints: 5.0,
+                Hints: 6.0,
             },
             Mile: {
                 Speed: 2.25,

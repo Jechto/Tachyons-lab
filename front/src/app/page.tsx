@@ -10,6 +10,7 @@ import { CardData } from "./types/cardTypes";
 import TierlistDisplay from "./components/TierlistDisplay";
 import TierlistCard from "./components/TierlistCard";
 import StatPreviewer from "./components/StatPreviewer";
+import { getAssetPath } from "./utils/paths";
 
 // Types for our form state
 type RaceType = "Sprint" | "Mile" | "Medium" | "Long";
@@ -311,21 +312,23 @@ export default function Home() {
                     <div className="relative">
                         {/* Medium-sized logo for desktop */}
                         <Image
-                            src="/images/logo/logo512.png"
+                            src={getAssetPath("/images/logo/logo512.png")}
                             alt="Tachyons Lab Logo"
                             width={200}
                             height={200}
                             className="opacity-40 dark:opacity-30 hidden md:block"
                             priority
+                            unoptimized
                         />
                         {/* Smaller logo for mobile */}
                         <Image
-                            src="/images/logo/logo128.png"
+                            src={getAssetPath("/images/logo/logo128.png")}
                             alt="Tachyons Lab Logo"
                             width={160}
                             height={160}
                             className="opacity-40 dark:opacity-30 md:hidden"
                             priority
+                            unoptimized
                         />
                     </div>
                 </div>

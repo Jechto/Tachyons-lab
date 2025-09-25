@@ -360,30 +360,33 @@ export default function Home() {
                         <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
                             Race Types
                         </h4>
-                        <div className="space-y-3">
-                            {raceTypes.map((race) => (
-                                <label
-                                    key={race.value}
-                                    className="flex items-center space-x-3 cursor-pointer"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedRaces.includes(
-                                            race.value,
-                                        )}
-                                        onChange={(e) =>
-                                            handleRaceChange(
-                                                race.value,
-                                                e.target.checked,
-                                            )
-                                        }
-                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                                    />
-                                    <span className="text-gray-900 dark:text-gray-100">
+                        <div className="flex flex-wrap gap-2">
+                            {raceTypes.map((race) => {
+                                const isSelected = selectedRaces.includes(race.value);
+                                return (
+                                    <label
+                                        key={race.value}
+                                        className={`cursor-pointer p-3 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                                            isSelected
+                                                ? "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+                                                : "bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-500"
+                                        }`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            onChange={(e) =>
+                                                handleRaceChange(
+                                                    race.value,
+                                                    e.target.checked,
+                                                )
+                                            }
+                                            className="sr-only"
+                                        />
                                         {race.label}
-                                    </span>
-                                </label>
-                            ))}
+                                    </label>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -392,30 +395,33 @@ export default function Home() {
                         <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
                             Running Styles
                         </h4>
-                        <div className="space-y-3">
-                            {runningStyles.map((style) => (
-                                <label
-                                    key={style.value}
-                                    className="flex items-center space-x-3 cursor-pointer"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedStyles.includes(
-                                            style.value,
-                                        )}
-                                        onChange={(e) =>
-                                            handleStyleChange(
-                                                style.value,
-                                                e.target.checked,
-                                            )
-                                        }
-                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                                    />
-                                    <span className="text-gray-900 dark:text-gray-100">
+                        <div className="flex flex-wrap gap-2">
+                            {runningStyles.map((style) => {
+                                const isSelected = selectedStyles.includes(style.value);
+                                return (
+                                    <label
+                                        key={style.value}
+                                        className={`cursor-pointer p-3 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                                            isSelected
+                                                ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
+                                                : "bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-500"
+                                        }`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            onChange={(e) =>
+                                                handleStyleChange(
+                                                    style.value,
+                                                    e.target.checked,
+                                                )
+                                            }
+                                            className="sr-only"
+                                        />
                                         {style.label}
-                                    </span>
-                                </label>
-                            ))}
+                                    </label>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
@@ -448,30 +454,33 @@ export default function Home() {
                                     </button>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    {[0, 1, 2, 3, 4].map((lb) => (
-                                        <label
-                                            key={lb}
-                                            className="flex items-center space-x-1 cursor-pointer"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={limitBreakFilter[
-                                                    rarity
-                                                ].includes(lb)}
-                                                onChange={(e) =>
-                                                    handleFilterChange(
-                                                        rarity,
-                                                        lb,
-                                                        e.target.checked,
-                                                    )
-                                                }
-                                                className="w-3 h-3 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-1 dark:bg-gray-600 dark:border-gray-500"
-                                            />
-                                            <span className="text-sm text-gray-700 dark:text-gray-300">
+                                    {[0, 1, 2, 3, 4].map((lb) => {
+                                        const isSelected = limitBreakFilter[rarity].includes(lb);
+                                        return (
+                                            <label
+                                                key={lb}
+                                                className={`cursor-pointer p-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                                                    isSelected
+                                                        ? "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200"
+                                                        : "bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-500"
+                                                }`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isSelected}
+                                                    onChange={(e) =>
+                                                        handleFilterChange(
+                                                            rarity,
+                                                            lb,
+                                                            e.target.checked,
+                                                        )
+                                                    }
+                                                    className="sr-only"
+                                                />
                                                 {lb === 4 ? "MLB" : `${lb}LB`}
-                                            </span>
-                                        </label>
-                                    ))}
+                                            </label>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ))}

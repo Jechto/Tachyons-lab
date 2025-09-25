@@ -305,7 +305,7 @@ export default function Home() {
                 }}
             />
             
-            <div className="flex min-h-screen flex-col items-center justify-center p-24 max-w-7xl mx-auto">
+            <div className="flex min-h-screen flex-col items-center justify-center p-4 md:p-12 lg:p-24 max-w-7xl mx-auto">
             <header className="text-center mb-8 relative min-h-[250px]">
                 {/* Logo Background - positioned much higher up */}
                 <div className="absolute -top-16 md:-top-20 left-1/2 transform -translate-x-1/2 pointer-events-none">

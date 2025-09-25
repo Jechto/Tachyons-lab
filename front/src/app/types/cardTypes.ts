@@ -53,6 +53,7 @@ export interface CardData {
     unique_effects?: UniqueEffect[];
     all_events?: AllEvents;
     hints_table?: HintData[];
+    hints_event_table?: HintData[];
 }
 
 export interface CardBonus {

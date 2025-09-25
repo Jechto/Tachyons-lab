@@ -54,7 +54,9 @@ class Database:
         cursor.execute('SELECT id, chara_id AS chara_id_card, rarity, effect_table_id, unique_effect_id, command_id, skill_set_id FROM support_card_data')
         result = cursor.fetchall()
         conn.close()
-        support_cards = existing_support_cards
+        
+        # Initialize support_cards as empty list if existing_support_cards is None
+        support_cards = existing_support_cards if existing_support_cards is not None else []
 
         # Build a set of existing IDs for fast lookup
         existing_ids = set()
@@ -85,6 +87,7 @@ class Database:
             row_dict["prefered_type"] = prefered_type[1]
             row_dict["effects"] = effects
             row_dict["hints_table"] = self.get_support_card_hints(card_id=id_)
+            row_dict["hints_event_table"] = []  # Will be populated from events
 
             if unique_effect_id == 0:
                 row_dict["unique_effect_id"] = None

@@ -62,7 +62,8 @@ export class SupportCard {
         };
 
         this.rarity = cardData.rarity || -1;
-        this.hints = cardData.hints_table || [];
+        // Combine regular hints and event hints
+        this.hints = [...(cardData.hints_table || []), ...(cardData.hints_event_table || [])];
         this.eventsStatReward = this.findBestEventChoice(
             cardData.all_events || { chain_events: [], dates: [] },
         );

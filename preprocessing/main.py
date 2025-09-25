@@ -9,10 +9,11 @@ def main() -> None:
     parser.add_argument('--db', default='./db/master.mdb', help='Path to the Access database file')
     parser.add_argument('--output_data', default='../front/src/app/data/data.json', help='Path to output JSON file')
     parser.add_argument('--output_images', default='../front/public/images/cards/', help='Path to output images directory')
+    parser.add_argument('--del', action='store_true', default=False, help='Skip loading existing data.json and start fresh')
     args = parser.parse_args()
 
     data_collector = DataCollector()
-    data = data_collector.get_data(db_path=args.db, output_path=args.output_data)
+    data = data_collector.get_data(db_path=args.db, output_path=args.output_data, skip_existing=getattr(args, 'del'))
 
     if data is None:
         print("No data available. Exiting.")

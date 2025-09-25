@@ -17,14 +17,16 @@ class DataCollector:
             cls._instance = super(DataCollector, cls).__new__(cls)
         return cls._instance
 
-    def get_data(self, db_path: str = None, output_path: str = None) -> Optional[Any]:
+    def get_data(self, db_path: str = None, output_path: str = None, skip_existing: bool = False) -> Optional[Any]:
         skip_dl = False
         if db_path is None or output_path is None:
             skip_dl = True
 
         current_data = None
-        if output_path is not None:
+        if output_path is not None and not skip_existing:
             current_data = read_json_file(output_path)
+        elif skip_existing:
+            print("Skipping existing data.json - starting fresh as requested")
 
         if skip_dl and current_data:
             print(f"Using existing data from {output_path}")

@@ -56,9 +56,9 @@ export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
     },
     statOverbuilt: {
         threshold: 1200,
-        basePenalty: 0.05, // 5%
-        incrementPenalty: 0.05, // 5% per 100 points
-        incrementSize: 100,
+        basePenalty: 0.01, // 1%
+        incrementPenalty: 0.01, // 1% per 10 points
+        incrementSize: 10,
         maxPenalty: 0.5, // 50%
     },
 };

@@ -20,16 +20,30 @@ export const metadata: Metadata = {
     verification: {
         google: "a1UaFtEphUhB3Yv9kD_VWu1F6rwKdS2klV5HN9xSq3I",
     },
+    icons: {
+        icon: '/favicon.ico',
+        shortcut: '/favicon.ico',
+        apple: '/images/logo/logo512.png',
+    },
     openGraph: {
         title: "Uma Musume Tierlist & Deckbuilder - Tachyons Lab",
         description: "Free Uma Musume support card optimization tool with tierlist generation and deckbuilding",
         type: "website",
         locale: "en_US",
+        images: [
+            {
+                url: '/images/logo/logo512.png',
+                width: 512,
+                height: 512,
+                alt: 'Tachyons Lab Logo',
+            },
+        ],
     },
     twitter: {
         card: "summary_large_image",
         title: "Uma Musume Tierlist & Deckbuilder - Tachyons Lab",
         description: "Free Uma Musume support card optimization tool",
+        images: ['/images/logo/logo512.png'],
     },
     robots: {
         index: true,

@@ -404,10 +404,10 @@ export default function TierlistDisplay({
                 if (cardsInTier.length === 0) return null;
 
                 return (
-                    <div key={tier.name} className="flex items-start gap-4">
+                    <div key={tier.name} className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
                         {/* Tier Label */}
                         <div
-                            className={`flex-shrink-0 w-16 h-16 ${tier.color} ${tier.textColor} rounded-lg flex items-center justify-center font-bold text-2xl shadow-lg`}
+                            className={`flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 ${tier.color} ${tier.textColor} rounded-lg flex items-center justify-center font-bold text-xl sm:text-2xl shadow-lg`}
                         >
                             {tier.name}
                         </div>

@@ -129,7 +129,7 @@ export default function TierlistCard({
         >
             {/* Card Image */}
             <div
-                className={`relative w-24 h-28 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+                className={`relative w-16 h-20 sm:w-24 sm:h-28 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
                     isInDeck && !inDeckView
                         ? "border-gray-400 bg-gray-100 dark:bg-gray-800 opacity-50 grayscale"
                         : isInDeck
@@ -142,7 +142,7 @@ export default function TierlistCard({
                     alt={cardName}
                     fill
                     className="object-cover object-center"
-                    sizes="96px"
+                    sizes="(max-width: 640px) 64px, 96px"
                     onError={(e) => {
                         // Fallback to a placeholder if image doesn't exist
                         const target = e.target as HTMLImageElement;

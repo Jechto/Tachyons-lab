@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
     title: "Uma Musume Tierlist and Deckbuilder Tool - Tachyons Lab",
-    description: "Free Uma Musume support card tierlist generator and deckbuilder. Optimize your support card deck with AI-powered recommendations for different race types and running styles.",
-    keywords: "Uma Musume, Umamusume, tierlist, deckbuilder, support cards, optimization, racing, horse girls, github",
+    description: "Uma Musume support card tierlist generator and deckbuilder. Optimize your support card deck with AI-powered recommendations for different race types and running styles.",
+    keywords: "Uma Musume, Umamusume, tierlist, deckbuilder, github",
     authors: [{ name: "Jechto" }],
     verification: {
         google: "a1UaFtEphUhB3Yv9kD_VWu1F6rwKdS2klV5HN9xSq3I",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     },
     openGraph: {
         title: "Uma Musume Tierlist & Deckbuilder - Tachyons Lab",
-        description: "Free Uma Musume support card optimization tool with tierlist generation and deckbuilding",
+        description: "Uma Musume support card optimization tool with tierlist generation and deckbuilding",
         type: "website",
         locale: "en_US",
         images: [

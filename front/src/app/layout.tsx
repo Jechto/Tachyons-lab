@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "Uma Musume Tierlist and Deckbuilder Tool - Tachyons Lab",
-    description: "Uma Musume support card tierlist generator and deckbuilder. Optimize your support card deck with AI-powered recommendations for different race types and running styles.",
-    keywords: "Uma Musume, Umamusume, tierlist, deckbuilder, github",
+    title: "Free Uma Musume Support Card Tierlist & Deck Builder",
+    description: "Build winning Uma Musume decks instantly with our free optimizer. Get support card rankings for Sprint, Mile, Medium & Long races. 200+ cards analyzed for optimal synergies and race strategies.",
+    keywords: "Uma Musume, Umamusume, tierlist, tier list, deckbuilder, deck builder, support cards, training, race optimization, racing strategy, running styles, TCG, card game, support card tier list, uma musume pretty derby",
     authors: [{ name: "Jechto" }],
     verification: {
         google: "a1UaFtEphUhB3Yv9kD_VWu1F6rwKdS2klV5HN9xSq3I",
@@ -26,8 +26,10 @@ export const metadata: Metadata = {
         apple: '/images/logo/logo512.png',
     },
     openGraph: {
-        title: "Uma Musume Tierlist & Deckbuilder - Tachyons Lab",
-        description: "Uma Musume support card optimization tool with tierlist generation and deckbuilding",
+        siteName: 'Uma Musume Tierlist & Deckbuilder - Tachyons Lab',
+        title: "Free Uma Musume Support Card Tierlist & Deck Builder",
+        description: "Build winning Uma Musume decks instantly with our free optimizer. Get support card rankings for optimal race strategies.",
+        url: "https://jechto.github.io/Tachyons-lab/",
         type: "website",
         locale: "en_US",
         images: [
@@ -41,8 +43,8 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary_large_image",
-        title: "Uma Musume Tierlist & Deckbuilder - Tachyons Lab",
-        description: "Free Uma Musume support card optimization tool",
+        title: "Free Uma Musume Support Card Tierlist & Deck Builder",
+        description: "Build winning decks instantly. AI-powered support card rankings for optimal race strategies.",
         images: ['/images/logo/logo512.png'],
     },
     robots: {

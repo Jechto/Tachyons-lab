@@ -70,7 +70,7 @@ export class SupportCard {
         // Combine regular hints and event hints
         this.hints = [...(cardData.hints_table || []), ...(cardData.hints_event_table || [])];
         this.eventsStatReward = this.findBestEventChoice(
-            cardData.all_events || { chain_events: [], dates: [] },
+            cardData.all_events || { chain_events: [], dates: [], special_events: [], random_events: [] },
         );
 
         // Initialize card bonus with all effect names set to -1
@@ -181,7 +181,12 @@ export class SupportCard {
             totalBestStats[key] = 0;
         });
 
-        const processEvents = (events: EventData[]) => {
+        const processEvents = (events: EventData[], isRandom: boolean = false) => {
+            const accumulatedStats: Record<string, number> = {};
+            statKeys.forEach((key) => {
+                accumulatedStats[key] = 0;
+            });
+
             for (const arrowEvent of events) {
                 let bestEval = 0;
                 const bestStats: Record<string, number> = {};
@@ -215,13 +220,26 @@ export class SupportCard {
 
                 // Add best_stats for that event unto total best stats for that event chain
                 for (const k of statKeys) {
-                    totalBestStats[k] += bestStats[k];
+                    accumulatedStats[k] += bestStats[k];
+                }
+            }
+
+            if (isRandom && events.length > 0) {
+                const expectedRandomEvents = 1;
+                for (const k of statKeys) {
+                    totalBestStats[k] += (accumulatedStats[k] / events.length) * expectedRandomEvents;
+                }
+            } else {
+                for (const k of statKeys) {
+                    totalBestStats[k] += accumulatedStats[k];
                 }
             }
         };
 
         processEvents(allEvents.chain_events || []);
         processEvents(allEvents.dates || []);
+        processEvents(allEvents.special_events || []);
+        processEvents(allEvents.random_events || [], true);
 
         return totalBestStats as unknown as StatsDict;
     }

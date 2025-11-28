@@ -31,6 +31,8 @@ export interface EventData {
 export interface AllEvents {
     chain_events: EventData[];
     dates: EventData[];
+    special_events: EventData[];
+    random_events: EventData[];
 }
 
 export interface HintData {

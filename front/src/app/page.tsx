@@ -303,6 +303,7 @@ export default function Home() {
         if (canAutoRegenerate()) {
             generateTierlist();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentDeck]); // Only depend on currentDeck changes
 
     return (

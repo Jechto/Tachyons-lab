@@ -231,6 +231,22 @@ export class Tierlist {
                 Power: 0,
                 Guts: 0,
             },
+            scoreBreakdown: {
+                totalScore: 0,
+                baseScore: 0,
+                staminaPenalty: 0,
+                staminaPenaltyReason: "",
+                speedPenalty: 0,
+                speedPenaltyReason: "",
+                usefulHintsPenalty: 0,
+                usefulHintsPenaltyReason: "",
+                statOverbuiltPenalty: 0,
+                statOverbuiltPenaltyReason: "",
+                statContributions: [],
+                activeRaceTypes: [],
+                staminaThreshold: 0,
+                speedThreshold: 0,
+            },
         };
 
         let hintsForDeck: Record<string, number> = {};
@@ -527,6 +543,8 @@ export class Tierlist {
         baseScore: number;
         staminaPenalty: number;
         staminaPenaltyReason: string;
+        speedPenalty: number;
+        speedPenaltyReason: string;
         usefulHintsPenalty: number;
         usefulHintsPenaltyReason: string;
         statOverbuiltPenalty: number;
@@ -539,6 +557,7 @@ export class Tierlist {
         }>;
         activeRaceTypes: string[];
         staminaThreshold: number;
+        speedThreshold: number;
     } {
         // TODO: Add more sophisticated scoring // use hint_dict
         if (!weights || Object.keys(weights).length === 0) {

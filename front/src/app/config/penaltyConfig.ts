@@ -10,6 +10,14 @@ export interface PenaltyConfig {
             buffer: number; // Buffer zone (threshold - buffer = major penalty trigger)
         };
     };
+    speed: {
+        thresholds: Record<string, number>;
+        penalties: {
+            major: number; // Penalty when significantly below threshold
+            minor: number; // Penalty when slightly below threshold
+            buffer: number; // Buffer zone (threshold - buffer = major penalty trigger)
+        };
+    };
     hints: {
         thresholds: {
             major: number; // Below this rate = major penalty
@@ -37,6 +45,19 @@ export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
             Mile: 300,
             Medium: 400,
             Long: 500,
+        },
+        penalties: {
+            major: 0.2, // 20% penalty
+            minor: 0.1, // 10% penalty
+            buffer: 100, // threshold - 100 = major penalty trigger
+        },
+    },
+    speed: {
+        thresholds: {
+            Sprint: 900,
+            Mile: 800,
+            Medium: 700,
+            Long: 600,
         },
         penalties: {
             major: 0.2, // 20% penalty

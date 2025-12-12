@@ -29,6 +29,8 @@ interface StatPreviewerProps {
         baseScore: number;
         staminaPenalty: number;
         staminaPenaltyReason: string;
+        speedPenalty: number;
+        speedPenaltyReason: string;
         usefulHintsPenalty: number;
         usefulHintsPenaltyReason: string;
         statOverbuiltPenalty: number;
@@ -41,7 +43,10 @@ interface StatPreviewerProps {
         }>;
         activeRaceTypes: string[];
         staminaThreshold: number;
+        speedThreshold: number;
     };
+    scenarioName?: string;
+    manualDistribution?: number[] | null;
 }
 
 interface StatData {
@@ -67,6 +72,8 @@ export default function StatPreviewer({
     allData,
     deckStats,
     scoreBreakdown,
+    scenarioName = "URA",
+    manualDistribution = null,
 }: StatPreviewerProps) {
     const [isExpanded, setIsExpanded] = useState(true);
     const calculateStatDifference = (
@@ -88,7 +95,10 @@ export default function StatPreviewer({
             // We need to get base stats from an empty deck
             try {
                 const emptyDeckEvaluator = new DeckEvaluator();
-                const baseStats = emptyDeckEvaluator.evaluateStats();
+                if (manualDistribution) {
+                    emptyDeckEvaluator.setManualDistribution(manualDistribution);
+                }
+                const baseStats = emptyDeckEvaluator.evaluateStats(scenarioName);
 
                 const totalStats = {
                     Speed: Math.round(
@@ -124,10 +134,16 @@ export default function StatPreviewer({
         try {
             // Create empty deck evaluator
             const emptyDeckEvaluator = new DeckEvaluator();
-            const emptyStats = emptyDeckEvaluator.evaluateStats();
+            if (manualDistribution) {
+                emptyDeckEvaluator.setManualDistribution(manualDistribution);
+            }
+            const emptyStats = emptyDeckEvaluator.evaluateStats(scenarioName);
 
             // Create current deck evaluator
             const currentDeckEvaluator = new DeckEvaluator();
+            if (manualDistribution) {
+                currentDeckEvaluator.setManualDistribution(manualDistribution);
+            }
 
             // Add cards to current deck
             for (const deckCard of currentDeck) {
@@ -146,7 +162,7 @@ export default function StatPreviewer({
                 }
             }
 
-            const currentStats = currentDeckEvaluator.evaluateStats();
+            const currentStats = currentDeckEvaluator.evaluateStats(scenarioName);
 
             // Return both current stats and differences
             return {
@@ -481,6 +497,37 @@ export default function StatPreviewer({
                                                     {
                                                         scoreBreakdown.staminaPenaltyReason
                                                     }
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Speed Penalty */}
+                                        {scoreBreakdown.speedPenalty < 1 && (
+                                            <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20">
+                                                <div className="grid grid-cols-4 gap-4 items-center">
+                                                    <div className="col-span-3 flex items-center gap-2">
+                                                        <span className="text-sm text-blue-600 dark:text-blue-400">
+                                                            📉 Speed Penalty
+                                                        </span>
+                                                        <div className="text-xs text-blue-500 dark:text-blue-400">
+                                                            (
+                                                            {(
+                                                                100 -
+                                                                scoreBreakdown.speedPenalty * 100
+                                                            ).toFixed(0)}
+                                                            % reduction)
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right text-sm font-semibold text-blue-600 dark:text-blue-400 font-mono">
+                                                        -
+                                                        {(
+                                                            scoreBreakdown.baseScore *
+                                                            (1 - scoreBreakdown.speedPenalty)
+                                                        ).toFixed(0)}
+                                                    </div>
+                                                </div>
+                                                <div className="mt-1 text-xs text-blue-600 dark:text-blue-400 col-span-4">
+                                                    {scoreBreakdown.speedPenaltyReason}
                                                 </div>
                                             </div>
                                         )}

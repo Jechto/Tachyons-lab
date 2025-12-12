@@ -28,6 +28,8 @@ interface TierlistDeck {
         baseScore: number;
         staminaPenalty: number;
         staminaPenaltyReason: string;
+        speedPenalty: number;
+        speedPenaltyReason: string;
         usefulHintsPenalty: number;
         usefulHintsPenaltyReason: string;
         statOverbuiltPenalty: number;
@@ -40,6 +42,7 @@ interface TierlistDeck {
         }>;
         activeRaceTypes: string[];
         staminaThreshold: number;
+        speedThreshold: number;
     };
 }
 
@@ -91,6 +94,7 @@ export class Tierlist {
         runningTypes?: RunningTypes,
         allData: CardData[] = [],
         filter?: LimitBreakFilter,
+        scenarioName: string = "URA",
     ): TierlistResponse {
         // Default race types
         if (!raceTypes) {
@@ -196,8 +200,13 @@ export class Tierlist {
 
         // Create a deep copy of the deck
         const originalDeck = this.deepCopyDeck(deckObject);
-        const baseResultForDeck = deckObject.evaluateStats();
-        const baseResultEmptyDeck = new DeckEvaluator().evaluateStats();
+        const baseResultForDeck = deckObject.evaluateStats(scenarioName);
+        
+        const emptyDeckEvaluator = new DeckEvaluator();
+        if (deckObject.manualDistribution) {
+            emptyDeckEvaluator.setManualDistribution(deckObject.manualDistribution);
+        }
+        const baseResultEmptyDeck = emptyDeckEvaluator.evaluateStats(scenarioName);
 
         const raceTypesArray = [
             raceTypes.Sprint,
@@ -298,7 +307,7 @@ export class Tierlist {
                         : new DeckEvaluator();
                     tempDeck.addCard(card);
 
-                    const result = tempDeck.evaluateStats();
+                    const result = tempDeck.evaluateStats(scenarioName);
                     const cardHints = card.evaluateCardHints(
                         raceTypesArray,
                         runningTypesArray,
@@ -423,9 +432,11 @@ export class Tierlist {
 
         // Calculate stamina penalty based on raw stats
         let staminaPenaltyPercent = 0; // Penalty as percentage (0.2 = 20%)
+        let speedPenaltyPercent = 0; // Penalty as percentage
 
         if (raceTypes) {
             const stamina = rawStats.Stamina || 0;
+            const speed = rawStats.Speed || 0;
 
             // Determine the active race types
             const activeRaceTypes = Object.entries(raceTypes)
@@ -435,18 +446,31 @@ export class Tierlist {
             if (activeRaceTypes.length > 0) {
                 // Use stamina thresholds from config
                 const staminaThresholds = penaltyConfig.stamina.thresholds;
+                const speedThresholds = penaltyConfig.speed.thresholds;
 
                 // Use the highest threshold among active race types (most demanding)
-                const maxThreshold = Math.max(
+                const maxStaminaThreshold = Math.max(
                     ...activeRaceTypes.map(
                         (raceType) => staminaThresholds[raceType] || 400,
                     ),
                 );
 
-                if (stamina < maxThreshold - penaltyConfig.stamina.penalties.buffer) {
+                const maxSpeedThreshold = Math.max(
+                    ...activeRaceTypes.map(
+                        (raceType) => speedThresholds[raceType] || 1200,
+                    ),
+                );
+
+                if (stamina < maxStaminaThreshold - penaltyConfig.stamina.penalties.buffer) {
                     staminaPenaltyPercent = penaltyConfig.stamina.penalties.major;
-                } else if (stamina < maxThreshold) {
+                } else if (stamina < maxStaminaThreshold) {
                     staminaPenaltyPercent = penaltyConfig.stamina.penalties.minor;
+                }
+
+                if (speed < maxSpeedThreshold - penaltyConfig.speed.penalties.buffer) {
+                    speedPenaltyPercent = penaltyConfig.speed.penalties.major;
+                } else if (speed < maxSpeedThreshold) {
+                    speedPenaltyPercent = penaltyConfig.speed.penalties.minor;
                 }
             }
         }
@@ -483,7 +507,7 @@ export class Tierlist {
 
         // Apply additive penalties (like taxes)
         const totalPenaltyPercent =
-            staminaPenaltyPercent + usefulHintsPenaltyPercent + statOverbuiltPenaltyPercent;
+            staminaPenaltyPercent + speedPenaltyPercent + usefulHintsPenaltyPercent + statOverbuiltPenaltyPercent;
         const finalMultiplier = 1.0 - totalPenaltyPercent;
 
         const finalScore = baseScore * finalMultiplier;
@@ -561,8 +585,16 @@ export class Tierlist {
         let staminaPenalty = 1.0;
         let staminaPenaltyPercent = 0;
         let staminaPenaltyReason = "No penalty applied";
+        
+        // Calculate speed penalty details using raw stats
+        const speed = rawStats.Speed || 0;
+        let speedPenalty = 1.0;
+        let speedPenaltyPercent = 0;
+        let speedPenaltyReason = "No penalty applied";
+
         let activeRaceTypes: string[] = [];
         let staminaThreshold = 400;
+        let speedThreshold = 1200;
 
         if (raceTypes) {
             activeRaceTypes = Object.entries(raceTypes)
@@ -571,10 +603,17 @@ export class Tierlist {
 
             if (activeRaceTypes.length > 0) {
                 const staminaThresholds = penaltyConfig.stamina.thresholds;
+                const speedThresholds = penaltyConfig.speed.thresholds;
 
                 staminaThreshold = Math.max(
                     ...activeRaceTypes.map(
                         (raceType) => staminaThresholds[raceType] || 400,
+                    ),
+                );
+
+                speedThreshold = Math.max(
+                    ...activeRaceTypes.map(
+                        (raceType) => speedThresholds[raceType] || 1200,
                     ),
                 );
 
@@ -588,6 +627,18 @@ export class Tierlist {
                     staminaPenaltyReason = `${Math.round(staminaPenaltyPercent * 100)}% penalty: Stamina ${Math.round(stamina)} is below threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
                 } else {
                     staminaPenaltyReason = `No penalty: Stamina ${Math.round(stamina)} meets threshold ${staminaThreshold} for ${activeRaceTypes.join(", ")}`;
+                }
+
+                if (speed < speedThreshold - penaltyConfig.speed.penalties.buffer) {
+                    speedPenaltyPercent = penaltyConfig.speed.penalties.major;
+                    speedPenalty = 1 - speedPenaltyPercent;
+                    speedPenaltyReason = `${Math.round(speedPenaltyPercent * 100)}% penalty: Speed ${Math.round(speed)} is significantly below threshold ${speedThreshold} for ${activeRaceTypes.join(", ")}`;
+                } else if (speed < speedThreshold) {
+                    speedPenaltyPercent = penaltyConfig.speed.penalties.minor;
+                    speedPenalty = 1 - speedPenaltyPercent;
+                    speedPenaltyReason = `${Math.round(speedPenaltyPercent * 100)}% penalty: Speed ${Math.round(speed)} is below threshold ${speedThreshold} for ${activeRaceTypes.join(", ")}`;
+                } else {
+                    speedPenaltyReason = `No penalty: Speed ${Math.round(speed)} meets threshold ${speedThreshold} for ${activeRaceTypes.join(", ")}`;
                 }
             }
         }
@@ -648,7 +699,7 @@ export class Tierlist {
 
         // Apply additive penalties (like taxes)
         const totalPenaltyPercent =
-            staminaPenaltyPercent + usefulHintsPenaltyPercent + statOverbuiltPenaltyPercent;
+            staminaPenaltyPercent + speedPenaltyPercent + usefulHintsPenaltyPercent + statOverbuiltPenaltyPercent;
         const finalMultiplier = 1.0 - totalPenaltyPercent;
         const totalScore = baseScore * finalMultiplier;
 
@@ -657,6 +708,8 @@ export class Tierlist {
             baseScore,
             staminaPenalty,
             staminaPenaltyReason,
+            speedPenalty,
+            speedPenaltyReason,
             usefulHintsPenalty,
             usefulHintsPenaltyReason,
             statOverbuiltPenalty,
@@ -666,6 +719,7 @@ export class Tierlist {
             ),
             activeRaceTypes,
             staminaThreshold,
+            speedThreshold,
         };
     }
     private calculateStatsDelta(stats1: StatsDict, stats2: StatsDict): StatsDict {
@@ -705,6 +759,9 @@ export class Tierlist {
         // Note: This is a shallow copy of cards. For a true deep copy,
         // you might need to recreate the SupportCard objects as well.
         newDeck.deck = [...deck.deck];
+        if (deck.manualDistribution) {
+            newDeck.setManualDistribution([...deck.manualDistribution]);
+        }
         return newDeck;
     }
 }

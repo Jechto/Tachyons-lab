@@ -12,9 +12,14 @@ export class DeckEvaluator {
     };
 
     public deck: SupportCard[] = [];
+    public manualDistribution: number[] | null = null;
 
     constructor() {
         this.deck = [];
+    }
+
+    public setManualDistribution(distribution: number[] | null): void {
+        this.manualDistribution = distribution;
     }
 
     public addCard(card: SupportCard): void {
@@ -22,6 +27,10 @@ export class DeckEvaluator {
     }
 
     public getTrainingDistribution(): number[] {
+        if (this.manualDistribution) {
+            return this.manualDistribution;
+        }
+
         // Start with base equal distribution
         const trainingDistribution = [0.2, 0.2, 0.2, 0.2, 0.2]; // Speed, Stamina, Power, Guts, Wit
 
@@ -592,6 +601,14 @@ export class DeckEvaluator {
         totalStatsGained.Guts += optionalRaces * 2;
         totalStatsGained.Wit! += optionalRaces * 2;
         totalStatsGained["Skill Points"]! += optionalRaces * 30;
+
+        // Add scenario bonus stats
+        const scenarioBonus = TrainingData.getScenarioBonusStats(scenarioName);
+        totalStatsGained.Speed += scenarioBonus.Speed || 0;
+        totalStatsGained.Stamina += scenarioBonus.Stamina || 0;
+        totalStatsGained.Power += scenarioBonus.Power || 0;
+        totalStatsGained.Guts += scenarioBonus.Guts || 0;
+        totalStatsGained.Wit! += scenarioBonus.Intelligence || 0;
 
         return totalStatsGained;
     }

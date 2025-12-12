@@ -20,7 +20,43 @@ export class TrainingData {
                 finaleRace: [10, 10, 10, 10, 10, 60],
                 careerRace: [3, 3, 3, 3, 3, 45],
             },
+            scenarioBonusStats: {
+                Speed: 15,
+                Stamina: 15,
+                Power: 15,
+                Guts: 15,
+                Intelligence: 15,
+            }
         },
+        Unity: {
+            // A flat assumption of an average 2 UMA unity training (white flame training). With the rare 3 Uma trainings (+1 to second stat)
+            training: {
+                Speed: [8+2, 0, 4, 0, 0, 4, -19],
+                Stamina: [0, 8+2, 0, 6, 0, 4, -20],
+                Power: [0, 4, 9+2, 0, 0, 4, -20],
+                Guts: [3, 0, 3, 6+2, 0, 4, -22],
+                Intelligence: [3, 0, 0, 0, 10+1, 5, 0],
+            },
+            facilityMultipliers: {
+                Speed: 1 / 8,
+                Stamina: 1 / 8,
+                Power: 1 / 9,
+                Guts: 1 / 6,
+                Intelligence: 1 / 10,
+            },
+            raceCareerRewards: {
+                finaleRace: [10, 10, 10, 10, 10, 60],
+                careerRace: [3, 3, 3, 3, 3, 45],
+            },
+            // 31 are the level up rewards F -> S
+            scenarioBonusStats: {
+                Speed: 15+31,
+                Stamina: 15+31,
+                Power: 15+31,
+                Guts: 15+31,
+                Intelligence: 15+31,
+            }
+        }
     };
 
     static getBaseTrainingStats(
@@ -47,6 +83,21 @@ export class TrainingData {
         return (
             this.baseStats[scenarioName as keyof typeof this.baseStats]
                 ?.raceCareerRewards || {}
+        );
+    }
+
+    static getScenarioBonusStats(
+        scenarioName: string = "URA",
+    ): Record<string, number> {
+        return (
+            this.baseStats[scenarioName as keyof typeof this.baseStats]
+                ?.scenarioBonusStats || {
+                    Speed: 0,
+                    Stamina: 0,
+                    Power: 0,
+                    Guts: 0,
+                    Intelligence: 0,
+                }
         );
     }
 }

@@ -315,7 +315,7 @@ export default function Home() {
                     __html: JSON.stringify({
                         "@context": "https://schema.org",
                         "@type": "WebApplication",
-                        "name": "Tachyons Lab - Uma Musume Tierlist and Deckbuilder",
+                        "name": "Uma Musume Deckbuilder and Tierlist Generator",
                         "description": "Free Uma Musume support card optimization tool with tierlist generation and deckbuilding capabilities",
                         "applicationCategory": "GameApplication",
                         "operatingSystem": "Web Browser",

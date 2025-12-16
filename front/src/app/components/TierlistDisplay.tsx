@@ -13,6 +13,7 @@ interface TierlistDisplayProps {
     getCardDisabledInfo?: (
         cardId: number,
         limitBreak: number,
+        charaId?: number,
     ) => { disabled: boolean; reason?: string };
 }
 
@@ -399,6 +400,7 @@ export default function TierlistDisplay({
                                         ? getCardDisabledInfo(
                                               card.id,
                                               card.limit_break,
+                                              card.chara_id,
                                           )
                                         : {
                                               disabled:

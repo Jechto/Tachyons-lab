@@ -11,6 +11,7 @@ import { ACTIVE_PENALTY_CONFIG, PenaltyConfig } from "../config/penaltyConfig";
 
 interface TierlistCard {
     id: number;
+    chara_id: number;
     card_name: string;
     card_rarity: string;
     limit_break: number;
@@ -48,6 +49,7 @@ interface TierlistDeck {
 
 export interface TierlistEntry {
     id: number;
+    chara_id: number;
     card_name: string;
     card_rarity: string;
     limit_break: number;
@@ -260,6 +262,7 @@ export class Tierlist {
                 );
                 deck.cards.push({
                     id: card.id,
+                    chara_id: card.cardUma.id,
                     card_name: card.cardUma.name,
                     card_rarity:
                         Tierlist.rarityToSymbol[card.rarity] || "Unknown",
@@ -302,6 +305,7 @@ export class Tierlist {
             const cardId = cardEntry.id;
             if (!cardId) continue;
 
+            const charaId = cardEntry.chara_id_card || -1;
             const cardName = cardEntry.card_chara_name || "Unknown";
             const cardRarity =
                 Tierlist.rarityToSymbol[cardEntry.rarity || -1] || "Unknown";
@@ -355,6 +359,7 @@ export class Tierlist {
 
                     results.push({
                         id: cardId,
+                        chara_id: charaId,
                         card_name: cardName,
                         card_rarity: cardRarity,
                         limit_break: limitBreak,

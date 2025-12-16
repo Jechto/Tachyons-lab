@@ -23,6 +23,7 @@ type RunningStyle =
 
 interface DeckCard {
     id: number;
+    charaId: number;
     limitBreak: number;
     cardName: string;
     cardRarity: string;
@@ -126,6 +127,7 @@ export default function Home() {
         const cardKey = `${card.id}-${card.limit_break}`;
         const cardId = card.id;
         const newLimitBreak = card.limit_break;
+        const charaId = card.chara_id;
 
         // Check if this exact card is already in deck
         if (deckCardIds.has(cardKey)) {
@@ -153,12 +155,21 @@ export default function Home() {
                 newSet.delete(existingCardKey);
                 return newSet;
             });
+        } else {
+            // Check for same character ID
+            const sameCharaCard = currentDeck.find(
+                (deckCard) => deckCard.charaId === charaId
+            );
+            if (sameCharaCard) {
+                return;
+            }
         }
 
         // Add to deck (max 6 cards)
         if (currentDeck.length < 6 || existingCardInDeck) {
             const deckCard: DeckCard = {
                 id: card.id,
+                charaId: card.chara_id,
                 limitBreak: card.limit_break,
                 cardName: card.card_name,
                 cardRarity: card.card_rarity,
@@ -180,6 +191,7 @@ export default function Home() {
     const getCardDisabledInfo = (
         cardId: number,
         limitBreak: number,
+        charaId?: number,
     ): { disabled: boolean; reason?: string } => {
         const cardKey = `${cardId}-${limitBreak}`;
 
@@ -198,6 +210,16 @@ export default function Home() {
                     ? "MLB"
                     : `${existingCardInDeck.limitBreak}LB`;
             return { disabled: true, reason: `${existingLbText} IN DECK` };
+        }
+
+        // Check for same character ID (if provided)
+        if (charaId !== undefined) {
+            const sameCharaCard = currentDeck.find(
+                (deckCard) => deckCard.charaId === charaId && deckCard.id !== cardId
+            );
+            if (sameCharaCard) {
+                return { disabled: true, reason: "SAME CHARACTER" };
+            }
         }
 
         return { disabled: false };
@@ -715,9 +737,9 @@ export default function Home() {
                             type="number"
                             id="optional-races"
                             min="0"
-                            max="50"
+                            max="40"
                             value={optionalRaces}
-                            onChange={(e) => setOptionalRaces(Math.max(0, parseInt(e.target.value) || 0))}
+                            onChange={(e) => setOptionalRaces(Math.min(40, Math.max(0, parseInt(e.target.value) || 0)))}
                             className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 w-20"
                         />
                     </div>

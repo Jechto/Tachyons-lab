@@ -126,26 +126,6 @@ export default function TierlistDisplay({
         }
     };
 
-    // Get fallback emoji for card type
-    const getCardTypeFallback = (cardType: CardTypeFilter): string => {
-        switch (cardType) {
-            case "Speed":
-                return "🏃";
-            case "Stamina":
-                return "💪";
-            case "Power":
-                return "⚡";
-            case "Guts":
-                return "💖";
-            case "Wit":
-                return "🧠";
-            case "Support":
-                return "🎴";
-            default: // "All"
-                return "📊";
-        }
-    };
-
     // Calculate score percentiles for dynamic tier assignment (use all cards, not filtered)
     const scores = allCards.map((card) => card.score).sort((a, b) => b - a);
     const getPercentileScore = (percentile: number) => {
@@ -265,9 +245,7 @@ export default function TierlistDisplay({
                         <p>
                             Cards are ranked using the scoring system shown in the &ldquo;Deck Stats Preview&rdquo; section.
                             The score serves as an estimator for how much each card 
-                            can improve your deck&apos;s overall performance. Higher-tier cards (S, A, B) typically provide 
-                            the best stat gains. However, even lower-tier cards can be valuable for their unique 
-                            skills and hints, so consider your deck&apos;s specific needs when choosing cards.
+                            can improve your deck&apos;s overall performance. Cards with higher scores should generally provide better performance. The score numbers are not related to the grading you recieve after your game. 
                         </p>
                     </div>
                 </div>

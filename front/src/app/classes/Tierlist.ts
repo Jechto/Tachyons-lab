@@ -95,6 +95,7 @@ export class Tierlist {
         allData: CardData[] = [],
         filter?: LimitBreakFilter,
         scenarioName: string = "URA",
+        optionalRaces: number = 0,
     ): TierlistResponse {
         // Default race types
         if (!raceTypes) {
@@ -200,13 +201,13 @@ export class Tierlist {
 
         // Create a deep copy of the deck
         const originalDeck = this.deepCopyDeck(deckObject);
-        const baseResultForDeck = deckObject.evaluateStats(scenarioName);
+        const baseResultForDeck = deckObject.evaluateStats(scenarioName, 20, optionalRaces);
         
         const emptyDeckEvaluator = new DeckEvaluator();
         if (deckObject.manualDistribution) {
             emptyDeckEvaluator.setManualDistribution(deckObject.manualDistribution);
         }
-        const baseResultEmptyDeck = emptyDeckEvaluator.evaluateStats(scenarioName);
+        const baseResultEmptyDeck = emptyDeckEvaluator.evaluateStats(scenarioName, 20, optionalRaces);
 
         const raceTypesArray = [
             raceTypes.Sprint,
@@ -323,7 +324,7 @@ export class Tierlist {
                         : new DeckEvaluator();
                     tempDeck.addCard(card);
 
-                    const result = tempDeck.evaluateStats(scenarioName);
+                    const result = tempDeck.evaluateStats(scenarioName, 20, optionalRaces);
                     const cardHints = card.evaluateCardHints(
                         raceTypesArray,
                         runningTypesArray,
@@ -506,6 +507,7 @@ export class Tierlist {
         
         // Check each stat for being overbuilt
         for (const [statName, value] of Object.entries(rawStats)) {
+            if (statName === "Skill Points") continue;
             if (typeof value === 'number' && value > penaltyConfig.statOverbuilt.threshold) {
                 const excessPoints = value - penaltyConfig.statOverbuilt.threshold;
                 const excessIncrements = Math.floor(excessPoints / penaltyConfig.statOverbuilt.incrementSize);
@@ -689,6 +691,7 @@ export class Tierlist {
 
         // Check each stat for being overbuilt
         for (const [statName, value] of Object.entries(rawStats)) {
+            if (statName === "Skill Points") continue;
             if (typeof value === 'number' && value > penaltyConfig.statOverbuilt.threshold) {
                 const excessPoints = value - penaltyConfig.statOverbuilt.threshold;
                 const excessIncrements = Math.floor(excessPoints / penaltyConfig.statOverbuilt.incrementSize);

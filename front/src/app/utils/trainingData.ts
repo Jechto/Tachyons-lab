@@ -19,6 +19,7 @@ export class TrainingData {
             raceCareerRewards: {
                 finaleRace: [10, 10, 10, 10, 10, 60],
                 careerRace: [3, 3, 3, 3, 3, 45],
+                optionalRace: [1, 1, 1, 1, 1, 45],
             },
             scenarioBonusStats: {
                 Speed: 15,
@@ -26,7 +27,8 @@ export class TrainingData {
                 Power: 15,
                 Guts: 15,
                 Intelligence: 15,
-            }
+            },
+            scenarioTrainingDistributedBonusStats: 0,
         },
         Unity: {
             // A flat assumption of an average 2 UMA unity training (white flame training). With the rare 3 Uma trainings (+1 to second stat)
@@ -47,6 +49,7 @@ export class TrainingData {
             raceCareerRewards: {
                 finaleRace: [10, 10, 10, 10, 10, 60],
                 careerRace: [3, 3, 3, 3, 3, 45],
+                optionalRace: [1, 1, 1, 1, 1, 45], // +5 to random stat -15 stam
             },
             // 31 are the level up rewards F -> S
             scenarioBonusStats: {
@@ -55,7 +58,8 @@ export class TrainingData {
                 Power: 15+31,
                 Guts: 15+31,
                 Intelligence: 15+31,
-            }
+            },
+            scenarioTrainingDistributedBonusStats: 8*15+8*7, // 8 spirit bursts of 15 mainstat + 7 substat each assumed
         }
     };
 
@@ -98,6 +102,15 @@ export class TrainingData {
                     Guts: 0,
                     Intelligence: 0,
                 }
+        );
+    }
+
+    static getScenarioTrainingDistributedBonusStats(
+        scenarioName: string = "URA",
+    ): number {
+        return (
+            this.baseStats[scenarioName as keyof typeof this.baseStats]
+                ?.scenarioTrainingDistributedBonusStats || 0
         );
     }
 }

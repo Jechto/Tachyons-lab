@@ -47,6 +47,7 @@ interface StatPreviewerProps {
     };
     scenarioName?: string;
     manualDistribution?: number[] | null;
+    optionalRaces?: number;
 }
 
 interface StatData {
@@ -74,6 +75,7 @@ export default function StatPreviewer({
     scoreBreakdown,
     scenarioName = "URA",
     manualDistribution = null,
+    optionalRaces = 0,
 }: StatPreviewerProps) {
     const [isExpanded, setIsExpanded] = useState(true);
     const calculateStatDifference = (
@@ -98,7 +100,7 @@ export default function StatPreviewer({
                 if (manualDistribution) {
                     emptyDeckEvaluator.setManualDistribution(manualDistribution);
                 }
-                const baseStats = emptyDeckEvaluator.evaluateStats(scenarioName);
+                const baseStats = emptyDeckEvaluator.evaluateStats(scenarioName, 20, optionalRaces);
 
                 const totalStats = {
                     Speed: Math.round(
@@ -137,7 +139,7 @@ export default function StatPreviewer({
             if (manualDistribution) {
                 emptyDeckEvaluator.setManualDistribution(manualDistribution);
             }
-            const emptyStats = emptyDeckEvaluator.evaluateStats(scenarioName);
+            const emptyStats = emptyDeckEvaluator.evaluateStats(scenarioName, 20, optionalRaces);
 
             // Create current deck evaluator
             const currentDeckEvaluator = new DeckEvaluator();
@@ -162,7 +164,7 @@ export default function StatPreviewer({
                 }
             }
 
-            const currentStats = currentDeckEvaluator.evaluateStats(scenarioName);
+            const currentStats = currentDeckEvaluator.evaluateStats(scenarioName, 20, optionalRaces);
 
             // Return both current stats and differences
             return {

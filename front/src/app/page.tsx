@@ -54,6 +54,7 @@ export default function Home() {
     const [manualDistribution, setManualDistribution] = useState<number[] | null>(null);
     const [calculatedDistribution, setCalculatedDistribution] = useState<number[]>([0.2, 0.2, 0.2, 0.2, 0.2]);
     const [selectedScenario, setSelectedScenario] = useState<string>("Unity");
+    const [optionalRaces, setOptionalRaces] = useState<number>(0);
 
     // Update calculated distribution when deck changes
     useEffect(() => {
@@ -289,6 +290,7 @@ export default function Home() {
                 allData,
                 limitBreakFilter,
                 selectedScenario,
+                optionalRaces,
             );
             setTierlistResult(result);
         } catch (error) {
@@ -705,6 +707,21 @@ export default function Home() {
                         </select>
                     </div>
 
+                    <div className="flex items-center gap-2">
+                        <label htmlFor="optional-races" className="font-medium text-gray-700 dark:text-gray-300">
+                            Optional Races:
+                        </label>
+                        <input
+                            type="number"
+                            id="optional-races"
+                            min="0"
+                            max="50"
+                            value={optionalRaces}
+                            onChange={(e) => setOptionalRaces(Math.max(0, parseInt(e.target.value) || 0))}
+                            className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 w-20"
+                        />
+                    </div>
+
                     <button
                         onClick={generateTierlist}
                         disabled={
@@ -728,6 +745,7 @@ export default function Home() {
                     scoreBreakdown={tierlistResult && 'deck' in tierlistResult ? tierlistResult.deck.scoreBreakdown : undefined}
                     scenarioName={selectedScenario}
                     manualDistribution={isManualDistribution ? manualDistribution : null}
+                    optionalRaces={optionalRaces}
                 />
             </div>
 

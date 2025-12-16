@@ -121,6 +121,84 @@ async function runTests() {
         }
     });
 
+    await test("DeckEvaluator: Scenario Distributed Bonus", () => {
+        const evaluator = new DeckEvaluator();
+        // Default distribution is 0.2 for all
+        
+        // Unity has a distributed bonus of 8*15 + 8*7 = 120 + 56 = 176
+        // With 0.2 distribution, each stat should get 176 * 0.2 = 35.2
+        
+        const unityStats = evaluator.evaluateStats("Unity");
+        const uraStats = evaluator.evaluateStats("URA");
+        
+        // URA has 0 distributed bonus
+        
+        // We need to isolate the distributed bonus.
+        // The base stats and scenario bonus stats are different between URA and Unity.
+        // However, we can check if the distributed bonus logic is applied by checking if the stats increase
+        // when we change the distribution for Unity.
+        
+        const evaluatorSkewed = new DeckEvaluator();
+        evaluatorSkewed.setManualDistribution([1, 0, 0, 0, 0]); // 100% Speed
+        
+        const unityStatsSkewed = evaluatorSkewed.evaluateStats("Unity");
+        
+        // Calculate expected difference in Speed due to distributed bonus
+        // Base Speed (Unity) + Scenario Bonus (Unity) + Distributed Bonus (Unity) * 1
+        // vs
+        // Base Speed (Unity) + Scenario Bonus (Unity) + Distributed Bonus (Unity) * 0.2
+        
+        // Difference should be Distributed Bonus * 0.8
+        const distributedBonus = 8*15 + 8*7;
+        const expectedDiff = distributedBonus * 0.8;
+        
+        const actualDiff = unityStatsSkewed.Speed - unityStats.Speed;
+        
+        // Note: evaluateStats includes base training stats which depend on distribution?
+        // Let's check getBaseTrainingStats in TrainingData.ts
+        // It returns an array of numbers for each stat.
+        // DeckEvaluator.evaluateStats logic:
+        // const trainingDistribution = this.getTrainingDistribution();
+        // ...
+        // for (const t of ["Speed", ...]) {
+        //    const trainingGain = TrainingData.getBaseTrainingStats(scenarioName)[t];
+        //    ...
+        //    totalStatsGained[t] += trainingGain[0] * trainingDistribution[DeckEvaluator.typeToIndex[t]] * ...
+        // }
+        
+        // So changing distribution DOES affect base training stats too.
+        // This makes it hard to isolate just the distributed bonus.
+        
+        // However, we can verify that the code runs without error and produces different results.
+        
+        console.log(`Unity Speed (Equal Dist): ${unityStats.Speed}`);
+        console.log(`Unity Speed (Skewed Dist): ${unityStatsSkewed.Speed}`);
+        
+        if (unityStatsSkewed.Speed <= unityStats.Speed) {
+             throw new Error("Skewing distribution to Speed should increase Speed significantly");
+        }
+        
+        // We can also check URA. URA has 0 distributed bonus.
+        // But it still has base training stats that scale with distribution.
+        const uraStatsSkewed = new DeckEvaluator();
+        uraStatsSkewed.setManualDistribution([1, 0, 0, 0, 0]);
+        const uraSkewedResult = uraStatsSkewed.evaluateStats("URA");
+        
+        console.log(`URA Speed (Equal Dist): ${uraStats.Speed}`);
+        console.log(`URA Speed (Skewed Dist): ${uraSkewedResult.Speed}`);
+        
+        // The increase in Unity should be larger than in URA because of the extra distributed bonus
+        const unityIncrease = unityStatsSkewed.Speed - unityStats.Speed;
+        const uraIncrease = uraSkewedResult.Speed - uraStats.Speed;
+        
+        console.log(`Unity Increase: ${unityIncrease}`);
+        console.log(`URA Increase: ${uraIncrease}`);
+        
+        if (unityIncrease <= uraIncrease) {
+             throw new Error(`Unity increase (${unityIncrease}) should be larger than URA increase (${uraIncrease}) due to distributed bonus`);
+        }
+    });
+
     await test("Tierlist: Fix Verification - Manual Distribution on Empty Deck", () => {
         // This test verifies that the Tierlist class correctly applies the manual distribution
         // to the "empty deck" baseline when calculating stat deltas.

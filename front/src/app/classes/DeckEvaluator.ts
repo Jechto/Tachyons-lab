@@ -330,6 +330,9 @@ export class DeckEvaluator {
             index++;
         }
 
+        // Add energy cost for optional races (assuming 15 energy per race)
+        totalEnergySpent -= optionalRaces * 15;
+
         const turnsWasted = Math.max((totalEnergySpent / (56 + 15)) * -1, 0);
         const adjustedMaxTrainingTurns = maxTrainingTurns - turnsWasted;
 
@@ -585,6 +588,7 @@ export class DeckEvaluator {
         const careerRaces = TrainingData.getRaceCareerRewards(scenarioName);
         const finaleRace = careerRaces.finaleRace || [0, 0, 0, 0, 0, 0];
         const careerRace = careerRaces.careerRace || [0, 0, 0, 0, 0, 0];
+        const optionalRaceRewards = careerRaces.optionalRace || [2, 2, 2, 2, 2, 30];
 
         totalStatsGained.Speed += finaleRace[0] * 3 + careerRace[0] * 8;
         totalStatsGained.Stamina += finaleRace[1] * 3 + careerRace[1] * 8;
@@ -595,12 +599,12 @@ export class DeckEvaluator {
             finaleRace[5] * 3 + careerRace[5] * 8;
 
         // Add optional race stats
-        totalStatsGained.Speed += optionalRaces * 2;
-        totalStatsGained.Stamina += optionalRaces * 2;
-        totalStatsGained.Power += optionalRaces * 2;
-        totalStatsGained.Guts += optionalRaces * 2;
-        totalStatsGained.Wit! += optionalRaces * 2;
-        totalStatsGained["Skill Points"]! += optionalRaces * 30;
+        totalStatsGained.Speed += optionalRaces * optionalRaceRewards[0];
+        totalStatsGained.Stamina += optionalRaces * optionalRaceRewards[1];
+        totalStatsGained.Power += optionalRaces * optionalRaceRewards[2];
+        totalStatsGained.Guts += optionalRaces * optionalRaceRewards[3];
+        totalStatsGained.Wit! += optionalRaces * optionalRaceRewards[4];
+        totalStatsGained["Skill Points"]! += optionalRaces * optionalRaceRewards[5];
 
         // Add scenario bonus stats
         const scenarioBonus = TrainingData.getScenarioBonusStats(scenarioName);
@@ -609,6 +613,16 @@ export class DeckEvaluator {
         totalStatsGained.Power += scenarioBonus.Power || 0;
         totalStatsGained.Guts += scenarioBonus.Guts || 0;
         totalStatsGained.Wit! += scenarioBonus.Intelligence || 0;
+
+        // Add scenario distributed bonus stats
+        const scenarioDistributedBonus = TrainingData.getScenarioTrainingDistributedBonusStats(scenarioName);
+        if (scenarioDistributedBonus > 0) {
+            totalStatsGained.Speed += scenarioDistributedBonus * trainingDistribution[0];
+            totalStatsGained.Stamina += scenarioDistributedBonus * trainingDistribution[1];
+            totalStatsGained.Power += scenarioDistributedBonus * trainingDistribution[2];
+            totalStatsGained.Guts += scenarioDistributedBonus * trainingDistribution[3];
+            totalStatsGained.Wit! += scenarioDistributedBonus * trainingDistribution[4];
+        }
 
         return totalStatsGained;
     }

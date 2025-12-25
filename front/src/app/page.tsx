@@ -332,6 +332,8 @@ export default function Home() {
 
     return (
         <>
+            {/* GoatCounter Analytics */}
+            <script data-goatcounter="https://jechto.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
             {/* Structured Data for SEO */}
             <script
                 type="application/ld+json"

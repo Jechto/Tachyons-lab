@@ -350,7 +350,7 @@ export default function Home() {
                         },
                         "author": {
                             "@type": "Organization",
-                            "name": "Tachyons Lab"
+                            "name": "Tachyons Uma Lab"
                         },
                         "about": {
                             "@type": "VideoGame",

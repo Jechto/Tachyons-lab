@@ -332,8 +332,6 @@ export default function Home() {
 
     return (
         <>
-            {/* GoatCounter Analytics */}
-            <script data-goatcounter="https://jechto.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
             {/* Structured Data for SEO */}
             <script
                 type="application/ld+json"
@@ -342,7 +340,7 @@ export default function Home() {
                         "@context": "https://schema.org",
                         "@type": "WebApplication",
                         "name": "Uma Musume Deckbuilder and Tierlist Generator",
-                        "description": "Free Uma Musume support card optimization tool with tierlist generation and deckbuilding capabilities",
+                        "description": "Free Global Uma Musume support card optimization tool with tierlist generation and deckbuilding capabilities",
                         "applicationCategory": "GameApplication",
                         "operatingSystem": "Web Browser",
                         "offers": {

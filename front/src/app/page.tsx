@@ -392,7 +392,7 @@ export default function Home() {
                 {/* Text Content - moved up significantly for better positioning */}
                 <div className="relative z-10 pt-8 md:pt-12">
                     <h1 className="text-6xl font-bold mb-4">
-                        Tachyon's Uma Lab
+                        Tachyon&apos;s Uma Lab
                     </h1>
                     <h2 className="text-2xl mb-4 text-gray-600 dark:text-gray-400">
                         Uma Musume Tierlist and Deckbuilder

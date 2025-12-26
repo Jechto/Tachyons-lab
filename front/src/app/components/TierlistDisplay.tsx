@@ -1,6 +1,6 @@
 import { StatsDict } from "../types/cardTypes";
 import TierlistCard from "./TierlistCard";
-import { TierlistEntry } from "../classes/Tierlist";
+import { TierlistEntry, LimitBreakFilter } from "../classes/Tierlist";
 import { useState, useMemo } from "react";
 import { getAssetPath } from "../utils/paths";
 import Image from "next/image";
@@ -37,6 +37,11 @@ export default function TierlistDisplay({
     // Filter state
     const [cardTypeFilter, setCardTypeFilter] = useState<CardTypeFilter>("All");
     const [hintTypeFilters, setHintTypeFilters] = useState<Set<string>>(new Set());
+    const [limitBreakFilter, setLimitBreakFilter] = useState<LimitBreakFilter>({
+        R: [0, 4],
+        SR: [0, 4],
+        SSR: [0, 4],
+    });
 
     // Get all cards from all types and flatten them
     const allCards = Object.values(tierlistData).flat();
@@ -78,6 +83,12 @@ export default function TierlistDisplay({
                 return false;
             }
 
+            // Limit Break filter
+            const rarity = card.card_rarity as "R" | "SR" | "SSR";
+            if (limitBreakFilter[rarity] && !limitBreakFilter[rarity].includes(card.limit_break)) {
+                return false;
+            }
+
             // Hint type filter - if any hint filters are selected, card must have at least one matching hint
             if (hintTypeFilters.size > 0) {
                 const hasMatchingHint = card.hintTypes?.some(hint => hintTypeFilters.has(hint));
@@ -88,7 +99,7 @@ export default function TierlistDisplay({
 
             return true;
         });
-    }, [allCards, cardTypeFilter, hintTypeFilters]);
+    }, [allCards, cardTypeFilter, hintTypeFilters, limitBreakFilter]);
 
     // Toggle hint type filter
     const toggleHintTypeFilter = (hintType: string) => {
@@ -101,10 +112,43 @@ export default function TierlistDisplay({
         setHintTypeFilters(newFilters);
     };
 
+    const handleLimitBreakFilterChange = (
+        rarity: "R" | "SR" | "SSR",
+        limitBreak: number,
+        checked: boolean,
+    ) => {
+        setLimitBreakFilter((prev) => {
+            const updated = { ...prev };
+            if (checked) {
+                if (!updated[rarity].includes(limitBreak)) {
+                    updated[rarity] = [...updated[rarity], limitBreak].sort();
+                }
+            } else {
+                updated[rarity] = updated[rarity].filter(
+                    (lb) => lb !== limitBreak,
+                );
+            }
+            return updated;
+        });
+    };
+
+    const toggleAllLimitBreaksForRarity = (rarity: "R" | "SR" | "SSR") => {
+        const allSelected = limitBreakFilter[rarity].length === 5;
+        setLimitBreakFilter((prev) => ({
+            ...prev,
+            [rarity]: allSelected ? [] : [0, 1, 2, 3, 4],
+        }));
+    };
+
     // Clear all filters
     const clearAllFilters = () => {
         setCardTypeFilter("All");
         setHintTypeFilters(new Set());
+        setLimitBreakFilter({
+            R: [0, 4],
+            SR: [0, 4],
+            SSR: [0, 4],
+        });
     };
 
     // Get icon path for card type
@@ -254,6 +298,61 @@ export default function TierlistDisplay({
 
             {/* Filters */}
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
+                {/* Limit Break Filter */}
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Limit Break Filter
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {(["R", "SR", "SSR"] as const).map((rarity) => (
+                            <div key={rarity} className="flex flex-col gap-2">
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="text-m font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{rarity}</span>
+                                    <button
+                                        onClick={() => toggleAllLimitBreaksForRarity(rarity)}
+                                        className={`text-xs px-2 py-1 rounded border transition-colors ${
+                                            limitBreakFilter[rarity].length === 5
+                                                ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+                                                : "border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+                                        }`}
+                                    >
+                                        {limitBreakFilter[rarity].length === 5 ? "Clear All" : "Select All"}
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-5 gap-1">
+                                    {[0, 1, 2, 3, 4].map((lb) => {
+                                        const isSelected = limitBreakFilter[rarity].includes(lb);
+                                        return (
+                                            <label
+                                                key={lb}
+                                                className={`cursor-pointer px-1 py-1 rounded text-xs font-medium transition-colors text-center ${
+                                                    isSelected
+                                                        ? "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+                                                        : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600"
+                                                }`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isSelected}
+                                                    onChange={(e) =>
+                                                        handleLimitBreakFilterChange(
+                                                            rarity,
+                                                            lb,
+                                                            e.target.checked,
+                                                        )
+                                                    }
+                                                    className="sr-only"
+                                                />
+                                                {lb === 4 ? "MLB" : `${lb}LB`}
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Card Type Filter */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -392,8 +491,8 @@ export default function TierlistDisplay({
                         </div>
 
                         {/* Cards in this tier */}
-                        <div className="flex-1 min-h-[4rem] bg-gray-100 dark:bg-gray-800 rounded-lg p-3 border-2 border-gray-300 dark:border-gray-600">
-                            <div className="flex flex-wrap gap-3">
+                        <div className="flex-1 min-h-[4rem] bg-gray-100 dark:bg-gray-800 rounded-lg p-1 sm:p-3 border-2 border-gray-300 dark:border-gray-600">
+                            <div className="flex flex-wrap gap-1 sm:gap-3">
                                 {cardsInTier.map((card, index) => {
                                     const cardKey = `${card.id}-${card.limit_break}`;
                                     const disabledInfo = getCardDisabledInfo

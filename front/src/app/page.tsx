@@ -39,13 +39,6 @@ export default function Home() {
     const [tierlistResult, setTierlistResult] = useState<TierlistResponse | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
 
-    // Filter state
-    const [limitBreakFilter, setLimitBreakFilter] = useState<LimitBreakFilter>({
-        R: [0, 4], // Default to 0LB and MLB for R cards
-        SR: [0, 4], // Default to 0LB and MLB for SR cards
-        SSR: [0, 4], // Default to 0LB and MLB for SSR cards
-    });
-
     // Deck management functions
     const [currentDeck, setCurrentDeck] = useState<DeckCard[]>([]);
     const [deckCardIds, setDeckCardIds] = useState<Set<string>>(new Set());
@@ -91,36 +84,6 @@ export default function Home() {
         { value: "Late Surger", label: "Late Surger" },
         { value: "End Closer", label: "End Closer" },
     ];
-
-    // Handle filter changes
-    const handleFilterChange = (
-        rarity: "R" | "SR" | "SSR",
-        limitBreak: number,
-        checked: boolean,
-    ) => {
-        setLimitBreakFilter((prev) => {
-            const updated = { ...prev };
-            if (checked) {
-                if (!updated[rarity].includes(limitBreak)) {
-                    updated[rarity] = [...updated[rarity], limitBreak].sort();
-                }
-            } else {
-                updated[rarity] = updated[rarity].filter(
-                    (lb) => lb !== limitBreak,
-                );
-            }
-            return updated;
-        });
-    };
-
-    // Helper to toggle all limit breaks for a rarity
-    const toggleAllForRarity = (rarity: "R" | "SR" | "SSR") => {
-        const allSelected = limitBreakFilter[rarity].length === 5;
-        setLimitBreakFilter((prev) => ({
-            ...prev,
-            [rarity]: allSelected ? [] : [0, 1, 2, 3, 4],
-        }));
-    };
 
     // Deck management functions
       const handleCardClick = (card: TierlistEntry) => {
@@ -304,13 +267,20 @@ export default function Home() {
                 "End Closer": selectedStyles.includes("End Closer"),
             };
 
+            // Create a filter that includes everything for visual filtering later
+            const fullLimitBreakFilter: LimitBreakFilter = {
+                R: [0, 1, 2, 3, 4],
+                SR: [0, 1, 2, 3, 4],
+                SSR: [0, 1, 2, 3, 4],
+            };
+
             // Generate tierlist with current deck
             const result = tierlist.bestCardForDeck(
                 deckEvaluator,
                 raceTypes,
                 runningTypes,
                 allData,
-                limitBreakFilter,
+                fullLimitBreakFilter,
                 selectedScenario,
                 optionalRaces,
             );
@@ -361,7 +331,7 @@ export default function Home() {
                 }}
             />
             
-            <div className="flex min-h-screen flex-col items-center justify-center p-4 md:p-12 lg:p-24 max-w-7xl mx-auto">
+            <div className="flex min-h-screen flex-col items-center justify-center p-1 md:p-12 lg:p-24 max-w-7xl mx-auto">
             <header className="text-center mb-8 relative min-h-[250px]">
                 {/* Logo Background - positioned much higher up */}
                 <div className="absolute -top-16 md:-top-20 left-1/2 transform -translate-x-1/2 pointer-events-none">
@@ -406,9 +376,12 @@ export default function Home() {
 
             {/* Tierlist Configuration Form */}
             <div className="w-full max-w-6xl bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600 mb-8">
-                <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+                <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">
                     Generate Tierlist
                 </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    Configure the race distance and running strategy for your deck. These settings directly affect the grading and ranking of each support card.
+                </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
                     {/* Race Types */}
@@ -479,67 +452,6 @@ export default function Home() {
                                 );
                             })}
                         </div>
-                    </div>
-                </div>
-
-                {/* Limit Break Filter */}
-                <div className="mb-6">
-                    <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
-                        Limit Break Filter (Reduces processing time)
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {(["R", "SR", "SSR"] as const).map((rarity) => (
-                            <div
-                                key={rarity}
-                                className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
-                            >
-                                <div className="flex items-center justify-between mb-3">
-                                    <h5 className="font-medium text-gray-800 dark:text-gray-200">
-                                        {rarity} Cards
-                                    </h5>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            toggleAllForRarity(rarity)
-                                        }
-                                        className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors"
-                                    >
-                                        {limitBreakFilter[rarity].length === 5
-                                            ? "None"
-                                            : "All"}
-                                    </button>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {[0, 1, 2, 3, 4].map((lb) => {
-                                        const isSelected = limitBreakFilter[rarity].includes(lb);
-                                        return (
-                                            <label
-                                                key={lb}
-                                                className={`cursor-pointer p-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
-                                                    isSelected
-                                                        ? "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200"
-                                                        : "bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-500"
-                                                }`}
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={isSelected}
-                                                    onChange={(e) =>
-                                                        handleFilterChange(
-                                                            rarity,
-                                                            lb,
-                                                            e.target.checked,
-                                                        )
-                                                    }
-                                                    className="sr-only"
-                                                />
-                                                {lb === 4 ? "MLB" : `${lb}LB`}
-                                            </label>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ))}
                     </div>
                 </div>
 

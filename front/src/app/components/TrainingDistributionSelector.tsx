@@ -26,6 +26,7 @@ export default function TrainingDistributionSelector({
 }: TrainingDistributionSelectorProps) {
     // Local state for manual inputs (0-100)
     const [inputs, setInputs] = useState<number[]>([20, 20, 20, 20, 20]);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     // Initialize inputs from manualDistribution or calculatedDistribution when switching
     useEffect(() => {
@@ -58,7 +59,7 @@ export default function TrainingDistributionSelector({
         <div className="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700">
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-bold text-white">Training Distribution</h3>
-                <div className="flex items-center">
+                <div className="flex items-center gap-4">
                     <label className="relative inline-flex items-center cursor-pointer">
                         <input
                             type="checkbox"
@@ -67,45 +68,55 @@ export default function TrainingDistributionSelector({
                             onChange={(e) => onToggleManual(e.target.checked)}
                         />
                         <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        <span className="ml-3 text-sm font-medium text-gray-300">Manual Override</span>
+                        <span className="ml-3 text-sm font-medium text-gray-300 hidden sm:inline">Manual Override</span>
                     </label>
+                    <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="flex items-center gap-1 px-3 py-1 text-sm text-gray-400 hover:text-white transition-colors"
+                    >
+                        {isExpanded ? "▼" : "▶"} {isExpanded ? "Collapse" : "Expand"}
+                    </button>
                 </div>
             </div>
 
-            <div className="space-y-3">
-                {STAT_LABELS.map((label, index) => {
-                    const percentage = currentDistribution[index] * 100;
+            {isExpanded && (
+                <>
+                    <div className="space-y-3">
+                        {STAT_LABELS.map((label, index) => {
+                            const percentage = currentDistribution[index] * 100;
+                            
+                            return (
+                                <div key={label} className="flex items-center space-x-3">
+                                    <div className="w-16 text-sm font-medium text-gray-300">{label}</div>
+                                    <div className="flex-1 h-4 bg-gray-700 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full ${STAT_COLORS[index]} transition-all duration-300`}
+                                            style={{ width: `${percentage}%` }}
+                                        ></div>
+                                    </div>
+                                    <div className="w-16 text-right">
+                                        {isManual ? (
+                                            <input
+                                                type="number"
+                                                value={inputs[index]}
+                                                onChange={(e) => handleInputChange(index, e.target.value)}
+                                                className="w-full bg-gray-700 border border-gray-600 text-white text-xs rounded px-1 py-0.5 text-right focus:outline-none focus:border-blue-500"
+                                            />
+                                        ) : (
+                                            <span className="text-sm text-gray-300">{percentage.toFixed(1)}%</span>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                     
-                    return (
-                        <div key={label} className="flex items-center space-x-3">
-                            <div className="w-16 text-sm font-medium text-gray-300">{label}</div>
-                            <div className="flex-1 h-4 bg-gray-700 rounded-full overflow-hidden">
-                                <div
-                                    className={`h-full ${STAT_COLORS[index]} transition-all duration-300`}
-                                    style={{ width: `${percentage}%` }}
-                                ></div>
-                            </div>
-                            <div className="w-16 text-right">
-                                {isManual ? (
-                                    <input
-                                        type="number"
-                                        value={inputs[index]}
-                                        onChange={(e) => handleInputChange(index, e.target.value)}
-                                        className="w-full bg-gray-700 border border-gray-600 text-white text-xs rounded px-1 py-0.5 text-right focus:outline-none focus:border-blue-500"
-                                    />
-                                ) : (
-                                    <span className="text-sm text-gray-300">{percentage.toFixed(1)}%</span>
-                                )}
-                            </div>
+                    {isManual && (
+                        <div className="mt-2 text-xs text-gray-400 text-right">
+                            Total: {inputs.reduce((a, b) => a + b, 0)} (Normalized automatically)
                         </div>
-                    );
-                })}
-            </div>
-            
-            {isManual && (
-                <div className="mt-2 text-xs text-gray-400 text-right">
-                    Total: {inputs.reduce((a, b) => a + b, 0)} (Normalized automatically)
-                </div>
+                    )}
+                </>
             )}
         </div>
     );

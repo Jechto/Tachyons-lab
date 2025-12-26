@@ -77,7 +77,7 @@ export default function StatPreviewer({
     manualDistribution = null,
     optionalRaces = 0,
 }: StatPreviewerProps) {
-    const [isExpanded, setIsExpanded] = useState(true);
+    const [isExpanded, setIsExpanded] = useState(false);
     const calculateStatDifference = (
         currentDeck: DeckCard[],
     ): { currentStats: StatData; statDifference: StatDifference } => {

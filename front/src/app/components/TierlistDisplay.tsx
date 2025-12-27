@@ -1,9 +1,10 @@
 import { StatsDict } from "../types/cardTypes";
 import TierlistCard from "./TierlistCard";
 import { TierlistEntry, LimitBreakFilter } from "../classes/Tierlist";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { getAssetPath } from "../utils/paths";
 import Image from "next/image";
+import CardTypeSelector, { CardTypeFilter } from "./CardTypeSelector";
 
 interface TierlistDisplayProps {
     tierlistData: Record<string, TierlistEntry[]>;
@@ -16,8 +17,6 @@ interface TierlistDisplayProps {
         charaId?: number,
     ) => { disabled: boolean; reason?: string };
 }
-
-type CardTypeFilter = "All" | "Speed" | "Stamina" | "Power" | "Guts" | "Wit" | "Support";
 
 interface TierDefinition {
     name: string;
@@ -42,6 +41,54 @@ export default function TierlistDisplay({
         SR: [0, 4],
         SSR: [0, 4],
     });
+    const [showOwnedOnly, setShowOwnedOnly] = useState(false);
+    const [ownedCards, setOwnedCards] = useState<Map<number, number>>(new Map());
+
+    // Load owned cards from localStorage
+    useEffect(() => {
+        const loadOwnedCards = () => {
+            if (typeof window !== "undefined") {
+                const saved = localStorage.getItem("tachyons_owned_cards");
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        const ownedMap = new Map<number, number>();
+                        Object.entries(parsed).forEach(([id, level]) => {
+                            const lvl = Number(level);
+                            if (lvl !== -1) {
+                                ownedMap.set(Number(id), lvl);
+                            }
+                        });
+                        setOwnedCards(ownedMap);
+                    } catch (e) {
+                        console.error("Failed to parse owned cards", e);
+                    }
+                }
+            }
+        };
+
+        loadOwnedCards();
+        
+        // Listen for storage events (cross-tab)
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === "tachyons_owned_cards") {
+                loadOwnedCards();
+            }
+        };
+
+        // Listen for custom event (same-page)
+        const handleCustomUpdate = () => {
+            loadOwnedCards();
+        };
+
+        window.addEventListener("storage", handleStorageChange);
+        window.addEventListener("tachyons_collection_updated", handleCustomUpdate);
+        
+        return () => {
+            window.removeEventListener("storage", handleStorageChange);
+            window.removeEventListener("tachyons_collection_updated", handleCustomUpdate);
+        };
+    }, []);
 
     // Get all cards from all types and flatten them
     const allCards = Object.values(tierlistData).flat();
@@ -97,9 +144,18 @@ export default function TierlistDisplay({
                 }
             }
 
+            // Owned cards filter
+            if (showOwnedOnly) {
+                const ownedLevel = ownedCards.get(card.id);
+                // If not owned at all, or if the card's limit break doesn't match the owned level
+                if (ownedLevel === undefined || card.limit_break !== ownedLevel) {
+                    return false;
+                }
+            }
+
             return true;
         });
-    }, [allCards, cardTypeFilter, hintTypeFilters, limitBreakFilter]);
+    }, [allCards, cardTypeFilter, hintTypeFilters, limitBreakFilter, showOwnedOnly, ownedCards]);
 
     // Toggle hint type filter
     const toggleHintTypeFilter = (hintType: string) => {
@@ -149,26 +205,7 @@ export default function TierlistDisplay({
             SR: [0, 4],
             SSR: [0, 4],
         });
-    };
-
-    // Get icon path for card type
-    const getCardTypeIcon = (cardType: CardTypeFilter): string => {
-        switch (cardType) {
-            case "Speed":
-                return getAssetPath("images/icons/Speed.png");
-            case "Stamina":
-                return getAssetPath("images/icons/Stamina.png");
-            case "Power":
-                return getAssetPath("images/icons/Power.png");
-            case "Guts":
-                return getAssetPath("images/icons/Guts.png");
-            case "Wit":
-                return getAssetPath("images/icons/Intelligence.png");
-            case "Support":
-                return getAssetPath("images/icons/Support.png");
-            default: // "All"
-                return getAssetPath("images/icons/Support.png"); // Use a generic icon for "All"
-        }
+        setShowOwnedOnly(false);
     };
 
     // Calculate score percentiles for dynamic tier assignment (use all cards, not filtered)
@@ -354,62 +391,36 @@ export default function TierlistDisplay({
                 </div>
 
                 {/* Card Type Filter */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Card Type:
+                <CardTypeSelector 
+                    selectedType={cardTypeFilter} 
+                    onSelect={setCardTypeFilter} 
+                />
+
+                {/* Owned Cards Toggle */}
+                <div className="flex items-center gap-2">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            className="sr-only peer"
+                            checked={showOwnedOnly}
+                            onChange={(e) => {
+                                const isChecked = e.target.checked;
+                                setShowOwnedOnly(isChecked);
+                                if (isChecked) {
+                                    setLimitBreakFilter({
+                                        R: [0, 1, 2, 3, 4],
+                                        SR: [0, 1, 2, 3, 4],
+                                        SSR: [0, 1, 2, 3, 4],
+                                    });
+                                }
+                            }}
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">Show Owned Cards Only</span>
                     </label>
-                    <div className="flex flex-wrap gap-2">
-                        {(["All", "Speed", "Stamina", "Power", "Guts", "Wit", "Support"] as CardTypeFilter[]).map((type) => (
-                            <label key={type} className="flex items-center">
-                                <input
-                                    type="radio"
-                                    name="cardType"
-                                    value={type}
-                                    checked={cardTypeFilter === type}
-                                    onChange={(e) => setCardTypeFilter(e.target.value as CardTypeFilter)}
-                                    className="sr-only"
-                                />
-                                <div 
-                                    className={`relative cursor-pointer transition-all duration-200 rounded-lg w-10 h-10 flex items-center justify-center ${
-                                        cardTypeFilter === type
-                                            ? type === "All"
-                                                ? "bg-slate-600 text-white shadow-lg scale-110 border-2 border-slate-400"
-                                                : "shadow-lg scale-110 border-2"
-                                            : "bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 dark:hover:bg-slate-500 hover:scale-105 border-2 border-transparent"
-                                    } ${
-                                        cardTypeFilter === type && type !== "All"
-                                            ? type === "Speed"
-                                                ? "border-blue-300"
-                                                : type === "Stamina"
-                                                ? "border-red-300"
-                                                : type === "Power"
-                                                ? "border-orange-300"
-                                                : type === "Guts"
-                                                ? "border-pink-300"
-                                                : type === "Wit"
-                                                ? "border-green-300"
-                                                : "border-purple-300" // Support
-                                            : ""
-                                    }`}
-                                    style={type !== "All" ? {
-                                        backgroundImage: `url(${getCardTypeIcon(type)})`,
-                                        backgroundSize: '110%',
-                                        backgroundRepeat: 'no-repeat',
-                                        backgroundPosition: 'center',
-                                    } : {}}
-                                    title={type}
-                                >
-                                    {type === "All" && (
-                                        <span className="text-2xl font-bold">∀</span>
-                                    )}
-                                    {/* Active indicator dot */}
-                                    {cardTypeFilter === type && (
-                                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full border border-gray-300 shadow-sm"></div>
-                                    )}
-                                </div>
-                            </label>
-                        ))}
-                    </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                        ({ownedCards.size} cards in collection)
+                    </span>
                 </div>
 
                 {/* Hint Type Filter */}

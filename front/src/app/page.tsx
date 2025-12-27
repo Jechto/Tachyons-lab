@@ -12,6 +12,7 @@ import TierlistCard from "./components/TierlistCard";
 import StatPreviewer from "./components/StatPreviewer";
 import { getAssetPath } from "./utils/paths";
 import TrainingDistributionSelector from "./components/TrainingDistributionSelector";
+import CardCollectionManager from "./components/CardCollectionManager";
 
 // Types for our form state
 type RaceType = "Sprint" | "Mile" | "Medium" | "Long";
@@ -682,6 +683,9 @@ export default function Home() {
                     optionalRaces={optionalRaces}
                 />
             </div>
+
+            {/* Card Collection Manager */}
+            <CardCollectionManager />
 
             {/* Tierlist Results */}
             {tierlistResult && (

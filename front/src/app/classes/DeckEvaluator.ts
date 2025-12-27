@@ -1,5 +1,5 @@
 import { SupportCard } from "./SupportCard";
-import { TrainingData } from "../utils/trainingData";
+import { TrainingData } from "../config/trainingData";
 import { StatsDict, HintResult } from "../types/cardTypes";
 
 export class DeckEvaluator {

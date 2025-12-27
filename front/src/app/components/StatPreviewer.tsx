@@ -4,7 +4,7 @@ import { DeckEvaluator } from "../classes/DeckEvaluator";
 import { SupportCard } from "../classes/SupportCard";
 import { CardData } from "../types/cardTypes";
 import { getAssetPath } from "../utils/paths";
-import { TrainingData } from "../utils/trainingData";
+import { TrainingData } from "../config/trainingData";
 
 interface DeckCard {
     id: number;

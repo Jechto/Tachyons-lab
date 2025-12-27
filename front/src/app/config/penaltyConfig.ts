@@ -28,13 +28,6 @@ export interface PenaltyConfig {
             minor: number; // 10% penalty
         };
     };
-    statOverbuilt: {
-        threshold: number; // Stats above this trigger overbuilt penalty
-        basePenalty: number; // Base penalty percentage (10%)
-        incrementPenalty: number; // Additional penalty per 100 points (5% or 10%)
-        incrementSize: number; // Point increment size (100)
-        maxPenalty: number; // Maximum penalty cap (50%)
-    };
 }
 
 // Default penalty configuration
@@ -74,14 +67,7 @@ export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
             major: 0.2, // 20% penalty
             minor: 0.1, // 10% penalty
         },
-    },
-    statOverbuilt: {
-        threshold: 1200,
-        basePenalty: 0.01, // 1%
-        incrementPenalty: 0.01, // 1% per 10 points
-        incrementSize: 10,
-        maxPenalty: 0.5, // 50%
-    },
+    }
 };
 
 // You can create custom configurations for different scenarios
@@ -95,11 +81,7 @@ export const ALTERNATIVE_PENALTY_CONFIG: PenaltyConfig = {
             Medium: 350,
             Long: 450,
         },
-    },
-    statOverbuilt: {
-        ...DEFAULT_PENALTY_CONFIG.statOverbuilt,
-        incrementPenalty: 0.1, // 10% per 100 points instead of 5%
-    },
+    }
 };
 
 // Export the active configuration (easy to switch)

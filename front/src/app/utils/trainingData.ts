@@ -16,6 +16,13 @@ export class TrainingData {
                 Guts: 1 / 8,
                 Intelligence: 1 / 9,
             },
+            maxStats: {
+                Speed: 1200,
+                Stamina: 1200,
+                Power: 1200,
+                Guts: 1200,
+                Intelligence: 1200
+            },
             raceCareerRewards: {
                 finaleRace: [10, 10, 10, 10, 10, 60],
                 careerRace: [3, 3, 3, 3, 3, 45],
@@ -45,6 +52,13 @@ export class TrainingData {
                 Power: 1 / 9,
                 Guts: 1 / 6,
                 Intelligence: 1 / 10,
+            },
+            maxStats: {
+                Speed: 1200,
+                Stamina: 1200,
+                Power: 1200,
+                Guts: 1200,
+                Intelligence: 1200
             },
             raceCareerRewards: {
                 finaleRace: [10, 10, 10, 10, 10, 60],
@@ -111,6 +125,21 @@ export class TrainingData {
         return (
             this.baseStats[scenarioName as keyof typeof this.baseStats]
                 ?.scenarioTrainingDistributedBonusStats || 0
+        );
+    }
+
+    static getMaxStats(
+        scenarioName: string = "URA",
+    ): Record<string, number> {
+        return (
+            this.baseStats[scenarioName as keyof typeof this.baseStats]
+                ?.maxStats || {
+                    Speed: 1200,
+                    Stamina: 1200,
+                    Power: 1200,
+                    Guts: 1200,
+                    Intelligence: 1200,
+                }
         );
     }
 }

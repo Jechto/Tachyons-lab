@@ -8,6 +8,7 @@ import {
     HintResult,
 } from "../types/cardTypes";
 import { ACTIVE_PENALTY_CONFIG, PenaltyConfig } from "../config/penaltyConfig";
+import { TrainingData } from "../utils/trainingData";
 
 interface TierlistCard {
     id: number;
@@ -449,10 +450,36 @@ export class Tierlist {
         raceTypes?: RaceTypes,
         penaltyConfig: PenaltyConfig = ACTIVE_PENALTY_CONFIG,
     ): number {
-        // Get base score from delta stats
-        const baseScore = this.resultsToScore(deltaStats, hintDict, weights);
+        // Clamp stats to max values before calculating score
+        const maxStats = TrainingData.getMaxStats("URA"); // Assuming URA for now, or pass scenario
+        
+        const clampedRawStats = { ...rawStats };
+        const clampedDeltaStats = { ...deltaStats };
 
-        // Calculate stamina penalty based on raw stats
+        // Apply clamping
+        for (const stat of ["Speed", "Stamina", "Power", "Guts", "Wit"] as const) {
+            const statKey = stat === "Wit" ? "Intelligence" : stat;
+            const maxVal = maxStats[statKey] || 1200;
+            const currentVal = rawStats[stat] || 0;
+            
+            if (currentVal > maxVal) {
+                clampedRawStats[stat] = maxVal;
+                // Adjust delta: newDelta = clampedTotal - base
+                // base = currentTotal - currentDelta
+                const baseVal = currentVal - (deltaStats[stat] || 0);
+                clampedDeltaStats[stat] = maxVal - baseVal;
+            }
+        }
+
+        // Get base score from clamped delta stats
+        const baseScore = this.resultsToScore(clampedDeltaStats, hintDict, weights);
+
+        // Calculate stamina penalty based on raw stats (using original raw stats for penalties?)
+        // User said "1310 speed would be rounded down to 1200 when calculated"
+        // But penalties usually apply to meeting thresholds.
+        // If I have 1310 speed, I definitely meet the 1200 threshold.
+        // So using rawStats for threshold checks is correct.
+
         let staminaPenaltyPercent = 0; // Penalty as percentage (0.2 = 20%)
         let speedPenaltyPercent = 0; // Penalty as percentage
 
@@ -507,30 +534,11 @@ export class Tierlist {
             usefulHintsPenaltyPercent = penaltyConfig.hints.penalties.minor;
         }
 
-        // Calculate stat overbuilt penalty
-        let statOverbuiltPenaltyPercent = 0; // Penalty as percentage
-        
-        // Check each stat for being overbuilt
-        for (const [statName, value] of Object.entries(rawStats)) {
-            if (statName === "Skill Points") continue;
-            if (typeof value === 'number' && value > penaltyConfig.statOverbuilt.threshold) {
-                const excessPoints = value - penaltyConfig.statOverbuilt.threshold;
-                const excessIncrements = Math.floor(excessPoints / penaltyConfig.statOverbuilt.incrementSize);
-                
-                // Base penalty + additional penalty per increment, max cap
-                const statPenalty = Math.min(
-                    penaltyConfig.statOverbuilt.basePenalty + (excessIncrements * penaltyConfig.statOverbuilt.incrementPenalty), 
-                    penaltyConfig.statOverbuilt.maxPenalty
-                );
-                
-                // Take the highest penalty among all overbuilt stats
-                statOverbuiltPenaltyPercent = Math.max(statOverbuiltPenaltyPercent, statPenalty);
-            }
-        }
+        // Stat overbuilt penalty removed as requested
 
         // Apply additive penalties (like taxes)
         const totalPenaltyPercent =
-            staminaPenaltyPercent + speedPenaltyPercent + usefulHintsPenaltyPercent + statOverbuiltPenaltyPercent;
+            staminaPenaltyPercent + speedPenaltyPercent + usefulHintsPenaltyPercent;
         const finalMultiplier = 1.0 - totalPenaltyPercent;
 
         const finalScore = baseScore * finalMultiplier;
@@ -579,12 +587,31 @@ export class Tierlist {
             };
         }
 
-        // Calculate base score using delta stats
-        const baseScore = this.resultsToScore(deltaStats, hintDict, weights);
+        // Clamp stats to max values before calculating score
+        const maxStats = TrainingData.getMaxStats("URA"); // Assuming URA for now
+        
+        const clampedDeltaStats = { ...deltaStats };
 
-        // Calculate stat contributions from delta stats
+        // Apply clamping to delta stats for breakdown
+        for (const stat of ["Speed", "Stamina", "Power", "Guts", "Wit"] as const) {
+            const statKey = stat === "Wit" ? "Intelligence" : stat;
+            const maxVal = maxStats[statKey] || 1200;
+            const currentVal = rawStats[stat] || 0;
+            
+            if (currentVal > maxVal) {
+                // Adjust delta: newDelta = clampedTotal - base
+                // base = currentTotal - currentDelta
+                const baseVal = currentVal - (deltaStats[stat] || 0);
+                clampedDeltaStats[stat] = maxVal - baseVal;
+            }
+        }
+
+        // Calculate base score using clamped delta stats
+        const baseScore = this.resultsToScore(clampedDeltaStats, hintDict, weights);
+
+        // Calculate stat contributions from clamped delta stats
         const statContributions = [];
-        for (const [k, v] of Object.entries(deltaStats)) {
+        for (const [k, v] of Object.entries(clampedDeltaStats)) {
             const weight = weights[k] || 0;
             const contribution = v * weight;
             statContributions.push({
@@ -687,42 +714,10 @@ export class Tierlist {
             usefulHintsPenaltyReason = `No penalty: Useful hints rate ${Math.round(usefulHintsRate * 100)}% meets threshold`;
         }
 
-        // Calculate stat overbuilt penalty details
-        let statOverbuiltPenalty = 1.0;
-        let statOverbuiltPenaltyPercent = 0;
-        let statOverbuiltPenaltyReason = "No penalty applied";
-        const overbuiltStats: string[] = [];
-        let maxOverbuiltPenalty = 0;
-
-        // Check each stat for being overbuilt
-        for (const [statName, value] of Object.entries(rawStats)) {
-            if (statName === "Skill Points") continue;
-            if (typeof value === 'number' && value > penaltyConfig.statOverbuilt.threshold) {
-                const excessPoints = value - penaltyConfig.statOverbuilt.threshold;
-                const excessIncrements = Math.floor(excessPoints / penaltyConfig.statOverbuilt.incrementSize);
-                
-                // Base penalty + additional penalty per increment, max cap
-                const statPenalty = Math.min(
-                    penaltyConfig.statOverbuilt.basePenalty + (excessIncrements * penaltyConfig.statOverbuilt.incrementPenalty), 
-                    penaltyConfig.statOverbuilt.maxPenalty
-                );
-                
-                overbuiltStats.push(`${statName}: ${Math.round(value)} (${Math.round(statPenalty * 100)}% penalty)`);
-                
-                // Take the highest penalty among all overbuilt stats
-                if (statPenalty > maxOverbuiltPenalty) {
-                    maxOverbuiltPenalty = statPenalty;
-                }
-            }
-        }
-
-        if (maxOverbuiltPenalty > 0) {
-            statOverbuiltPenaltyPercent = maxOverbuiltPenalty;
-            statOverbuiltPenalty = 1.0 - maxOverbuiltPenalty;
-            statOverbuiltPenaltyReason = `${Math.round(maxOverbuiltPenalty * 100)}% penalty: Overbuilt stats - ${overbuiltStats.join(", ")}`;
-        } else {
-            statOverbuiltPenaltyReason = `No penalty: All stats below ${penaltyConfig.statOverbuilt.threshold} threshold`;
-        }
+        // Stat overbuilt penalty removed
+        const statOverbuiltPenalty = 1.0;
+        const statOverbuiltPenaltyReason = "No penalty: Overbuilt penalty disabled";
+        const statOverbuiltPenaltyPercent = 0;
 
         // Apply additive penalties (like taxes)
         const totalPenaltyPercent =

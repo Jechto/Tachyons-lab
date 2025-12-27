@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { DeckEvaluator } from "../classes/DeckEvaluator";
 import { SupportCard } from "../classes/SupportCard";
 import { CardData } from "../types/cardTypes";
 import { getAssetPath } from "../utils/paths";
+import { TrainingData } from "../utils/trainingData";
 
 interface DeckCard {
     id: number;
@@ -78,6 +79,20 @@ export default function StatPreviewer({
     optionalRaces = 0,
 }: StatPreviewerProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+
+    // Load expansion state
+    useEffect(() => {
+        const saved = localStorage.getItem("tachyons_stat_preview_expanded");
+        if (saved !== null) {
+            setIsExpanded(saved === "true");
+        }
+    }, []);
+
+    // Save expansion state
+    useEffect(() => {
+        localStorage.setItem("tachyons_stat_preview_expanded", String(isExpanded));
+    }, [isExpanded]);
+
     const calculateStatDifference = (
         currentDeck: DeckCard[],
     ): { currentStats: StatData; statDifference: StatDifference } => {
@@ -302,6 +317,13 @@ export default function StatPreviewer({
                                     statDifference[
                                         statName as keyof StatDifference
                                     ];
+                                
+                                // Check for overbuilt stats
+                                const maxStats = TrainingData.getMaxStats(scenarioName);
+                                const statKey = statName === "Wit" ? "Intelligence" : statName;
+                                const maxVal = maxStats[statKey];
+                                const isOverbuilt = maxVal !== undefined && currentValue > maxVal;
+
                                 return (
                                     <div
                                         key={statName}
@@ -341,8 +363,9 @@ export default function StatPreviewer({
                                         <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                             {statName}
                                         </div>
-                                        <div className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
+                                        <div className={`text-lg font-bold mb-1 ${isOverbuilt ? "text-yellow-600 dark:text-yellow-400" : "text-gray-800 dark:text-gray-200"}`}>
                                             {formatAbsoluteValue(currentValue)}
+                                            {maxVal !== undefined && <span className="text-xs font-normal text-gray-500 dark:text-gray-400">/{maxVal}</span>}
                                         </div>
                                         <div
                                             className={`text-sm font-medium ${getStatColor(deltaValue)}`}
@@ -394,13 +417,27 @@ export default function StatPreviewer({
                                     {/* Table Body */}
                                     <div className="divide-y divide-gray-100 dark:divide-gray-600">
                                         {scoreBreakdown.statContributions.map(
-                                            (stat, index) => (
+                                            (stat, index) => {
+                                                // Check if this stat was capped
+                                                const maxStats = TrainingData.getMaxStats(scenarioName);
+                                                const statKey = stat.stat === "Wit" ? "Intelligence" : stat.stat;
+                                                const maxVal = maxStats[statKey];
+                                                
+                                                // We need to check the raw stat value to see if it was capped
+                                                // But here we only have the contribution (delta)
+                                                // Let's look up the current stat value from currentStats
+                                                const currentStatValue = currentStats[stat.stat as keyof StatData];
+                                                const isCapped = maxVal !== undefined && currentStatValue >= maxVal;
+
+                                                return (
                                                 <div
                                                     key={stat.stat}
                                                     className={`px-4 py-3 grid grid-cols-4 gap-4 items-center ${
-                                                        index % 2 === 0
-                                                            ? "bg-white dark:bg-gray-800"
-                                                            : "bg-gray-25 dark:bg-gray-750"
+                                                        isCapped 
+                                                            ? "bg-yellow-50 dark:bg-yellow-900/20" 
+                                                            : index % 2 === 0
+                                                                ? "bg-white dark:bg-gray-800"
+                                                                : "bg-gray-25 dark:bg-gray-750"
                                                     }`}
                                                 >
                                                     <div className="flex items-center gap-2">
@@ -431,18 +468,19 @@ export default function StatPreviewer({
                                                                 };
                                                             }}
                                                         />
-                                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                        <span className={`text-sm font-medium ${isCapped ? "text-yellow-700 dark:text-yellow-300" : "text-gray-700 dark:text-gray-300"}`}>
                                                             {stat.stat}
+                                                            {isCapped && <span className="ml-1 text-xs font-normal opacity-75">(Capped)</span>}
                                                         </span>
                                                     </div>
-                                                    <div className="text-right text-sm text-gray-800 dark:text-gray-200 font-mono">
+                                                    <div className={`text-right text-sm font-mono ${isCapped ? "text-yellow-700 dark:text-yellow-300 font-bold" : "text-gray-800 dark:text-gray-200"}`}>
                                                         {Math.round(stat.value)}
                                                     </div>
-                                                    <div className="text-right text-sm text-gray-600 dark:text-gray-400 font-mono">
+                                                    <div className={`text-right text-sm font-mono ${isCapped ? "text-yellow-600 dark:text-yellow-400" : "text-gray-600 dark:text-gray-400"}`}>
                                                         ×
                                                         {stat.weight.toFixed(2)}
                                                     </div>
-                                                    <div className="text-right text-sm font-semibold text-gray-800 dark:text-gray-200 font-mono">
+                                                    <div className={`text-right text-sm font-semibold font-mono ${isCapped ? "text-yellow-700 dark:text-yellow-300" : "text-gray-800 dark:text-gray-200"}`}>
                                                         {stat.contribution > 0
                                                             ? "+"
                                                             : ""}
@@ -451,7 +489,7 @@ export default function StatPreviewer({
                                                         )}
                                                     </div>
                                                 </div>
-                                            ),
+                                            )},
                                         )}
 
                                         {/* Subtotal */}

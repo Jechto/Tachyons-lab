@@ -28,6 +28,19 @@ export default function TrainingDistributionSelector({
     const [inputs, setInputs] = useState<number[]>([20, 20, 20, 20, 20]);
     const [isExpanded, setIsExpanded] = useState(false);
 
+    // Load expansion state
+    useEffect(() => {
+        const saved = localStorage.getItem("tachyons_training_dist_expanded");
+        if (saved !== null) {
+            setIsExpanded(saved === "true");
+        }
+    }, []);
+
+    // Save expansion state
+    useEffect(() => {
+        localStorage.setItem("tachyons_training_dist_expanded", String(isExpanded));
+    }, [isExpanded]);
+
     // Initialize inputs from manualDistribution or calculatedDistribution when switching
     useEffect(() => {
         if (isManual && manualDistribution) {

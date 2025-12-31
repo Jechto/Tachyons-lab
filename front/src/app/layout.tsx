@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { getAssetPath } from "./utils/paths";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -22,9 +23,9 @@ export const metadata: Metadata = {
         google: "a1UaFtEphUhB3Yv9kD_VWu1F6rwKdS2klV5HN9xSq3I",
     },
     icons: {
-        icon: '/favicon.ico',
-        shortcut: '/favicon.ico',
-        apple: '/images/logo/logo512.png',
+        icon: getAssetPath('/favicon.ico'),
+        shortcut: getAssetPath('/favicon.ico'),
+        apple: getAssetPath('/images/logo/logo512.png'),
     },
     openGraph: {
         siteName: 'Uma Musume Tierlist & Deckbuilder - Tachyons Lab',
@@ -35,7 +36,7 @@ export const metadata: Metadata = {
         locale: "en_US",
         images: [
             {
-                url: '/images/logo/logo512.png',
+                url: getAssetPath('/images/logo/logo512.png'),
                 width: 512,
                 height: 512,
                 alt: 'Tachyons Lab Logo',
@@ -46,7 +47,7 @@ export const metadata: Metadata = {
         card: "summary_large_image",
         title: "Free Uma Musume Support Card Tierlist & Deck Builder",
         description: "Build winning decks instantly. AI-powered support card rankings for optimal race strategies.",
-        images: ['/images/logo/logo512.png'],
+        images: [getAssetPath('/images/logo/logo512.png')],
     },
     robots: {
         index: true,

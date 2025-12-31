@@ -264,7 +264,19 @@ class Database:
             raise ValueError("Database path not configured.")
         conn = sqlite3.connect(self._db_path)
         cursor = conn.cursor()
-        cursor.execute('SELECT id, rarity, group_id, grade_value, condition_1, float_ability_time_1 AS skill_time_active, float_cooldown_time_1 AS skill_cooldown_time, ability_type_1_1 AS ability_type, float_ability_value_1_1 AS ability_value, popularity_add_value_1 AS skill_popularity_add_value FROM skill_data WHERE id=?', (skill_id,))
+        cursor.execute('''SELECT 
+                       id, 
+                       rarity, 
+                       group_id,
+                       icon_id, 
+                       grade_value, 
+                       condition_1, 
+                       float_ability_time_1 AS skill_time_active, 
+                       float_cooldown_time_1 AS skill_cooldown_time, 
+                       ability_type_1_1 AS ability_type, 
+                       float_ability_value_1_1 AS ability_value, 
+                       
+                       FROM skill_data WHERE id=?''', (skill_id,))
         row = cursor.fetchone()
         conn.close()
         if row:

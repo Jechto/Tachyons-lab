@@ -326,7 +326,42 @@ export class DeckEvaluator {
                 totalEnergySpent +=
                     energyCost * turnsToTrainAtThisFacility * (1 + witRecovery);
             } else {
-                totalEnergySpent += energyCost * turnsToTrainAtThisFacility;
+                // Calculate Energy Cost Reduction
+                // ECR is an int, applies 20% of its value as percentage reduction
+                // Formula: energyCost * turns * (1 - (ECR * 0.20 / 100))
+                // Simplified: energyCost * turns * (1 - ECR * 0.002)
+                
+                let totalECR = 0;
+                
+                // Iterate over ALL cards in the deck, as any card can appear at any facility
+                for (const card of this.deck) {
+                    const ecr = card.cardBonus["Energy Cost Reduction"] !== -1 
+                        ? card.cardBonus["Energy Cost Reduction"] || 0 
+                        : 0;
+                    
+                    if (ecr === 0) continue;
+
+                    // Determine probability of card being at this facility
+                    let presenceChance = 0.2; // Base 20% chance for any facility
+                    
+                    // Add specialty priority if the card matches the facility type
+                    if (card.cardType.type === name) {
+                        const specialtyPriority = card.cardBonus["Specialty Priority"] !== -1
+                            ? card.cardBonus["Specialty Priority"] || 0
+                            : 0;
+                        presenceChance += (specialtyPriority / 100);
+                    }
+                    
+                    // Cap chance at 1.0 (100%)
+                    if (presenceChance > 1.0) presenceChance = 1.0;
+
+                    totalECR += ecr * presenceChance;
+                }
+
+                // Apply reduction: 20% of the ECR value is the percentage reduction
+                // e.g. ECR 10 -> 2% reduction
+                const reductionMultiplier = 1 - (totalECR * 0.20 / 100);
+                totalEnergySpent += energyCost * turnsToTrainAtThisFacility * reductionMultiplier;
             }
             index++;
         }

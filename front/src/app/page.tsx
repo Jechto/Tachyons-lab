@@ -309,25 +309,39 @@ export default function Home() {
                 dangerouslySetInnerHTML={{
                     __html: JSON.stringify({
                         "@context": "https://schema.org",
-                        "@type": "WebApplication",
-                        "name": "Uma Musume Deckbuilder and Tierlist Generator",
-                        "description": "Free Global Uma Musume support card optimization tool with tierlist generation and deckbuilding capabilities",
-                        "applicationCategory": "GameApplication",
-                        "operatingSystem": "Web Browser",
-                        "offers": {
-                            "@type": "Offer",
-                            "price": "0",
-                            "priceCurrency": "USD"
-                        },
-                        "author": {
-                            "@type": "Organization",
-                            "name": "Tachyons Uma Lab"
-                        },
-                        "about": {
-                            "@type": "VideoGame",
-                            "name": "Uma Musume Pretty Derby",
-                            "publisher": "Cygames"
-                        }
+                        "@graph": [
+                            {
+                                "@type": "WebSite",
+                                "name": "Tachyons Uma Lab",
+                                "url": "https://jechto.github.io/Tachyons-lab/",
+                                "potentialAction": {
+                                    "@type": "SearchAction",
+                                    "target": "https://jechto.github.io/Tachyons-lab/?q={search_term_string}",
+                                    "query-input": "required name=search_term_string"
+                                }
+                            },
+                            {
+                                "@type": "WebApplication",
+                                "name": "Uma Musume Deckbuilder and Tierlist Generator",
+                                "description": "Free Global Uma Musume support card optimization tool with tierlist generation and deckbuilding capabilities",
+                                "applicationCategory": "GameApplication",
+                                "operatingSystem": "Web Browser",
+                                "offers": {
+                                    "@type": "Offer",
+                                    "price": "0",
+                                    "priceCurrency": "USD"
+                                },
+                                "author": {
+                                    "@type": "Organization",
+                                    "name": "Tachyons Uma Lab"
+                                },
+                                "about": {
+                                    "@type": "VideoGame",
+                                    "name": "Uma Musume Pretty Derby",
+                                    "publisher": "Cygames"
+                                }
+                            }
+                        ]
                     })
                 }}
             />

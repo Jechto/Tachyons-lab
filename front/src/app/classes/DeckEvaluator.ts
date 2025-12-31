@@ -97,6 +97,7 @@ export class DeckEvaluator {
         scenarioName: string = "URA",
         averageMoodBonus: number = 20,
         optionalRaces: number = 0,
+        forcedRaces: number = 8,
     ): StatsDict {
         const trainingDistribution = this.getTrainingDistribution();
 
@@ -123,7 +124,7 @@ export class DeckEvaluator {
         let eventRecovery = 0;
         let raceBonus = 0;
 
-        const maxTrainingTurns = 72 + 6 - 11 - optionalRaces;
+        const maxTrainingTurns = 72 + 6 - 3 - forcedRaces - optionalRaces;
 
         // Aggregating all card stats first
         for (const card of this.deck) {
@@ -590,21 +591,21 @@ export class DeckEvaluator {
         const careerRace = careerRaces.careerRace || [0, 0, 0, 0, 0, 0];
         const optionalRaceRewards = careerRaces.optionalRace || [2, 2, 2, 2, 2, 30];
 
-        totalStatsGained.Speed += finaleRace[0] * 3 + careerRace[0] * 8;
-        totalStatsGained.Stamina += finaleRace[1] * 3 + careerRace[1] * 8;
-        totalStatsGained.Power += finaleRace[2] * 3 + careerRace[2] * 8;
-        totalStatsGained.Guts += finaleRace[3] * 3 + careerRace[3] * 8;
-        totalStatsGained.Wit! += finaleRace[4] * 3 + careerRace[4] * 8;
+        totalStatsGained.Speed += finaleRace[0] * 3 + careerRace[0] * 8 * (1+raceBonus);
+        totalStatsGained.Stamina += finaleRace[1] * 3 + careerRace[1] * 8 * (1+raceBonus);
+        totalStatsGained.Power += finaleRace[2] * 3 + careerRace[2] * 8 * (1+raceBonus);
+        totalStatsGained.Guts += finaleRace[3] * 3 + careerRace[3] * 8 * (1+raceBonus);
+        totalStatsGained.Wit! += finaleRace[4] * 3 + careerRace[4] * 8 * (1+raceBonus);
         totalStatsGained["Skill Points"]! +=
-            finaleRace[5] * 3 + careerRace[5] * 8;
+            finaleRace[5] * 3 + careerRace[5] * 8 * (1+raceBonus);
 
         // Add optional race stats
-        totalStatsGained.Speed += optionalRaces * optionalRaceRewards[0];
-        totalStatsGained.Stamina += optionalRaces * optionalRaceRewards[1];
-        totalStatsGained.Power += optionalRaces * optionalRaceRewards[2];
-        totalStatsGained.Guts += optionalRaces * optionalRaceRewards[3];
-        totalStatsGained.Wit! += optionalRaces * optionalRaceRewards[4];
-        totalStatsGained["Skill Points"]! += optionalRaces * optionalRaceRewards[5];
+        totalStatsGained.Speed += optionalRaces * optionalRaceRewards[0] * (1+raceBonus);
+        totalStatsGained.Stamina += optionalRaces * optionalRaceRewards[1] * (1+raceBonus);
+        totalStatsGained.Power += optionalRaces * optionalRaceRewards[2] * (1+raceBonus);
+        totalStatsGained.Guts += optionalRaces * optionalRaceRewards[3] * (1+raceBonus);
+        totalStatsGained.Wit! += optionalRaces * optionalRaceRewards[4] * (1+raceBonus);
+        totalStatsGained["Skill Points"]! += optionalRaces * optionalRaceRewards[5] * (1+raceBonus);
 
         // Add scenario bonus stats
         const scenarioBonus = TrainingData.getScenarioBonusStats(scenarioName);

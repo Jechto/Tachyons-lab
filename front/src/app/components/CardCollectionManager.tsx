@@ -69,6 +69,78 @@ const getRarityStyle = (rarity: string) => {
     }
 };
 
+interface CollectionCardProps {
+    card: CardData;
+    ownership: OwnershipLevel;
+    onOwnershipChange: (cardId: number, level: OwnershipLevel) => void;
+}
+
+const CollectionCard = ({ card, ownership, onOwnershipChange }: CollectionCardProps) => {
+    const isOwned = ownership !== -1;
+    const rarityStr = RARITY_MAP[card.rarity] || "R";
+    const rarityStyle = getRarityStyle(rarityStr);
+    
+    return (
+        <div 
+            className={`relative flex flex-col rounded-lg overflow-hidden transition-all duration-200 ${
+                isOwned 
+                    ? "bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transform hover:-translate-y-1" 
+                    : "bg-gray-100 dark:bg-gray-900 opacity-90"
+            }`}
+        >
+            {/* Card Header / Image Container */}
+            <div className={`relative aspect-[3/4] w-full overflow-hidden ${!isOwned ? 'brightness-50 contrast-125' : ''}`}>
+                {/* Rarity Badge */}
+                <div className={`absolute bottom-0.5 left-0.5 z-10 px-1.5 py-0.5 rounded text-[10px] font-bold shadow-sm ${rarityStyle.bg} ${rarityStyle.text}`}>
+                    {rarityStr}
+                </div>
+                
+                {/* Type Icon */}
+                <div className="absolute top-0.5 right-0.5 z-10 w-6 h-6 bg-white/90 rounded-full p-0.5 shadow-sm">
+                    <Image 
+                        src={getTypeIcon(card.prefered_type)} 
+                        alt={card.prefered_type}
+                        width={24}
+                        height={24}
+                    />
+                </div>
+
+                <Image
+                    src={getAssetPath(`images/cards/${card.id}.png`)}
+                    alt={card.card_chara_name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 80px, 120px"
+                    onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iMTEyIiB2aWV3Qm94PSIwIDAgOTYgMTEyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iMTEyIiBmaWxsPSIjRjNGNEY2Ii8+PC9zdmc+";
+                    }}
+                />
+            </div>
+
+            {/* Controls */}
+            <div className="p-1 border-t border-gray-100 dark:border-gray-700">
+                <div className="text-[9px] font-medium truncate mb-1 text-gray-700 dark:text-gray-300" title={card.card_chara_name}>
+                    {card.card_chara_name}
+                </div>
+                <select
+                    value={ownership}
+                    onChange={(e) => onOwnershipChange(card.id, Number(e.target.value) as OwnershipLevel)}
+                    className={`w-full text-[9px] p-0.5 rounded border outline-none focus:ring-1 focus:ring-blue-500 transition-colors ${
+                        isOwned
+                            ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100 font-semibold"
+                            : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400"
+                    }`}
+                >
+                    {Object.entries(OWNERSHIP_LABELS).map(([val, label]) => (
+                        <option key={val} value={val}>{label}</option>
+                    ))}
+                </select>
+            </div>
+        </div>
+    );
+};
+
 export default function CardCollectionManager() {
     const [ownedCards, setOwnedCards] = useState<Record<number, OwnershipLevel>>({});
     const [cardTypeFilter, setCardTypeFilter] = useState<CardTypeFilter>("All");
@@ -226,69 +298,14 @@ export default function CardCollectionManager() {
                     <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-2">
                         {filteredAndSortedCards.map(card => {
                             const ownership = ownedCards[card.id] ?? -1;
-                            const isOwned = ownership !== -1;
-                            const rarityStr = RARITY_MAP[card.rarity] || "R";
-                            const rarityStyle = getRarityStyle(rarityStr);
                             
                             return (
-                                <div 
+                                <CollectionCard 
                                     key={card.id} 
-                                    className={`relative flex flex-col rounded-lg overflow-hidden transition-all duration-200 ${
-                                        isOwned 
-                                            ? "bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transform hover:-translate-y-1" 
-                                            : "bg-gray-100 dark:bg-gray-900 opacity-90"
-                                    }`}
-                                >
-                                    {/* Card Header / Image Container */}
-                                    <div className={`relative aspect-[3/4] w-full overflow-hidden ${!isOwned ? 'brightness-50 contrast-125' : ''}`}>
-                                        {/* Rarity Badge */}
-                                        <div className={`absolute top-0.5 left-0.5 z-10 px-1.5 py-0.5 rounded text-[10px] font-bold shadow-sm ${rarityStyle.bg} ${rarityStyle.text}`}>
-                                            {rarityStr}
-                                        </div>
-                                        
-                                        {/* Type Icon */}
-                                        <div className="absolute top-0.5 right-0.5 z-10 w-6 h-6 bg-white/90 rounded-full p-0.5 shadow-sm">
-                                            <Image 
-                                                src={getTypeIcon(card.prefered_type)} 
-                                                alt={card.prefered_type}
-                                                width={24}
-                                                height={24}
-                                            />
-                                        </div>
-
-                                        <Image
-                                            src={getAssetPath(`images/cards/${card.id}.png`)}
-                                            alt={card.card_chara_name}
-                                            fill
-                                            className="object-cover"
-                                            sizes="(max-width: 640px) 80px, 120px"
-                                            onError={(e) => {
-                                                const target = e.target as HTMLImageElement;
-                                                target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iMTEyIiB2aWV3Qm94PSIwIDAgOTYgMTEyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iMTEyIiBmaWxsPSIjRjNGNEY2Ii8+PC9zdmc+";
-                                            }}
-                                        />
-                                    </div>
-
-                                    {/* Controls */}
-                                    <div className="p-1 border-t border-gray-100 dark:border-gray-700">
-                                        <div className="text-[9px] font-medium truncate mb-1 text-gray-700 dark:text-gray-300" title={card.card_chara_name}>
-                                            {card.card_chara_name}
-                                        </div>
-                                        <select
-                                            value={ownership}
-                                            onChange={(e) => handleOwnershipChange(card.id, Number(e.target.value) as OwnershipLevel)}
-                                            className={`w-full text-[9px] p-0.5 rounded border outline-none focus:ring-1 focus:ring-blue-500 transition-colors ${
-                                                isOwned
-                                                    ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100 font-semibold"
-                                                    : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400"
-                                            }`}
-                                        >
-                                            {Object.entries(OWNERSHIP_LABELS).map(([val, label]) => (
-                                                <option key={val} value={val}>{label}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
+                                    card={card} 
+                                    ownership={ownership} 
+                                    onOwnershipChange={handleOwnershipChange} 
+                                />
                             );
                         })}
                     </div>

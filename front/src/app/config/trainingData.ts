@@ -26,7 +26,7 @@ export class TrainingData {
             raceCareerRewards: {
                 finaleRace: [10, 10, 10, 10, 10, 60],
                 careerRace: [3, 3, 3, 3, 3, 45],
-                optionalRace: [1, 1, 1, 1, 1, 45],
+                optionalRace: [2, 2, 2, 2, 2, 45],
             },
             scenarioBonusStats: {
                 Speed: 15,
@@ -38,13 +38,13 @@ export class TrainingData {
             scenarioTrainingDistributedBonusStats: 0,
         },
         Unity: {
-            // A flat assumption of an average 2 UMA unity training (white flame training). With the rare 3 Uma trainings (+1 to second stat)
+            // A flat assumption of an average 2 UMA unity training (white flame training). With the rare 3 Uma trainings (+0.25 to second stat)
             training: {
-                Speed: [8+2, 0, 4, 0, 0, 4, -19],
-                Stamina: [0, 8+2, 0, 6, 0, 4, -20],
-                Power: [0, 4, 9+2, 0, 0, 4, -20],
-                Guts: [3, 0, 3, 6+2, 0, 4, -22],
-                Intelligence: [3, 0, 0, 0, 10+1, 5, 0],
+                Speed: [8+2, 0, 4+0.25, 0, 0, 4, -19],
+                Stamina: [0, 8+2, 0, 6+0.25, 0, 4, -20],
+                Power: [0, 4+0.25, 9+2, 0, 0, 4, -20],
+                Guts: [3+0.125, 0, 3+0.125, 6+2, 0, 4, -22],
+                Intelligence: [3+0.25, 0, 0, 0, 10+1, 5, 0],
             },
             facilityMultipliers: {
                 Speed: 1 / 8,
@@ -63,7 +63,7 @@ export class TrainingData {
             raceCareerRewards: {
                 finaleRace: [10, 10, 10, 10, 10, 60],
                 careerRace: [3, 3, 3, 3, 3, 45],
-                optionalRace: [1, 1, 1, 1, 1, 45], // +5 to random stat -15 stam
+                optionalRace: [2, 2, 2, 2, 2, 45], // +10 to random stat
             },
             // 31 are the level up rewards F -> S
             scenarioBonusStats: {

@@ -97,7 +97,7 @@ export default function StatPreviewer({
         currentDeck: DeckCard[],
     ): { currentStats: StatData; statDifference: StatDifference } => {
         // If we have deckStats from the API, use those for the delta stats
-        if (deckStats && currentDeck.length > 0) {
+        if (deckStats) {
             // deckStats from API are the delta stats (support card contributions)
             const deltaStats = {
                 Speed: Math.round(deckStats.Speed || 0),
@@ -115,7 +115,8 @@ export default function StatPreviewer({
                 if (manualDistribution) {
                     emptyDeckEvaluator.setManualDistribution(manualDistribution);
                 }
-                const baseStats = emptyDeckEvaluator.evaluateStats(scenarioName, 20, optionalRaces);
+                // Base stats should be calculated with 0 optional races to correctly show the delta
+                const baseStats = emptyDeckEvaluator.evaluateStats(scenarioName, 20, 0);
 
                 const totalStats = {
                     Speed: Math.round(
@@ -147,95 +148,25 @@ export default function StatPreviewer({
             }
         }
 
-        // Fallback: calculate locally if no API stats provided or if calculation failed
-        try {
-            // Create empty deck evaluator
-            const emptyDeckEvaluator = new DeckEvaluator();
-            if (manualDistribution) {
-                emptyDeckEvaluator.setManualDistribution(manualDistribution);
-            }
-            const emptyStats = emptyDeckEvaluator.evaluateStats(scenarioName, 20, optionalRaces);
-
-            // Create current deck evaluator
-            const currentDeckEvaluator = new DeckEvaluator();
-            if (manualDistribution) {
-                currentDeckEvaluator.setManualDistribution(manualDistribution);
-            }
-
-            // Add cards to current deck
-            for (const deckCard of currentDeck) {
-                try {
-                    const supportCard = new SupportCard(
-                        deckCard.id,
-                        deckCard.limitBreak,
-                        allData,
-                    );
-                    currentDeckEvaluator.addCard(supportCard);
-                } catch (error) {
-                    console.warn(
-                        `Failed to add card ${deckCard.id} to stat preview:`,
-                        error,
-                    );
-                }
-            }
-
-            const currentStats = currentDeckEvaluator.evaluateStats(scenarioName, 20, optionalRaces);
-
-            // Return both current stats and differences
-            return {
-                currentStats: {
-                    Speed: Math.round(currentStats.Speed || 0),
-                    Stamina: Math.round(currentStats.Stamina || 0),
-                    Power: Math.round(currentStats.Power || 0),
-                    Guts: Math.round(currentStats.Guts || 0),
-                    Wit: Math.round(currentStats.Wit || 0),
-                    "Skill Points": Math.round(
-                        currentStats["Skill Points"] || 0,
-                    ),
-                },
-                statDifference: {
-                    Speed: Math.round(
-                        (currentStats.Speed || 0) - (emptyStats.Speed || 0),
-                    ),
-                    Stamina: Math.round(
-                        (currentStats.Stamina || 0) - (emptyStats.Stamina || 0),
-                    ),
-                    Power: Math.round(
-                        (currentStats.Power || 0) - (emptyStats.Power || 0),
-                    ),
-                    Guts: Math.round(
-                        (currentStats.Guts || 0) - (emptyStats.Guts || 0),
-                    ),
-                    Wit: Math.round(
-                        (currentStats.Wit || 0) - (emptyStats.Wit || 0),
-                    ),
-                    "Skill Points": Math.round(
-                        (currentStats["Skill Points"] || 0) -
-                            (emptyStats["Skill Points"] || 0),
-                    ),
-                },
-            };
-        } catch (error) {
-            console.error("Error calculating stat difference:", error);
-            return {
-                currentStats: {
-                    Speed: 0,
-                    Stamina: 0,
-                    Power: 0,
-                    Guts: 0,
-                    Wit: 0,
-                    "Skill Points": 0,
-                },
-                statDifference: {
-                    Speed: 0,
-                    Stamina: 0,
-                    Power: 0,
-                    Guts: 0,
-                    Wit: 0,
-                    "Skill Points": 0,
-                },
-            };
-        }
+        // Fallback: If no API stats provided, return zeros to ensure UI only updates on generation
+        return {
+            currentStats: {
+                Speed: 0,
+                Stamina: 0,
+                Power: 0,
+                Guts: 0,
+                Wit: 0,
+                "Skill Points": 0,
+            },
+            statDifference: {
+                Speed: 0,
+                Stamina: 0,
+                Power: 0,
+                Guts: 0,
+                Wit: 0,
+                "Skill Points": 0,
+            },
+        };
     };
 
     const { currentStats, statDifference } =

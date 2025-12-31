@@ -174,7 +174,8 @@ export class Tierlist {
         if (deckObject.manualDistribution) {
             emptyDeckEvaluator.setManualDistribution(deckObject.manualDistribution);
         }
-        const baseResultEmptyDeck = emptyDeckEvaluator.evaluateStats(scenarioName, 20, optionalRaces);
+        // Base result for empty deck should be with 0 optional races to correctly calculate the delta
+        const baseResultEmptyDeck = emptyDeckEvaluator.evaluateStats(scenarioName, 20, 0);
 
         const raceTypesArray = [
             raceTypes.Sprint,

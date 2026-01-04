@@ -489,21 +489,13 @@ export class Tierlist {
             }
         }
 
-        // Calculate useful hints rate penalty
-        let usefulHintsPenaltyPercent = 0; // Penalty as percentage
-        const usefulHintsRate = hintDict.useful_hints_rate || 0;
-
-        if (usefulHintsRate < penaltyConfig.hints.thresholds.major) {
-            usefulHintsPenaltyPercent = penaltyConfig.hints.penalties.major;
-        } else if (usefulHintsRate < penaltyConfig.hints.thresholds.minor) {
-            usefulHintsPenaltyPercent = penaltyConfig.hints.penalties.minor;
-        }
+        // Useful hints penalty removed - now using useful hints count directly in score
 
         // Stat overbuilt penalty removed as requested
 
         // Apply additive penalties (like taxes)
         const totalPenaltyPercent =
-            staminaPenaltyPercent + speedPenaltyPercent + usefulHintsPenaltyPercent;
+            staminaPenaltyPercent + speedPenaltyPercent;
         const finalMultiplier = 1.0 - totalPenaltyPercent;
 
         const finalScore = baseScore * finalMultiplier;
@@ -661,23 +653,11 @@ export class Tierlist {
             }
         }
 
-        // Calculate useful hints rate penalty details
-        let usefulHintsPenalty = 1.0;
-        let usefulHintsPenaltyPercent = 0;
-        let usefulHintsPenaltyReason = "No penalty applied";
+        // Useful hints penalty removed - now using useful hints count directly in score
+        const usefulHintsPenalty = 1.0;
+        const usefulHintsPenaltyPercent = 0;
         const usefulHintsRate = hintDict.useful_hints_rate || 0;
-
-        if (usefulHintsRate < penaltyConfig.hints.thresholds.major) {
-            usefulHintsPenaltyPercent = penaltyConfig.hints.penalties.major;
-            usefulHintsPenalty = 1 - usefulHintsPenaltyPercent;
-            usefulHintsPenaltyReason = `${Math.round(usefulHintsPenaltyPercent * 100)}% penalty: Useful hints rate ${Math.round(usefulHintsRate * 100)}% is below ${Math.round(penaltyConfig.hints.thresholds.major * 100)}%`;
-        } else if (usefulHintsRate < penaltyConfig.hints.thresholds.minor) {
-            usefulHintsPenaltyPercent = penaltyConfig.hints.penalties.minor;
-            usefulHintsPenalty = 1 - usefulHintsPenaltyPercent;
-            usefulHintsPenaltyReason = `${Math.round(usefulHintsPenaltyPercent * 100)}% penalty: Useful hints rate ${Math.round(usefulHintsRate * 100)}% is below ${Math.round(penaltyConfig.hints.thresholds.minor * 100)}%`;
-        } else {
-            usefulHintsPenaltyReason = `No penalty: Useful hints rate ${Math.round(usefulHintsRate * 100)}% meets threshold`;
-        }
+        const usefulHintsPenaltyReason = `No penalty: Using useful hints count (${Math.round(usefulHintsRate * 100)}% of total hints)`;
 
         // Stat overbuilt penalty removed
         const statOverbuiltPenalty = 1.0;
@@ -686,7 +666,7 @@ export class Tierlist {
 
         // Apply additive penalties (like taxes)
         const totalPenaltyPercent =
-            staminaPenaltyPercent + speedPenaltyPercent + usefulHintsPenaltyPercent + statOverbuiltPenaltyPercent;
+            staminaPenaltyPercent + speedPenaltyPercent + statOverbuiltPenaltyPercent;
         const finalMultiplier = 1.0 - totalPenaltyPercent;
         const totalScore = baseScore * finalMultiplier;
 

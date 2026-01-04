@@ -96,11 +96,11 @@ export default function CardTooltip({
                                         {limitBreak === 4 ? 'MLB' : `${limitBreak}LB`}
                                     </span>
                                     <span className={`px-2 py-1 rounded text-white font-bold ${
-                                        cardType === 'Speed' ? 'bg-red-500' :
-                                        cardType === 'Stamina' ? 'bg-green-500' :
-                                        cardType === 'Power' ? 'bg-orange-500' :
+                                        cardType === 'Speed' ? 'bg-blue-500' :
+                                        cardType === 'Stamina' ? 'bg-red-500' :
+                                        cardType === 'Power' ? 'bg-yellow-500' :
                                         cardType === 'Guts' ? 'bg-pink-500' :
-                                        cardType === 'Wit' ? 'bg-blue-500' :
+                                        cardType === 'Wit' ? 'bg-green-500' :
                                         'bg-gray-500'
                                     }`}>
                                         {cardType}
@@ -108,7 +108,7 @@ export default function CardTooltip({
                                 </div>
                             </div>
                         </div>
-                        
+                    
                         {/* Hints Match Percentage */}
                         <div className="mb-3">
                             <div className="flex items-center justify-between">

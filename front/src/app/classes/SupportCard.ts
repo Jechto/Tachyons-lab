@@ -124,22 +124,9 @@ export class SupportCard {
             }
         }
 
-        // Process unique effects
-        for (const uniqueEffect of uniqueEffects) {
-            const lbUnlockLevel =
-                SupportCard.lmbToName[uniqueEffect.level_unlocked] ?? 0;
-            if (limitBreak >= lbUnlockLevel) {
-                for (const effect of uniqueEffect.effects || []) {
-                    const typeName = effect.type_name;
-                    const typeValue = effect.value || -1;
-                    if (cardBonus[typeName] === -1) {
-                        cardBonus[typeName] = typeValue;
-                    } else {
-                        cardBonus[typeName] += typeValue; // Assuming additive stacking
-                    }
-                }
-            }
-        }
+        // Note: Unique effects are now baked into the base effects during preprocessing
+        // No need to process uniqueEffects here anymore
+        
         this.cardBonus = cardBonus as unknown as CardBonus;
     }
 
@@ -432,13 +419,17 @@ export class SupportCard {
             cardHints.length > 0 ? usefulHintCount / cardHints.length : 0;
         const hintsFromTraining =
             maxTrainingTurns * hintFreq * hintLevels * usefulHintsRate;
+        
+        // Only count useful hints for scoring
+        const usefulHintsFromEvents = hintFromEvents * usefulHintsRate;
+        const totalUsefulHints = usefulHintsFromEvents + hintsFromTraining;
 
         return {
             hint_frequency: hintFreq,
             hints_from_events: hintFromEvents,
             useful_hints_rate: usefulHintsRate,
             "hints from training": hintsFromTraining,
-            total_hints: hintFromEvents + hintsFromTraining,
+            total_hints: totalUsefulHints,
         };
     }
 }

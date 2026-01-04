@@ -54,8 +54,8 @@ export class DeckEvaluator {
             normalizedDistribution = [0.2, 0.2, 0.2, 0.2, 0.2]; // Fallback to equal distribution
         }
 
-        // Cap any single training type at 50% after normalization
-        const maxTrainingPercentage = 0.5;
+        // Cap any single training type at 70% after normalization
+        const maxTrainingPercentage = 0.7;
         
         // Find the maximum value and cap it if needed
         const maxValue = Math.max(...normalizedDistribution);
@@ -508,6 +508,61 @@ export class DeckEvaluator {
                 TrainingData.getFacilityMultipliers(scenarioName);
             const facilityMultiplierValue = facilityMultipliers[name] || 0;
 
+            // Calculate effective stat bonuses BEFORE the turn loop so they can be added to base stats
+            let effectiveStatBonuses = [0, 0, 0, 0, 0]; // Speed, Stamina, Power, Guts, Wit
+            
+            if (facilityCards.length === 0) {
+                effectiveStatBonuses = [0, 0, 0, 0, 0];
+            } else if (facilityCards.length === 1) {
+                const card = facilityCards[0];
+                effectiveStatBonuses = [
+                    card.cardBonus["Speed Bonus"] !== -1 ? card.cardBonus["Speed Bonus"] || 0 : 0,
+                    card.cardBonus["Stamina Bonus"] !== -1 ? card.cardBonus["Stamina Bonus"] || 0 : 0,
+                    card.cardBonus["Power Bonus"] !== -1 ? card.cardBonus["Power Bonus"] || 0 : 0,
+                    card.cardBonus["Guts Bonus"] !== -1 ? card.cardBonus["Guts Bonus"] || 0 : 0,
+                    card.cardBonus["Wit Bonus"] !== -1 ? card.cardBonus["Wit Bonus"] || 0 : 0,
+                ];
+            } else {
+                // Multiple cards: use deterministic approach
+                for (const primaryCard of facilityCards) {
+                    const primaryWeight = 1.0 / facilityCards.length;
+                    const statContributions = [
+                        primaryCard.cardBonus["Speed Bonus"] !== -1 ? primaryCard.cardBonus["Speed Bonus"] || 0 : 0,
+                        primaryCard.cardBonus["Stamina Bonus"] !== -1 ? primaryCard.cardBonus["Stamina Bonus"] || 0 : 0,
+                        primaryCard.cardBonus["Power Bonus"] !== -1 ? primaryCard.cardBonus["Power Bonus"] || 0 : 0,
+                        primaryCard.cardBonus["Guts Bonus"] !== -1 ? primaryCard.cardBonus["Guts Bonus"] || 0 : 0,
+                        primaryCard.cardBonus["Wit Bonus"] !== -1 ? primaryCard.cardBonus["Wit Bonus"] || 0 : 0,
+                    ];
+                    
+                    for (const secondaryCard of facilityCards) {
+                        if (secondaryCard !== primaryCard) {
+                            const specialtyPriority = secondaryCard.cardBonus["Specialty Priority"] !== -1
+                                ? secondaryCard.cardBonus["Specialty Priority"] || 0
+                                : 0;
+                            const presenceChance = 0.2 + (specialtyPriority / 100);
+                            
+                            statContributions[0] += (secondaryCard.cardBonus["Speed Bonus"] !== -1 ? secondaryCard.cardBonus["Speed Bonus"] || 0 : 0) * presenceChance;
+                            statContributions[1] += (secondaryCard.cardBonus["Stamina Bonus"] !== -1 ? secondaryCard.cardBonus["Stamina Bonus"] || 0 : 0) * presenceChance;
+                            statContributions[2] += (secondaryCard.cardBonus["Power Bonus"] !== -1 ? secondaryCard.cardBonus["Power Bonus"] || 0 : 0) * presenceChance;
+                            statContributions[3] += (secondaryCard.cardBonus["Guts Bonus"] !== -1 ? secondaryCard.cardBonus["Guts Bonus"] || 0 : 0) * presenceChance;
+                            statContributions[4] += (secondaryCard.cardBonus["Wit Bonus"] !== -1 ? secondaryCard.cardBonus["Wit Bonus"] || 0 : 0) * presenceChance;
+                        }
+                    }
+                    
+                    for (let i = 0; i < 5; i++) {
+                        effectiveStatBonuses[i] += statContributions[i] * primaryWeight;
+                    }
+                }
+            }
+
+            // Apply stat bonuses to base stats BEFORE multiplications (makes them multiplicative)
+            const adjustedCoreStats = coreStats.map((stat, idx) => {
+                if (idx < 5) {
+                    return stat + effectiveStatBonuses[idx];
+                }
+                return stat;
+            });
+
             for (
                 let turn = 0;
                 turn < Math.ceil(turnsToTrainAtThisFacility);
@@ -524,7 +579,7 @@ export class DeckEvaluator {
 
                 let averageStatsPerTurn: number[];
                 if (rainbow) {
-                    averageStatsPerTurn = coreStats.map((stat) =>
+                    averageStatsPerTurn = adjustedCoreStats.map((stat) =>
                         Math.floor(
                             stat *
                                 facilityMultiplier *
@@ -535,7 +590,7 @@ export class DeckEvaluator {
                         ),
                     );
                 } else {
-                    averageStatsPerTurn = coreStats.map((stat) =>
+                    averageStatsPerTurn = adjustedCoreStats.map((stat) =>
                         Math.floor(
                             stat *
                                 facilityMultiplier *
@@ -554,60 +609,6 @@ export class DeckEvaluator {
                         );
                     }
                 }
-
-                // Calculate effective stat bonuses using same approach as mood/training
-                let effectiveStatBonuses = [0, 0, 0, 0, 0]; // Speed, Stamina, Power, Guts, Wit
-                
-                if (facilityCards.length === 0) {
-                    effectiveStatBonuses = [0, 0, 0, 0, 0];
-                } else if (facilityCards.length === 1) {
-                    const card = facilityCards[0];
-                    effectiveStatBonuses = [
-                        card.cardBonus["Speed Bonus"] !== -1 ? card.cardBonus["Speed Bonus"] || 0 : 0,
-                        card.cardBonus["Stamina Bonus"] !== -1 ? card.cardBonus["Stamina Bonus"] || 0 : 0,
-                        card.cardBonus["Power Bonus"] !== -1 ? card.cardBonus["Power Bonus"] || 0 : 0,
-                        card.cardBonus["Guts Bonus"] !== -1 ? card.cardBonus["Guts Bonus"] || 0 : 0,
-                        card.cardBonus["Wit Bonus"] !== -1 ? card.cardBonus["Wit Bonus"] || 0 : 0,
-                    ];
-                } else {
-                    // Multiple cards: use deterministic approach
-                    for (const primaryCard of facilityCards) {
-                        const primaryWeight = 1.0 / facilityCards.length;
-                        const statContributions = [
-                            primaryCard.cardBonus["Speed Bonus"] !== -1 ? primaryCard.cardBonus["Speed Bonus"] || 0 : 0,
-                            primaryCard.cardBonus["Stamina Bonus"] !== -1 ? primaryCard.cardBonus["Stamina Bonus"] || 0 : 0,
-                            primaryCard.cardBonus["Power Bonus"] !== -1 ? primaryCard.cardBonus["Power Bonus"] || 0 : 0,
-                            primaryCard.cardBonus["Guts Bonus"] !== -1 ? primaryCard.cardBonus["Guts Bonus"] || 0 : 0,
-                            primaryCard.cardBonus["Wit Bonus"] !== -1 ? primaryCard.cardBonus["Wit Bonus"] || 0 : 0,
-                        ];
-                        
-                        for (const secondaryCard of facilityCards) {
-                            if (secondaryCard !== primaryCard) {
-                                const specialtyPriority = secondaryCard.cardBonus["Specialty Priority"] !== -1
-                                    ? secondaryCard.cardBonus["Specialty Priority"] || 0
-                                    : 0;
-                                const presenceChance = 0.2 + (specialtyPriority / 100);
-                                
-                                statContributions[0] += (secondaryCard.cardBonus["Speed Bonus"] !== -1 ? secondaryCard.cardBonus["Speed Bonus"] || 0 : 0) * presenceChance;
-                                statContributions[1] += (secondaryCard.cardBonus["Stamina Bonus"] !== -1 ? secondaryCard.cardBonus["Stamina Bonus"] || 0 : 0) * presenceChance;
-                                statContributions[2] += (secondaryCard.cardBonus["Power Bonus"] !== -1 ? secondaryCard.cardBonus["Power Bonus"] || 0 : 0) * presenceChance;
-                                statContributions[3] += (secondaryCard.cardBonus["Guts Bonus"] !== -1 ? secondaryCard.cardBonus["Guts Bonus"] || 0 : 0) * presenceChance;
-                                statContributions[4] += (secondaryCard.cardBonus["Wit Bonus"] !== -1 ? secondaryCard.cardBonus["Wit Bonus"] || 0 : 0) * presenceChance;
-                            }
-                        }
-                        
-                        for (let i = 0; i < 5; i++) {
-                            effectiveStatBonuses[i] += statContributions[i] * primaryWeight;
-                        }
-                    }
-                }
-
-                // Add effective stat bonuses
-                averageStatsPerTurn[0] += effectiveStatBonuses[0];
-                averageStatsPerTurn[1] += effectiveStatBonuses[1];
-                averageStatsPerTurn[2] += effectiveStatBonuses[2];
-                averageStatsPerTurn[3] += effectiveStatBonuses[3];
-                averageStatsPerTurn[4] += effectiveStatBonuses[4];
 
                 totalStatsGained.Speed += averageStatsPerTurn[0];
                 totalStatsGained.Stamina += averageStatsPerTurn[1];

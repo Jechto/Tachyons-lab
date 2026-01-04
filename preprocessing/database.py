@@ -8,6 +8,23 @@ class Database:
 
     _instance = None
     _db_path: Optional[str] = None
+    
+    # Define which effect types use multiplicative stacking for unique effects
+    # Effect type ID -> bool (True = multiplicative, False = additive)
+    _multiplicative_unique_effects = {
+        1: True,   # Friendship Bonus
+        8: True,   # Training Effectiveness
+        18: True,  # Hint Frequency
+        27: True,  # Failure Protection
+        28: True,  # Energy Cost Reduction
+        # All stat bonuses (Speed, Stamina, Power, Guts, Wit) are additive
+        # Initial stats are additive
+        # Race Bonus is additive
+        # Specialty Priority is additive (default)
+        # Skill Point Bonus is additive (default)
+        # Mood Effect is additive (default)
+    }
+    
     _types = {
         0: (6,"Support"),
         101: (0,"Speed"),
@@ -80,6 +97,13 @@ class Database:
             command_id = row_dict['command_id']
 
             effects = self.get_support_card_effects(card_id=effect_table_id, rarity=rarity)
+            unique_effects_raw = []
+            if unique_effect_id != 0:
+                unique_effects_raw = self.get_support_card_unique_effects(card_id=unique_effect_id, rarity=rarity)
+            
+            # Apply unique effects to base effects (multiplicative stacking)
+            effects = self._apply_unique_effects_to_base(effects, unique_effects_raw, rarity)
+            
             row_dict["id"] = id_
             row_dict["card_chara_name"] = self.get_uma_name(chara_id_card)
             prefered_type = self._types.get(command_id, (None, None))
@@ -92,10 +116,56 @@ class Database:
             if unique_effect_id == 0:
                 row_dict["unique_effect_id"] = None
             else:
-                row_dict["unique_effects"] = self.get_support_card_unique_effects(card_id=unique_effect_id, rarity=rarity)
+                row_dict["unique_effects"] = unique_effects_raw
 
             support_cards.append(row_dict)
         return support_cards
+
+    def _apply_unique_effects_to_base(self, base_effects: List[Dict], unique_effects: List[Dict], rarity: int) -> List[Dict]:
+        """Apply unique effects to base effects with multiplicative stacking."""
+        if not unique_effects:
+            return base_effects
+        
+        # Map limit break levels for this rarity
+        lb_keys = ["0lb", "1lb", "2lb", "3lb", "mlb"]
+        
+        for unique_entry in unique_effects:
+            level_unlocked = unique_entry.get("level_unlocked")
+            if level_unlocked == -1:
+                continue
+                
+            # Determine which LB levels get the unique effect
+            unlock_index = lb_keys.index(level_unlocked) if level_unlocked in lb_keys else -1
+            if unlock_index == -1:
+                continue
+            
+            # Apply unique effects to matching base effects
+            for unique_effect in unique_entry.get("effects", []):
+                effect_type = unique_effect.get("type")
+                effect_value = unique_effect.get("value", 0)
+                
+                # Determine if this effect type uses multiplicative or additive stacking
+                is_multiplicative = self._multiplicative_unique_effects.get(effect_type, False)
+                
+                # Find matching base effect by type
+                for base_effect in base_effects:
+                    if base_effect.get("type") == effect_type:
+                        # Apply stacking to all LB levels >= unlock_index
+                        for i, lb_key in enumerate(lb_keys):
+                            if i >= unlock_index:
+                                base_value = base_effect.get(lb_key, -1)
+                                if base_value != -1:
+                                    if is_multiplicative:
+                                        # Multiplicative: (1 + base/100) * (1 + unique/100) - 1) * 100
+                                        current_mult = 1 + base_value / 100
+                                        new_mult = 1 + effect_value / 100
+                                        base_effect[lb_key] = round((current_mult * new_mult - 1) * 100, 2)
+                                    else:
+                                        # Additive: base + unique
+                                        base_effect[lb_key] = base_value + effect_value
+                        break
+        
+        return base_effects
 
     def get_type_name(self, type_id: int) -> Optional[str]:
         if not self._db_path:
@@ -274,8 +344,7 @@ class Database:
                        float_ability_time_1 AS skill_time_active, 
                        float_cooldown_time_1 AS skill_cooldown_time, 
                        ability_type_1_1 AS ability_type, 
-                       float_ability_value_1_1 AS ability_value, 
-                       
+                       float_ability_value_1_1 AS ability_value
                        FROM skill_data WHERE id=?''', (skill_id,))
         row = cursor.fetchone()
         conn.close()

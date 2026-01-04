@@ -98,7 +98,12 @@ class SupportCard:
                     if _card_bonus[type_name] == -1:
                         _card_bonus[type_name] = type_value
                     else:
-                        _card_bonus[type_name] += type_value ## Assuming additive stacking GAMETORA does it different :/
+                        # Multiplicative stacking for percentage-based bonuses
+                        # Formula: (1 + A/100) * (1 + B/100) = 1 + Total/100
+                        # Total = ((1 + A/100) * (1 + B/100) - 1) * 100
+                        current_mult = 1 + _card_bonus[type_name] / 100
+                        new_mult = 1 + type_value / 100
+                        _card_bonus[type_name] = (current_mult * new_mult - 1) * 100
 
         self.card_bonus = _card_bonus
 

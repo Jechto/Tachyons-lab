@@ -153,7 +153,7 @@ export default function TierlistCard({
 
                 {/* Score Overlay - show for both positive and negative scores */}
                 {score !== 0 && (
-                    <div className={`absolute top-1 right-1 text-white text-sm px-1.5 py-0.5 rounded z-1 font-bold leading-none ${
+                    <div className={`absolute top-0.5 right-0.5 text-white text-sm px-1.5 py-0.5 rounded z-1 font-bold leading-none ${
                         score > 0 
                             ? "bg-black bg-opacity-80" 
                             : "bg-red-600 bg-opacity-90"
@@ -164,19 +164,19 @@ export default function TierlistCard({
 
                 {/* Limit Break Badge */}
                 <div
-                    className={`absolute bottom-1 right-1 text-sm px-1.5 py-0.5 rounded z-1 font-bold leading-none ${getRarityColor(cardRarity)}`}
+                    className={`absolute bottom-0.5 right-0.5 text-sm px-1.5 py-0.5 rounded z-1 font-bold leading-none ${getRarityColor(cardRarity)}`}
                 >
                     {getLimitBreakText(limitBreak)}
                 </div>
 
                 {/* Card Type Indicator */}
-                <div className="absolute bottom-1 left-1 w-7 h-7 z-10">
+                <div className="absolute bottom-0.5 left-0.5 w-5 h-5 sm:w-6 sm:h-6 z-10">
                     <Image
                         src={getTypeIcon(cardType)}
                         alt={`${cardType} type`}
-                        width={30}
-                        height={30}
-                        className="object-contain drop-shadow-sm"
+                        width={24}
+                        height={24}
+                        className="object-contain drop-shadow-sm w-full h-full"
                         onError={(e) => {
                             // Fallback to colored dot if icon fails to load
                             const target = e.target as HTMLImageElement;

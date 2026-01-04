@@ -1,6 +1,7 @@
 import { SupportCard } from "./SupportCard";
 import { TrainingData } from "../config/trainingData";
 import { StatsDict } from "../types/cardTypes";
+import { isSupportCardAllowedInScenario } from "../config/supportCardScenarios";
 
 interface CardAppearance {
     card: SupportCard;
@@ -66,8 +67,8 @@ export class DeckEvaluator {
             normalizedDistribution = [0.2, 0.2, 0.2, 0.2, 0.2];
         }
 
-        // Cap at 70%
-        const maxTrainingPercentage = 0.7;
+        // Cap at 50%
+        const maxTrainingPercentage = 0.5;
         const maxValue = Math.max(...normalizedDistribution);
         if (maxValue > maxTrainingPercentage) {
             const maxIndex = normalizedDistribution.indexOf(maxValue);
@@ -222,8 +223,8 @@ export class DeckEvaluator {
             }
         }
 
-        // Crowd bonus (1.05 per card including facility card)
-        const crowdBonus = 1.05 * (cards.length + 1);
+        // Crowd bonus: 5% per card appearing (including the facility card)
+        const crowdBonus = 1.0 + (0.05 * (cards.length + 1));
 
         // Calculate gains for each stat
         for (let i = 0; i < 5; i++) {
@@ -285,6 +286,11 @@ export class DeckEvaluator {
         
         for (let i = 0; i < this.deck.length; i++) {
             const card = this.deck[i];
+            
+            // Check if support card is allowed in this scenario
+            if (!isSupportCardAllowedInScenario(card.id.toString(), scenarioName)) {
+                continue; // Skip cards not allowed in this scenario
+            }
             
             // Skip Support and Unknown card types - they don't appear at training facilities
             if (
@@ -452,76 +458,110 @@ export class DeckEvaluator {
                     }
                 }
             } else {
-                // Use combinatorics approach for each card at this facility
-                // Calculate total probability that ANY card appears
-                let totalCardPresenceProbability = 0;
-                for (const card of facilityCards) {
-                    totalCardPresenceProbability += card.rainbowSpecialty / facilityCards.length;
+                // Use combinatorics approach: generate all possible combinations of cards appearing
+                // Generate all non-empty combinations (at least 1 card must appear)
+                const allCombinations = this.getCombinations(facilityCards, 1);
+                
+                console.log(`\n[${name}] ${facilityCards.length} cards, ${allCombinations.length} combos, ${Math.ceil(turnsToTrainAtThisFacility)} turns`);
+                
+                // Debug: Show first combo details for first card
+                if (facilityCards.length === 1) {
+                    const card = facilityCards[0];
+                    console.log(`  Single card: ${card.card.id}, rainbow specialty: ${(card.rainbowSpecialty * 100).toFixed(1)}%`);
+                    console.log(`  Expected: ~${(card.rainbowSpecialty * 100).toFixed(1)}% probability for 1-card combo`);
                 }
                 
-                for (const facilitySupportCard of facilityCards) {
-                    const otherCards = facilityCards.filter(
-                        (ca) => ca.index !== facilitySupportCard.index
-                    );
-
-                    // Generate all combinations of other cards appearing
-                    const combinations = this.getCombinations(otherCards, 0);
-
-                    // For each turn
-                    for (let turn = 0; turn < Math.ceil(turnsToTrainAtThisFacility); turn++) {
-                        const facilityMultiplier = 1 + Math.min(Math.floor(turn / 4), 4) * facilityMultiplierValue;
-                        const isBonded = turn >= facilitySupportCard.card.turnsToMaxBond;
-
-                        // Calculate expected gains across all combinations
-                        const expectedGains = [0, 0, 0, 0, 0, 0];
-
-                        for (const combination of combinations) {
-                            const probability = this.calculateCombinationProbability(
-                                combination,
-                                otherCards,
-                                name
-                            );
-
-                            const gains = this.calculateTrainingGains(
-                                coreStats,
-                                combination,
-                                facilitySupportCard.card,
-                                name,
-                                isBonded,
-                                scenarioName,
-                                facilityMultiplier,
-                                moodBonus,
-                                globalTrainingEffectiveness[index] // Pass global training effectiveness for this facility
-                            );
-
-                            for (let i = 0; i < 6; i++) {
-                                expectedGains[i] += gains[i] * probability;
-                            }
+                if (facilityCards.length === 2 && name === "Guts") {
+                    console.log(`  Card 1: ${facilityCards[0].card.id}, P=${(facilityCards[0].rainbowSpecialty * 100).toFixed(1)}%`);
+                    console.log(`  Card 2: ${facilityCards[1].card.id}, P=${(facilityCards[1].rainbowSpecialty * 100).toFixed(1)}%`);
+                    console.log(`  Combo probabilities should be:`);
+                    const p1 = facilityCards[0].rainbowSpecialty;
+                    const p2 = facilityCards[1].rainbowSpecialty;
+                    console.log(`    [Card1 only]: ${(p1 * (1-p2) * 100).toFixed(2)}%`);
+                    console.log(`    [Card2 only]: ${((1-p1) * p2 * 100).toFixed(2)}%`);
+                    console.log(`    [Both]: ${(p1 * p2 * 100).toFixed(2)}%`);
+                    console.log(`    Total: ${((p1 * (1-p2) + (1-p1) * p2 + p1 * p2) * 100).toFixed(2)}%`);
+                }
+                
+                // Track gains for debug
+                let totalTurnGains = [0, 0, 0, 0, 0, 0];
+                let totalProbability = 0;
+                
+                // For each turn, evaluate all possible combinations
+                for (let turn = 0; turn < Math.ceil(turnsToTrainAtThisFacility); turn++) {
+                    const facilityMultiplier = 1 + Math.min(Math.floor(turn / 4), 4) * facilityMultiplierValue;
+                    
+                    // Calculate expected gains across all combinations
+                    const expectedGains = [0, 0, 0, 0, 0, 0];
+                    let turnProbSum = 0;
+                    
+                    for (const combination of allCombinations) {
+                        // Calculate probability of this exact combination appearing
+                        const probability = this.calculateCombinationProbability(
+                            combination,
+                            facilityCards,
+                            name
+                        );
+                        
+                        turnProbSum += probability;
+                        
+                        // Pick the first card in the combination as the "primary" card for bonus calculation
+                        const primaryCard = combination[0].card;
+                        const otherCards = combination.slice(1);
+                        const isBonded = turn >= primaryCard.turnsToMaxBond;
+                        
+                        const gains = this.calculateTrainingGains(
+                            coreStats,
+                            otherCards,
+                            primaryCard,
+                            name,
+                            isBonded,
+                            scenarioName,
+                            facilityMultiplier,
+                            moodBonus,
+                            globalTrainingEffectiveness[index]
+                        );
+                        
+                        for (let i = 0; i < 6; i++) {
+                            expectedGains[i] += gains[i] * probability;
                         }
-
-                        // Weight by the probability this card appears
-                        const cardPresenceProbability = facilitySupportCard.rainbowSpecialty / facilityCards.length;
-
-                        // Handle partial turns
-                        let turnMultiplier = 1.0;
-                        if (turn === Math.ceil(turnsToTrainAtThisFacility) - 1) {
-                            const fraction = turnsToTrainAtThisFacility % 1;
-                            if (fraction > 0) {
-                                turnMultiplier = fraction;
-                            }
+                    }
+                    
+                    // Handle partial turns
+                    let turnMultiplier = 1.0;
+                    if (turn === Math.ceil(turnsToTrainAtThisFacility) - 1) {
+                        const fraction = turnsToTrainAtThisFacility % 1;
+                        if (fraction > 0) {
+                            turnMultiplier = fraction;
                         }
-
-                        totalStatsGained.Speed += expectedGains[0] * cardPresenceProbability * turnMultiplier;
-                        totalStatsGained.Stamina += expectedGains[1] * cardPresenceProbability * turnMultiplier;
-                        totalStatsGained.Power += expectedGains[2] * cardPresenceProbability * turnMultiplier;
-                        totalStatsGained.Guts += expectedGains[3] * cardPresenceProbability * turnMultiplier;
-                        totalStatsGained.Wit! += expectedGains[4] * cardPresenceProbability * turnMultiplier;
-                        totalStatsGained["Skill Points"]! += expectedGains[5] * cardPresenceProbability * turnMultiplier;
+                    }
+                    
+                    totalStatsGained.Speed += expectedGains[0] * turnMultiplier;
+                    totalStatsGained.Stamina += expectedGains[1] * turnMultiplier;
+                    totalStatsGained.Power += expectedGains[2] * turnMultiplier;
+                    totalStatsGained.Guts += expectedGains[3] * turnMultiplier;
+                    totalStatsGained.Wit! += expectedGains[4] * turnMultiplier;
+                    totalStatsGained["Skill Points"]! += expectedGains[5] * turnMultiplier;
+                    
+                    totalTurnGains[3] += expectedGains[3] * turnMultiplier;
+                    
+                    if (turn === 0) {
+                        totalProbability = turnProbSum;
                     }
                 }
                 
+                console.log(`  Probability check: sum of all combo probabilities = ${(totalProbability * 100).toFixed(2)}%`);
+                console.log(`  Total from card scenarios: G:${totalTurnGains[3].toFixed(1)}`);
+                
                 // Add base training for turns when NO cards appear
-                const noCardProbability = 1.0 - totalCardPresenceProbability;
+                // Calculate probability that NO cards appear
+                let probabilityNoneAppear = 1.0;
+                for (const card of facilityCards) {
+                    probabilityNoneAppear *= (1 - card.rainbowSpecialty);
+                }
+                const noCardProbability = probabilityNoneAppear;
+                
+                let noCardGuts = 0;
                 if (noCardProbability > 0) {
                     for (let turn = 0; turn < Math.ceil(turnsToTrainAtThisFacility); turn++) {
                         const facilityMultiplier = 1 + Math.min(Math.floor(turn / 4), 4) * facilityMultiplierValue;
@@ -547,8 +587,14 @@ export class DeckEvaluator {
                         totalStatsGained.Guts += baseStatsPerTurn[3] * noCardProbability * turnMultiplier;
                         totalStatsGained.Wit! += baseStatsPerTurn[4] * noCardProbability * turnMultiplier;
                         totalStatsGained["Skill Points"]! += (baseStatsPerTurn[5] || 0) * noCardProbability * turnMultiplier;
+                        
+                        noCardGuts += baseStatsPerTurn[3] * noCardProbability * turnMultiplier;
                     }
                 }
+                
+                const facilityTotal = totalTurnGains[3] + noCardGuts;
+                console.log(`  From no-card scenarios: G:${noCardGuts.toFixed(1)}`);
+                console.log(`  This facility total: G:${facilityTotal.toFixed(1)} (cumulative: ${(totalStatsGained.Guts || 0).toFixed(1)})\n`);
             }
 
             index++;

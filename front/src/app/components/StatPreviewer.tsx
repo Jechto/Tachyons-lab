@@ -193,6 +193,7 @@ export default function StatPreviewer({
             case "Skill Points":
                 return getAssetPath("images/icons/SkillPoint.png");
             case "Hints":
+            case "Useful Hints":
                 return getAssetPath("images/icons/Hint.png");
             default:
                 return getAssetPath("images/icons/Support.png");
@@ -503,42 +504,6 @@ export default function StatPreviewer({
                                             </div>
                                         )}
 
-                                        {/* Useful Hints Penalty */}
-                                        {scoreBreakdown.usefulHintsPenalty <
-                                            1 && (
-                                            <div className="px-4 py-3 bg-orange-50 dark:bg-orange-900/20">
-                                                <div className="grid grid-cols-4 gap-4 items-center">
-                                                    <div className="col-span-3 flex items-center gap-2">
-                                                        <span className="text-sm text-orange-600 dark:text-orange-400">
-                                                            💡 Hints Penalty
-                                                        </span>
-                                                        <div className="text-xs text-orange-500 dark:text-orange-400">
-                                                            (
-                                                            {(
-                                                                100 -
-                                                                scoreBreakdown.usefulHintsPenalty *
-                                                                    100
-                                                            ).toFixed(0)}
-                                                            % reduction)
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right text-sm font-semibold text-orange-600 dark:text-orange-400 font-mono">
-                                                        -
-                                                        {(
-                                                            scoreBreakdown.baseScore *
-                                                            (1 -
-                                                                scoreBreakdown.usefulHintsPenalty)
-                                                        ).toFixed(0)}
-                                                    </div>
-                                                </div>
-                                                <div className="mt-1 text-xs text-orange-600 dark:text-orange-400 col-span-4">
-                                                    {
-                                                        scoreBreakdown.usefulHintsPenaltyReason
-                                                    }
-                                                </div>
-                                            </div>
-                                        )}
-
                                         {/* Stat Overbuilt Penalty */}
                                         {scoreBreakdown.statOverbuiltPenalty < 1 && (
                                             <div className="px-4 py-3 bg-purple-50 dark:bg-purple-900/20">
@@ -620,7 +585,7 @@ export default function StatPreviewer({
                                             "Guts",
                                             "Wit",
                                             "Skill Points",
-                                            "Hints",
+                                            "Usefull Hints",
                                         ].map((statName, index) => (
                                             <div
                                                 key={statName}

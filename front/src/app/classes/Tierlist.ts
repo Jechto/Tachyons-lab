@@ -239,7 +239,7 @@ export class Tierlist {
             }
 
             // This matches the Python bug where these lines are inside the loop
-            hintsForDeck = deckObject.evaluateHints();
+            hintsForDeck = deckObject.evaluateHints(raceTypesArray, runningTypesArray, optionalRaces);
         }
 
         // Calculate deck stats delta
@@ -399,10 +399,11 @@ export class Tierlist {
             score += v * weight;
         }
 
-        // Add hints contribution using direct weight
+        // Add hints contribution using direct weight, multiplied by useful hints rate
         const totalHints = hintDict.total_hints || 0;
+        const usefulHintsRate = hintDict.useful_hints_rate || 0;
         const hintsWeight = weightsCopy["Hints"] || 4.0;
-        score += totalHints * hintsWeight;
+        score += totalHints * usefulHintsRate * hintsWeight;
 
         return score;
     }
@@ -579,13 +580,15 @@ export class Tierlist {
             });
         }
 
-        // Add hints contribution to stat contributions
+        // Add hints contribution to stat contributions, multiplied by useful hints rate
         const totalHints = hintDict.total_hints || 0;
+        const usefulHintsRate = hintDict.useful_hints_rate || 0;
+        const usefulHintsCount = totalHints * usefulHintsRate;
         const hintsWeight = weights["Hints"] || 4.0;
-        const hintsContribution = totalHints * hintsWeight;
+        const hintsContribution = usefulHintsCount * hintsWeight;
         statContributions.push({
-            stat: "Hints",
-            value: totalHints,
+            stat: "Useful Hints",
+            value: usefulHintsCount,
             weight: hintsWeight,
             contribution: hintsContribution,
         });
@@ -656,7 +659,6 @@ export class Tierlist {
         // Useful hints penalty removed - now using useful hints count directly in score
         const usefulHintsPenalty = 1.0;
         const usefulHintsPenaltyPercent = 0;
-        const usefulHintsRate = hintDict.useful_hints_rate || 0;
         const usefulHintsPenaltyReason = `No penalty: Using useful hints count (${Math.round(usefulHintsRate * 100)}% of total hints)`;
 
         // Stat overbuilt penalty removed

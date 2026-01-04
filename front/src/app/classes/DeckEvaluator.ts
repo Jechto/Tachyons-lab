@@ -465,25 +465,6 @@ export class DeckEvaluator {
                 
                 console.log(`\n[${name}] ${facilityCards.length} cards, ${allCombinations.length} combos, ${Math.ceil(turnsToTrainAtThisFacility)} turns`);
                 
-                // Debug: Show first combo details for first card
-                if (facilityCards.length === 1) {
-                    const card = facilityCards[0];
-                    console.log(`  Single card: ${card.card.id}, rainbow specialty: ${(card.rainbowSpecialty * 100).toFixed(1)}%`);
-                    console.log(`  Expected: ~${(card.rainbowSpecialty * 100).toFixed(1)}% probability for 1-card combo`);
-                }
-                
-                if (facilityCards.length === 2 && name === "Guts") {
-                    console.log(`  Card 1: ${facilityCards[0].card.id}, P=${(facilityCards[0].rainbowSpecialty * 100).toFixed(1)}%`);
-                    console.log(`  Card 2: ${facilityCards[1].card.id}, P=${(facilityCards[1].rainbowSpecialty * 100).toFixed(1)}%`);
-                    console.log(`  Combo probabilities should be:`);
-                    const p1 = facilityCards[0].rainbowSpecialty;
-                    const p2 = facilityCards[1].rainbowSpecialty;
-                    console.log(`    [Card1 only]: ${(p1 * (1-p2) * 100).toFixed(2)}%`);
-                    console.log(`    [Card2 only]: ${((1-p1) * p2 * 100).toFixed(2)}%`);
-                    console.log(`    [Both]: ${(p1 * p2 * 100).toFixed(2)}%`);
-                    console.log(`    Total: ${((p1 * (1-p2) + (1-p1) * p2 + p1 * p2) * 100).toFixed(2)}%`);
-                }
-                
                 // Track gains for debug
                 let totalTurnGains = [0, 0, 0, 0, 0, 0];
                 let totalProbability = 0;
@@ -641,11 +622,15 @@ export class DeckEvaluator {
         return totalStatsGained;
     }
 
-    public evaluateHints(): Record<string, number> {
+    public evaluateHints(
+        raceTypes: boolean[] = [false, false, false, false],
+        runningTypes: boolean[] = [false, false, false, false],
+        optionalRaces: number = 0,
+    ): Record<string, number> {
         const totalHintsGained: Record<string, number> = {};
 
         for (const card of this.deck) {
-            const hintForCard = card.evaluateCardHints();
+            const hintForCard = card.evaluateCardHints(raceTypes, runningTypes, optionalRaces);
             for (const [k, v] of Object.entries(hintForCard)) {
                 totalHintsGained[k] = (totalHintsGained[k] || 0) + v;
             }

@@ -226,10 +226,10 @@ export class DeckEvaluator {
         // Crowd bonus: 5% per card appearing (including the facility card)
         const crowdBonus = 1.0 + (0.05 * (cards.length + 1));
 
-        // Calculate gains for each stat
+        // Calculate gains for each stat (capped at 100 per training)
         for (let i = 0; i < 5; i++) {
             const baseStat = baseStats[i] + statBonuses[i];
-            gains[i] = Math.floor(
+            const calculatedGain = Math.floor(
                 baseStat *
                 facilityMultiplier *
                 moodBonus *
@@ -238,9 +238,10 @@ export class DeckEvaluator {
                 friendshipBonus *
                 crowdBonus
             );
+            gains[i] = Math.min(calculatedGain, 100);
         }
 
-        // Skill points (if applicable)
+        // Skill points (if applicable, not capped)
         if (baseStats[5]) {
             gains[5] = Math.floor(
                 (baseStats[5] + statBonuses[5]) *

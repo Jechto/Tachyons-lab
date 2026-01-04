@@ -1,6 +1,3 @@
-/**
- * Configuration for support cards that are limited to specific scenarios
- */
 
 export const SupportCardScenarioLimits: Record<string, string[]> = {
     "20021": ["URA"],// Aoi Kiryuin SR
@@ -11,12 +8,7 @@ export const SupportCardScenarioLimits: Record<string, string[]> = {
     "10060": ["Unity"], // Riko Kashimoto R
 };
 
-/**
- * Check if a support card is allowed in a given scenario
- * @param cardId The support card ID
- * @param scenarioName The scenario name (e.g., "URA", "Unity")
- * @returns true if the card is allowed, false otherwise
- */
+
 export function isSupportCardAllowedInScenario(cardId: string, scenarioName: string): boolean {
     const allowedScenarios = SupportCardScenarioLimits[cardId];
     

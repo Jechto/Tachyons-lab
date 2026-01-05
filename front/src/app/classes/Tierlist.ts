@@ -681,8 +681,8 @@ export class Tierlist {
             const skillContribution = goldSkill.value * goldSkill.multiplier * goldSkillWeight;
             statContributions.push({
                 stat: goldSkill.name,
-                value: goldSkill.value * goldSkill.multiplier,
-                weight: goldSkillWeight,
+                value: goldSkill.value,
+                weight: goldSkill.multiplier,
                 contribution: skillContribution,
             });
         }

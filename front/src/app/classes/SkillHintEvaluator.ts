@@ -63,7 +63,7 @@ export class SkillHintEvaluator {
         const skillValue = this.calculateSkillValueOnly(this.skillData.ability_type,this.skillData.ability_value, statWeights);
 
         if (skillValue === -1) {
-            console.log("=== Evaluating Skill Hint ===");
+            console.log("=== Evaluating Unknown Skill Hint ===");
             console.log(`Skill Name: ${this.skillData.skill_name}`);
             console.log(`Skill Description: ${this.skillData.skill_desc}`);
             console.log(`Rarity: ${this.skillData.rarity} (Gold)`);
@@ -80,8 +80,7 @@ export class SkillHintEvaluator {
         }
 
         // Return tuple: [grade_value, multiplier]
-        // Multiplier is always 1 for now
-        return [skillValue, 1];
+        return [skillValue, this.getSkillWitProcChance(deckStats.Wit)];
     }
 
     public calculateSkillValueOnly(ability_type: number,ability_value: number, statWeights: {Speed: number, Stamina: number, Power: number, Guts: number, Wit: number} = {Speed: 1, Stamina: 1, Power: 1, Guts: 1, Wit: 1}): number {
@@ -102,6 +101,13 @@ export class SkillHintEvaluator {
         }
 
         return -1
+    }
+
+    public getSkillWitProcChance(wit: number): number {
+        if (wit === 0) {
+            return 0;
+        }
+        return Math.max(1-(90/wit),0.2);
     }
 
     public getSkillName(): string {

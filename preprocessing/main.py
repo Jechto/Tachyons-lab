@@ -9,6 +9,7 @@ def main() -> None:
     parser.add_argument('--db', default='./db/master.mdb', help='Path to the Access database file')
     parser.add_argument('--output_data', default='../front/src/app/data/data.json', help='Path to output JSON file')
     parser.add_argument('--output_images', default='../front/public/images/cards/', help='Path to output images directory')
+    parser.add_argument('--output_skill_icons', default='../front/public/images/skills/', help='Path to output skill icons directory')
     parser.add_argument('--del', action='store_true', default=False, help='Skip loading existing data.json and start fresh')
     args = parser.parse_args()
 
@@ -24,6 +25,13 @@ def main() -> None:
 
     if not image_success:
         print("Image download failed. Exiting.")
+        raise SystemExit(1)
+    
+    print("Downloading skill icons...")
+    skill_icon_success = data_collector.download_skill_images(data=data, output_dir=args.output_skill_icons)
+    
+    if not skill_icon_success:
+        print("Skill icon download failed. Exiting.")
         raise SystemExit(1)
     
     print("All tasks completed successfully.")

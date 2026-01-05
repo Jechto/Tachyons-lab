@@ -630,6 +630,7 @@ export class DeckEvaluator {
             gold_skills: [],
         };
         const allGoldSkills: Array<{ name: string; value: number; multiplier: number }> = [];
+        const seenSkillNames = new Set<string>();
 
         for (const card of this.deck) {
             const hintForCard = card.evaluateCardHints(raceTypes, runningTypes, optionalRaces, deckStats, statWeights);
@@ -641,8 +642,13 @@ export class DeckEvaluator {
             totalHintsGained["hints from training"] += hintForCard["hints from training"];
             totalHintsGained.total_hints += hintForCard.total_hints;
             
-            // Accumulate gold skills
-            allGoldSkills.push(...hintForCard.gold_skills);
+            // Accumulate gold skills, but only add if not already seen (avoid duplicates from multiple cards)
+            for (const skill of hintForCard.gold_skills) {
+                if (!seenSkillNames.has(skill.name)) {
+                    seenSkillNames.add(skill.name);
+                    allGoldSkills.push(skill);
+                }
+            }
         }
 
         if (this.deck.length > 0) {

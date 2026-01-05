@@ -231,7 +231,6 @@ export class DeckEvaluator {
             const baseStat = baseStats[i] + statBonuses[i];
             const calculatedGain = Math.floor(
                 baseStat *
-                facilityMultiplier *
                 moodBonus *
                 moodEffect *
                 trainingEffectiveness *
@@ -245,7 +244,6 @@ export class DeckEvaluator {
         if (baseStats[5]) {
             gains[5] = Math.floor(
                 (baseStats[5] + statBonuses[5]) *
-                facilityMultiplier *
                 moodBonus *
                 trainingEffectiveness *
                 crowdBonus
@@ -505,6 +503,7 @@ export class DeckEvaluator {
                         
                         for (let i = 0; i < 6; i++) {
                             expectedGains[i] += gains[i] * probability;
+                            //console.log(i,gains[i],probability)
                         }
                     }
                     

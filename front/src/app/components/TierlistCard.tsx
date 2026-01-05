@@ -220,6 +220,7 @@ export default function TierlistCard({
                 deltaStats={deltaStats}
                 hintsMatchPercentage={hintsMatchPercentage}
                 hintTypes={hintTypes}
+                hints={hints}
                 isInDeck={isInDeck}
             >
                 {cardContent}

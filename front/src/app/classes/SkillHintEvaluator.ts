@@ -223,7 +223,6 @@ export class SkillHintEvaluator {
      * @returns Probability between 0 and 1
      */
     private calculateConditionProbability(field: string, operator: string, value: number): number {
-        console.log(field, operator, value);
         
         // Values: 1=Front Runner, 2=Pace Chaser, 3=Late Surger, 4=End Closer
         if (field === "running_style") {
@@ -263,9 +262,6 @@ export class SkillHintEvaluator {
         }
         if (field === "always") {
             return 1;
-        }
-        if (field === "change_order_onetime") {
-            return 0;
         }
         if (field === "is_lastspurt") {
             return 1;

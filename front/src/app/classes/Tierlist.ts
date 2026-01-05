@@ -684,6 +684,7 @@ export class Tierlist {
                 value: goldSkill.value,
                 weight: goldSkill.multiplier,
                 contribution: skillContribution,
+                icon_id: goldSkill.icon_id,
             });
         }
 

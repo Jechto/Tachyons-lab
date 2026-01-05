@@ -41,6 +41,7 @@ interface StatPreviewerProps {
             value: number;
             weight: number;
             contribution: number;
+            icon_id?: number;
         }>;
         activeRaceTypes: string[];
         staminaThreshold: number;
@@ -178,7 +179,12 @@ export default function StatPreviewer({
         return "text-gray-600 dark:text-gray-400";
     };
 
-    const getStatIcon = (statName: string): string => {
+    const getStatIcon = (statName: string, iconId?: number): string => {
+        // If icon_id is provided, use the specific skill icon
+        if (iconId !== undefined) {
+            return getAssetPath(`images/skills/${iconId}.png`);
+        }
+        
         switch (statName) {
             case "Speed":
                 return getAssetPath("images/icons/Speed.png");
@@ -198,7 +204,7 @@ export default function StatPreviewer({
             case "Gold Skills":
                 return getAssetPath("images/icons/SkillPoint.png");
             default:
-                // For individual skill names, use SkillPoint icon
+                // For individual skill names, use SkillPoint icon as fallback
                 return getAssetPath("images/icons/SkillPoint.png");
         }
     };
@@ -385,6 +391,7 @@ export default function StatPreviewer({
                                                         <Image
                                                             src={getStatIcon(
                                                                 stat.stat,
+                                                                stat.icon_id,
                                                             )}
                                                             alt={`${stat.stat} icon`}
                                                             width={16}

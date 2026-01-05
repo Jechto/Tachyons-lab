@@ -433,6 +433,7 @@ export class SupportCard {
                             name: skillEvaluator.getSkillName(),
                             value: value,
                             multiplier: multiplier,
+                            icon_id: skillEvaluator.getIconId(),
                         });
                     }
                 }

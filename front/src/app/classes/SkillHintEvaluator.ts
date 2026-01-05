@@ -154,6 +154,13 @@ export class SkillHintEvaluator {
     }
 
     /**
+     * Gets the skill icon ID
+     */
+    public getIconId(): number {
+        return this.skillData.icon_id;
+    }
+
+    /**
      * Gets the skill rarity
      */
     public getSkillRarity(): number {

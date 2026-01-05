@@ -96,8 +96,18 @@ class DataCollector:
         # Collect all unique icon IDs from all cards
         icon_ids = set()
         for card in data:
+            # Check hints_table
             hints_table = card.get('hints_table', [])
             for hint in hints_table:
+                if hint.get('type') == 'skill_hint':
+                    skill_data = hint.get('skill_data', {})
+                    icon_id = skill_data.get('icon_id')
+                    if icon_id:
+                        icon_ids.add(icon_id)
+            
+            # Also check hints_event_table
+            hints_event_table = card.get('hints_event_table', [])
+            for hint in hints_event_table:
                 if hint.get('type') == 'skill_hint':
                     skill_data = hint.get('skill_data', {})
                     icon_id = skill_data.get('icon_id')

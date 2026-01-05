@@ -298,7 +298,7 @@ export default function StatPreviewer({
                                         <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                             {statName}
                                         </div>
-                                        <div className={`text-lg font-bold mb-1 ${isOverbuilt ? "text-yellow-600 dark:text-yellow-400" : "text-gray-800 dark:text-gray-200"}`}>
+                                        <div className={`text-lg font-bold mb-1 ${isOverbuilt ? "text-red-600 dark:text-red-400" : "text-gray-800 dark:text-gray-200"}`}>
                                             {formatAbsoluteValue(currentValue)}
                                             {maxVal !== undefined && <span className="text-xs font-normal text-gray-500 dark:text-gray-400">/{maxVal}</span>}
                                         </div>
@@ -363,16 +363,22 @@ export default function StatPreviewer({
                                                 // Let's look up the current stat value from currentStats
                                                 const currentStatValue = currentStats[stat.stat as keyof StatData];
                                                 const isCapped = maxVal !== undefined && currentStatValue >= maxVal;
+                                                
+                                                // Check if this is a gold skill (not a standard stat)
+                                                const standardStats = ["Speed", "Stamina", "Power", "Guts", "Wit", "Skill Points", "Hints", "Useful Hints", "Gold Skills"];
+                                                const isGoldSkill = !standardStats.includes(stat.stat);
 
                                                 return (
                                                 <div
                                                     key={stat.stat}
                                                     className={`px-4 py-3 grid grid-cols-4 gap-4 items-center ${
-                                                        isCapped 
-                                                            ? "bg-yellow-50 dark:bg-yellow-900/20" 
-                                                            : index % 2 === 0
-                                                                ? "bg-white dark:bg-gray-800"
-                                                                : "bg-gray-25 dark:bg-gray-750"
+                                                        isGoldSkill
+                                                            ? "bg-yellow-50 dark:bg-yellow-900/30"
+                                                            : isCapped 
+                                                                ? "bg-red-50 dark:bg-red-900/20" 
+                                                                : index % 2 === 0
+                                                                    ? "bg-white dark:bg-gray-800"
+                                                                    : "bg-gray-25 dark:bg-gray-750"
                                                     }`}
                                                 >
                                                     <div className="flex items-center gap-2">
@@ -403,19 +409,43 @@ export default function StatPreviewer({
                                                                 };
                                                             }}
                                                         />
-                                                        <span className={`text-sm font-medium ${isCapped ? "text-yellow-700 dark:text-yellow-300" : "text-gray-700 dark:text-gray-300"}`}>
+                                                        <span className={`text-sm ${
+                                                            isGoldSkill 
+                                                                ? "text-yellow-700 dark:text-yellow-300 font-normal" 
+                                                                : isCapped 
+                                                                    ? "text-red-700 dark:text-red-300 font-medium" 
+                                                                    : "text-gray-700 dark:text-gray-300 font-medium"
+                                                        }`}>
                                                             {stat.stat}
                                                             {isCapped && <span className="ml-1 text-xs font-normal opacity-75">(Capped)</span>}
                                                         </span>
                                                     </div>
-                                                    <div className={`text-right text-sm font-mono ${isCapped ? "text-yellow-700 dark:text-yellow-300 font-bold" : "text-gray-800 dark:text-gray-200"}`}>
+                                                    <div className={`text-right text-sm font-mono ${
+                                                        isGoldSkill
+                                                            ? "text-yellow-700 dark:text-yellow-300 font-semibold"
+                                                            : isCapped 
+                                                                ? "text-red-700 dark:text-red-300 font-bold" 
+                                                                : "text-gray-800 dark:text-gray-200"
+                                                    }`}>
                                                         {Math.round(stat.value)}
                                                     </div>
-                                                    <div className={`text-right text-sm font-mono ${isCapped ? "text-yellow-600 dark:text-yellow-400" : "text-gray-600 dark:text-gray-400"}`}>
+                                                    <div className={`text-right text-sm font-mono ${
+                                                        isGoldSkill
+                                                            ? "text-yellow-600 dark:text-yellow-400"
+                                                            : isCapped 
+                                                                ? "text-red-600 dark:text-red-400" 
+                                                                : "text-gray-600 dark:text-gray-400"
+                                                    }`}>
                                                         ×
                                                         {stat.weight.toFixed(2)}
                                                     </div>
-                                                    <div className={`text-right text-sm font-semibold font-mono ${isCapped ? "text-yellow-700 dark:text-yellow-300" : "text-gray-800 dark:text-gray-200"}`}>
+                                                    <div className={`text-right text-sm font-semibold font-mono ${
+                                                        isGoldSkill
+                                                            ? "text-yellow-700 dark:text-yellow-300"
+                                                            : isCapped 
+                                                                ? "text-red-700 dark:text-red-300" 
+                                                                : "text-gray-800 dark:text-gray-200"
+                                                    }`}>
                                                         {stat.contribution > 0
                                                             ? "+"
                                                             : ""}

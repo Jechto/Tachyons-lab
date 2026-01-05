@@ -25,7 +25,7 @@ interface TierlistDeck {
     cards: TierlistCard[];
     score: number;
     stats: StatsDict;
-    hints?: Record<string, number>;
+    hints?: HintResult;
     scoreBreakdown?: {
         totalScore: number;
         baseScore: number;
@@ -218,13 +218,35 @@ export class Tierlist {
             },
         };
 
-        let hintsForDeck: Record<string, number> = {};
+        let hintsForDeck: HintResult = {
+            hint_frequency: 0,
+            hints_from_events: 0,
+            useful_hints_rate: 0,
+            "hints from training": 0,
+            total_hints: 0,
+            gold_skills: [],
+        };
 
         for (const card of originalDeck.deck) {
             if (card) {
                 const hintForCard = card.evaluateCardHints(
                     raceTypesArray,
                     runningTypesArray,
+                    optionalRaces,
+                    {
+                        Speed: baseResultForDeck.Speed || 0,
+                        Stamina: baseResultForDeck.Stamina || 0,
+                        Power: baseResultForDeck.Power || 0,
+                        Guts: baseResultForDeck.Guts || 0,
+                        Wit: baseResultForDeck.Wit || 0,
+                    },
+                    {
+                        Speed: weights.Speed || 0,
+                        Stamina: weights.Stamina || 0,
+                        Power: weights.Power || 0,
+                        Guts: weights.Guts || 0,
+                        Wit: weights.Wit || 0,
+                    }
                 );
                 deck.cards.push({
                     id: card.id,
@@ -239,7 +261,25 @@ export class Tierlist {
             }
 
             // This matches the Python bug where these lines are inside the loop
-            hintsForDeck = deckObject.evaluateHints(raceTypesArray, runningTypesArray, optionalRaces);
+            hintsForDeck = deckObject.evaluateHints(
+                raceTypesArray, 
+                runningTypesArray, 
+                optionalRaces,
+                {
+                    Speed: baseResultForDeck.Speed || 0,
+                    Stamina: baseResultForDeck.Stamina || 0,
+                    Power: baseResultForDeck.Power || 0,
+                    Guts: baseResultForDeck.Guts || 0,
+                    Wit: baseResultForDeck.Wit || 0,
+                },
+                {
+                    Speed: weights.Speed || 0,
+                    Stamina: weights.Stamina || 0,
+                    Power: weights.Power || 0,
+                    Guts: weights.Guts || 0,
+                    Wit: weights.Wit || 0,
+                }
+            );
         }
 
         // Calculate deck stats delta
@@ -298,8 +338,41 @@ export class Tierlist {
                     const cardHints = card.evaluateCardHints(
                         raceTypesArray,
                         runningTypesArray,
+                        optionalRaces,
+                        {
+                            Speed: result.Speed || 0,
+                            Stamina: result.Stamina || 0,
+                            Power: result.Power || 0,
+                            Guts: result.Guts || 0,
+                            Wit: result.Wit || 0,
+                        },
+                        {
+                            Speed: weights.Speed || 0,
+                            Stamina: weights.Stamina || 0,
+                            Power: weights.Power || 0,
+                            Guts: weights.Guts || 0,
+                            Wit: weights.Wit || 0,
+                        }
                     );
-                    const deckHints = tempDeck.evaluateHints();
+                    const deckHints = tempDeck.evaluateHints(
+                        raceTypesArray,
+                        runningTypesArray,
+                        optionalRaces,
+                        {
+                            Speed: result.Speed || 0,
+                            Stamina: result.Stamina || 0,
+                            Power: result.Power || 0,
+                            Guts: result.Guts || 0,
+                            Wit: result.Wit || 0,
+                        },
+                        {
+                            Speed: weights.Speed || 0,
+                            Stamina: weights.Stamina || 0,
+                            Power: weights.Power || 0,
+                            Guts: weights.Guts || 0,
+                            Wit: weights.Wit || 0,
+                        }
+                    );
 
                     // Calculate delta from empty deck (consistent with deck.score calculation)
                     const deltaStat = this.calculateStatsDelta(result, baseResultEmptyDeck);
@@ -374,7 +447,7 @@ export class Tierlist {
 
     private resultsToScore(
         resultDict: StatsDict,
-        hintDict: Record<string, number>,
+        hintDict: HintResult,
         weights: Record<string, number>,
     ): number {
         // TODO: Add more sophisticated scoring // use hint_dict
@@ -405,13 +478,20 @@ export class Tierlist {
         const hintsWeight = weightsCopy["Hints"] || 4.0;
         score += totalHints * usefulHintsRate * hintsWeight;
 
+        // Add gold skills contribution
+        const goldSkills = hintDict.gold_skills || [];
+        const goldSkillWeight = weightsCopy["Gold Skills"] || 1.0;
+        for (const goldSkill of goldSkills) {
+            score += goldSkill.value * goldSkill.multiplier * goldSkillWeight;
+        }
+
         return score;
     }
 
     private resultsWithPenaltyToScore(
         rawStats: StatsDict,
         deltaStats: StatsDict,
-        hintDict: Record<string, number>,
+        hintDict: HintResult,
         weights: Record<string, number>,
         raceTypes?: RaceTypes,
         penaltyConfig: PenaltyConfig = ACTIVE_PENALTY_CONFIG,
@@ -507,7 +587,7 @@ export class Tierlist {
     public getScoreBreakdown(
         rawStats: StatsDict,
         deltaStats: StatsDict,
-        hintDict: Record<string, number>,
+        hintDict: HintResult,
         weights: Record<string, number>,
         raceTypes?: RaceTypes,
         penaltyConfig: PenaltyConfig = ACTIVE_PENALTY_CONFIG,
@@ -592,6 +672,20 @@ export class Tierlist {
             weight: hintsWeight,
             contribution: hintsContribution,
         });
+
+        // Add each gold skill as a separate line item
+        const goldSkills = hintDict.gold_skills || [];
+        const goldSkillWeight = weights["Gold Skills"] || 1.0;
+        
+        for (const goldSkill of goldSkills) {
+            const skillContribution = goldSkill.value * goldSkill.multiplier * goldSkillWeight;
+            statContributions.push({
+                stat: goldSkill.name,
+                value: goldSkill.value * goldSkill.multiplier,
+                weight: goldSkillWeight,
+                contribution: skillContribution,
+            });
+        }
 
         // Calculate stamina penalty details using raw stats
         const stamina = rawStats.Stamina || 0;

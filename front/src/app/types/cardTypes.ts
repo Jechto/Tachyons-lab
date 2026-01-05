@@ -38,9 +38,18 @@ export interface AllEvents {
 export interface HintData {
     skill_id: number;
     skill_data: {
+        id: number;
+        rarity: number;
+        group_id: number;
+        icon_id: number;
+        grade_value: number;
+        condition_1: string;
+        skill_time_active: number;
+        skill_cooldown_time: number;
+        ability_type: number;
+        ability_value: number;
         skill_name: string;
         skill_desc: string;
-        condition_1?: string;
     };
 }
 
@@ -120,6 +129,7 @@ export interface HintResult {
     useful_hints_rate: number;
     "hints from training": number;
     total_hints: number;
+    gold_skills: Array<{ name: string; value: number; multiplier: number }>;
 }
 
 export interface RaceTypes {

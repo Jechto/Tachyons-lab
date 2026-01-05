@@ -1,6 +1,6 @@
 import { SupportCard } from "./SupportCard";
 import { TrainingData } from "../config/trainingData";
-import { StatsDict } from "../types/cardTypes";
+import { StatsDict, HintResult } from "../types/cardTypes";
 import { isSupportCardAllowedInScenario } from "../config/supportCardScenarios";
 
 interface CardAppearance {
@@ -463,10 +463,9 @@ export class DeckEvaluator {
                 // Generate all non-empty combinations (at least 1 card must appear)
                 const allCombinations = this.getCombinations(facilityCards, 1);
                 
-                console.log(`\n[${name}] ${facilityCards.length} cards, ${allCombinations.length} combos, ${Math.ceil(turnsToTrainAtThisFacility)} turns`);
                 
                 // Track gains for debug
-                let totalTurnGains = [0, 0, 0, 0, 0, 0];
+                const totalTurnGains = [0, 0, 0, 0, 0, 0];
                 let totalProbability = 0;
                 
                 // For each turn, evaluate all possible combinations
@@ -532,9 +531,6 @@ export class DeckEvaluator {
                     }
                 }
                 
-                console.log(`  Probability check: sum of all combo probabilities = ${(totalProbability * 100).toFixed(2)}%`);
-                console.log(`  Total from card scenarios: G:${totalTurnGains[3].toFixed(1)}`);
-                
                 // Add base training for turns when NO cards appear
                 // Calculate probability that NO cards appear
                 let probabilityNoneAppear = 1.0;
@@ -573,10 +569,6 @@ export class DeckEvaluator {
                         noCardGuts += baseStatsPerTurn[3] * noCardProbability * turnMultiplier;
                     }
                 }
-                
-                const facilityTotal = totalTurnGains[3] + noCardGuts;
-                console.log(`  From no-card scenarios: G:${noCardGuts.toFixed(1)}`);
-                console.log(`  This facility total: G:${facilityTotal.toFixed(1)} (cumulative: ${(totalStatsGained.Guts || 0).toFixed(1)})\n`);
             }
 
             index++;
@@ -626,20 +618,39 @@ export class DeckEvaluator {
         raceTypes: boolean[] = [false, false, false, false],
         runningTypes: boolean[] = [false, false, false, false],
         optionalRaces: number = 0,
-    ): Record<string, number> {
-        const totalHintsGained: Record<string, number> = {};
+        deckStats?: {Speed: number, Stamina: number, Power: number, Guts: number, Wit: number},
+        statWeights?: {Speed: number, Stamina: number, Power: number, Guts: number, Wit: number},
+    ): HintResult {
+        const totalHintsGained: HintResult = {
+            hint_frequency: 0,
+            hints_from_events: 0,
+            useful_hints_rate: 0,
+            "hints from training": 0,
+            total_hints: 0,
+            gold_skills: [],
+        };
+        const allGoldSkills: Array<{ name: string; value: number; multiplier: number }> = [];
 
         for (const card of this.deck) {
-            const hintForCard = card.evaluateCardHints(raceTypes, runningTypes, optionalRaces);
-            for (const [k, v] of Object.entries(hintForCard)) {
-                totalHintsGained[k] = (totalHintsGained[k] || 0) + v;
-            }
+            const hintForCard = card.evaluateCardHints(raceTypes, runningTypes, optionalRaces, deckStats, statWeights);
+            
+            // Accumulate numeric properties
+            totalHintsGained.hint_frequency += hintForCard.hint_frequency;
+            totalHintsGained.hints_from_events += hintForCard.hints_from_events;
+            totalHintsGained.useful_hints_rate += hintForCard.useful_hints_rate;
+            totalHintsGained["hints from training"] += hintForCard["hints from training"];
+            totalHintsGained.total_hints += hintForCard.total_hints;
+            
+            // Accumulate gold skills
+            allGoldSkills.push(...hintForCard.gold_skills);
         }
 
         if (this.deck.length > 0) {
-            totalHintsGained["hint_frequency"] /= this.deck.length;
-            totalHintsGained["useful_hints_rate"] /= this.deck.length;
+            totalHintsGained.hint_frequency /= this.deck.length;
+            totalHintsGained.useful_hints_rate /= this.deck.length;
         }
+
+        totalHintsGained.gold_skills = allGoldSkills;
 
         return totalHintsGained;
     }

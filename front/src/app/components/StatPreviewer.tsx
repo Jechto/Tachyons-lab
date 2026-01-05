@@ -195,8 +195,11 @@ export default function StatPreviewer({
             case "Hints":
             case "Useful Hints":
                 return getAssetPath("images/icons/Hint.png");
+            case "Gold Skills":
+                return getAssetPath("images/icons/SkillPoint.png");
             default:
-                return getAssetPath("images/icons/Support.png");
+                // For individual skill names, use SkillPoint icon
+                return getAssetPath("images/icons/SkillPoint.png");
         }
     };
 
@@ -586,6 +589,7 @@ export default function StatPreviewer({
                                             "Wit",
                                             "Skill Points",
                                             "Usefull Hints",
+                                            "Gold Skills",
                                         ].map((statName, index) => (
                                             <div
                                                 key={statName}

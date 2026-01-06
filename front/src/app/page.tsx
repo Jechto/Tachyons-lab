@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import { Tierlist, LimitBreakFilter, TierlistResponse, TierlistEntry, TierlistError } from "./classes/Tierlist";
 import { DeckEvaluator } from "./classes/DeckEvaluator";
 import { SupportCard } from "./classes/SupportCard";
@@ -226,6 +226,9 @@ export default function Home() {
         }
 
         setIsGenerating(true);
+        
+        // Use startTransition to defer heavy computation and improve INP
+        startTransition(() => {
         try {
             // Create deck evaluator with current deck
             const deckEvaluator = new DeckEvaluator();
@@ -291,6 +294,7 @@ export default function Home() {
         } finally {
             setIsGenerating(false);
         }
+        });
     };
 
     // Auto-regenerate tierlist when deck changes

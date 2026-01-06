@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { StatsDict } from '../types/cardTypes';
+import Image from 'next/image';
+import { StatsDict, HintResult } from '../types/cardTypes';
+import { getAssetPath } from '../utils/paths';
 
 interface CardTooltipProps {
     children: React.ReactNode;
@@ -11,6 +13,7 @@ interface CardTooltipProps {
     deltaStats: StatsDict;
     hintsMatchPercentage: number;
     hintTypes?: string[];
+    hints?: HintResult;
     className?: string;
     isInDeck?: boolean;
 }
@@ -31,24 +34,42 @@ export default function CardTooltip({
     deltaStats,
     hintsMatchPercentage,
     hintTypes = [],
+    hints,
     className = "",
     isInDeck = false
 }: CardTooltipProps) {
     const [isVisible, setIsVisible] = useState(false);
     const [position, setPosition] = useState({ x: 0, y: 0 });
+    const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
     
     const handleMouseEnter = (e: React.MouseEvent) => {
+        // Capture rect immediately before timeout, as e.currentTarget becomes null after event
         const rect = e.currentTarget.getBoundingClientRect();
         const x = rect.right + 10;
         const y = rect.top;
         
-        setPosition({ x, y });
-        setIsVisible(true);
+        // Debounce tooltip display by 150ms to reduce INP
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        
+        timeoutRef.current = setTimeout(() => {
+            setPosition({ x, y });
+            setIsVisible(true);
+        }, 150);
     };
     
     const handleMouseLeave = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
         setIsVisible(false);
     };
+    
+    React.useEffect(() => {
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, []);
     
     // Create delta stats display
     const deltaStatsDisplay = [];
@@ -178,6 +199,37 @@ export default function CardTooltip({
                                             </span>
                                         );
                                     })}
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Gold Skills */}
+                        {hints?.gold_skills && hints.gold_skills.length > 0 && (
+                            <div className="mb-3">
+                                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Gold Skills:
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {hints.gold_skills.map((skill, index) => (
+                                        <div 
+                                            key={index}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs font-medium shadow-[0_0_8px_rgba(234,179,8,0.5)] dark:shadow-[0_0_8px_rgba(250,204,21,0.6)]"
+                                        >
+                                            <Image
+                                                src={getAssetPath(`images/skills/${skill.icon_id}.png`)}
+                                                alt={skill.name}
+                                                width={16}
+                                                height={16}
+                                                className="object-contain"
+                                                onError={(e) => {
+                                                    // Fallback to a star emoji if icon fails
+                                                    const target = e.target as HTMLImageElement;
+                                                    target.style.display = 'none';
+                                                }}
+                                            />
+                                            <span>{skill.name}</span>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}

@@ -87,6 +87,61 @@ class DataCollector:
 
         return True
 
+    def download_skill_images(self, data, output_dir: str) -> bool:
+        import requests
+        import time
+        
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Collect all unique icon IDs from all cards
+        icon_ids = set()
+        for card in data:
+            # Check hints_table
+            hints_table = card.get('hints_table', [])
+            for hint in hints_table:
+                if hint.get('type') == 'skill_hint':
+                    skill_data = hint.get('skill_data', {})
+                    icon_id = skill_data.get('icon_id')
+                    if icon_id:
+                        icon_ids.add(icon_id)
+            
+            # Also check hints_event_table
+            hints_event_table = card.get('hints_event_table', [])
+            for hint in hints_event_table:
+                if hint.get('type') == 'skill_hint':
+                    skill_data = hint.get('skill_data', {})
+                    icon_id = skill_data.get('icon_id')
+                    if icon_id:
+                        icon_ids.add(icon_id)
+        
+        print(f"Found {len(icon_ids)} unique skill icons to download")
+        
+        # Download each skill icon
+        for icon_id in tqdm(icon_ids):
+            image_url = f"https://gametora.com/images/umamusume/skill_icons/utx_ico_skill_{icon_id}.png"
+            image_path = os.path.join(output_dir, f"{icon_id}.png")
+            
+            # Skip if already exists
+            if os.path.exists(image_path):
+                continue
+            
+            try:
+                print(f"Downloading skill icon {icon_id} from {image_url}")
+                response = requests.get(image_url, timeout=10)
+                response.raise_for_status()
+                
+                with open(image_path, 'wb') as f:
+                    f.write(response.content)
+                
+                # Small delay to avoid overwhelming the server
+                time.sleep(0.1)
+                    
+            except Exception as e:
+                print(f"Failed to download skill icon {icon_id}: {e}")
+                continue
+        
+        return True
+
     @property
     def data(self) -> Optional[Any]:
         return self._data

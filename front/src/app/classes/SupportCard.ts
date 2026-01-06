@@ -10,6 +10,7 @@ import {
     AllEvents,
     EventData,
 } from "../types/cardTypes";
+import { SkillHintEvaluator } from "./SkillHintEvaluator";
 
 /**
  * SupportCard - Quantitative analysis engine for card performance
@@ -381,6 +382,8 @@ export class SupportCard {
         raceTypes: boolean[] = [false, false, false, false],
         runningTypes: boolean[] = [false, false, false, false],
         optionalRaces: number = 0,
+        deckStats?: {Speed: number, Stamina: number, Power: number, Guts: number, Wit: number},
+        statWeights?: {Speed: number, Stamina: number, Power: number, Guts: number, Wit: number},
     ): HintResult {
         const maxTrainingTurns = 72 + 6 - 11 - optionalRaces;
         const hintFreq =
@@ -394,6 +397,11 @@ export class SupportCard {
 
         const cardHints = this.extractSkillHints();
         let usefulHintCount = 0;
+        const goldSkills: Array<{ name: string; value: number; multiplier: number }> = [];
+
+        // Default deck stats if not provided
+        const stats = deckStats || {Speed: 0, Stamina: 0, Power: 0, Guts: 0, Wit: 0};
+        const weights = statWeights || {Speed: 1, Stamina: 1, Power: 1, Guts: 1, Wit: 1};
 
         for (const hint of cardHints) {
             const distanceTypeTrigger = hint.distance_type_trigger;
@@ -413,6 +421,23 @@ export class SupportCard {
             }
 
             usefulHintCount += 1;
+
+            // Calculate gold skill value for useful hints
+            const hintData = this.hints.find(h => h.skill_id === hint.id);
+            if (hintData?.skill_data) {
+                const skillEvaluator = new SkillHintEvaluator(hintData.skill_data);
+                if (skillEvaluator.isGoldSkill()) {
+                    const [value, multiplier] = skillEvaluator.evaluateSkillValue(stats, raceTypes, runningTypes, weights);
+                    if (value > 0) {
+                        goldSkills.push({
+                            name: skillEvaluator.getSkillName(),
+                            value: value,
+                            multiplier: multiplier,
+                            icon_id: skillEvaluator.getIconId(),
+                        });
+                    }
+                }
+            }
         }
 
         const usefulHintsRate =
@@ -430,6 +455,7 @@ export class SupportCard {
             useful_hints_rate: usefulHintsRate,
             "hints from training": hintsFromTraining,
             total_hints: totalUsefulHints,
+            gold_skills: goldSkills,
         };
     }
 }

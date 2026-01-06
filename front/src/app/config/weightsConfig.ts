@@ -7,6 +7,7 @@ export const WEIGHTS_CONFIG = {
         Wit: 1,
         "Skill Points": 0.4, 
         Hints: 7.5, // Hint is equal to 6 speed+ 2 Power points
+        "Gold Skills": 1.0, // Value for gold (rarity 2) skill hints
     },
     Mile: {
         Speed: 1.5,
@@ -16,6 +17,7 @@ export const WEIGHTS_CONFIG = {
         Wit: 1,
         "Skill Points": 0.4,
         Hints: 7.5, // Hint is equal to 6 speed+ 2 Power points
+        "Gold Skills": 1.0, // Value for gold (rarity 2) skill hints
     },
     Medium: {
         Speed: 1.5,
@@ -25,6 +27,7 @@ export const WEIGHTS_CONFIG = {
         Wit: 0.75,
         "Skill Points": 0.4,
         Hints: 7.5, // Hint is equal to 6 speed+ 2 Power points
+        "Gold Skills": 1.0, // Value for gold (rarity 2) skill hints
     },
     Long: {
         Speed: 1,
@@ -34,5 +37,6 @@ export const WEIGHTS_CONFIG = {
         Wit: 0.75,
         "Skill Points": 0.4,
         Hints: 7.5, // Hint is equal to 6 speed+ 2 Power points
+        "Gold Skills": 1.0, // Value for gold (rarity 2) skill hints
     },
 };

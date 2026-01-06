@@ -1,4 +1,5 @@
 import Image from "next/image";
+import React from "react";
 import CardTooltip from "./CardTooltip";
 import { StatsDict, HintResult } from "../types/cardTypes";
 import { getAssetPath } from "../utils/paths";
@@ -21,7 +22,7 @@ interface TierlistCardProps {
     hintTypes?: string[]; // Types of hints this card produces
 }
 
-export default function TierlistCard({
+function TierlistCard({
     id,
     cardName,
     cardRarity,
@@ -230,3 +231,6 @@ export default function TierlistCard({
 
     return cardContent;
 }
+
+// Memoize to prevent unnecessary re-renders for better INP
+export default React.memo(TierlistCard);

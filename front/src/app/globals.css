@@ -24,3 +24,19 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Optimize rendering performance for long lists */
+.tier-card-container {
+  content-visibility: auto;
+  contain-intrinsic-size: 120px;
+}
+
+/* Improve paint performance */
+* {
+  will-change: auto;
+}
+
+/* Reduce layout thrashing */
+img {
+  content-visibility: auto;
+}

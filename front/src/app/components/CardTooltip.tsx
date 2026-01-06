@@ -40,19 +40,36 @@ export default function CardTooltip({
 }: CardTooltipProps) {
     const [isVisible, setIsVisible] = useState(false);
     const [position, setPosition] = useState({ x: 0, y: 0 });
+    const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
     
     const handleMouseEnter = (e: React.MouseEvent) => {
+        // Capture rect immediately before timeout, as e.currentTarget becomes null after event
         const rect = e.currentTarget.getBoundingClientRect();
         const x = rect.right + 10;
         const y = rect.top;
         
-        setPosition({ x, y });
-        setIsVisible(true);
+        // Debounce tooltip display by 150ms to reduce INP
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        
+        timeoutRef.current = setTimeout(() => {
+            setPosition({ x, y });
+            setIsVisible(true);
+        }, 150);
     };
     
     const handleMouseLeave = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
         setIsVisible(false);
     };
+    
+    React.useEffect(() => {
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, []);
     
     // Create delta stats display
     const deltaStatsDisplay = [];

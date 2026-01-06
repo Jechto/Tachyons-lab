@@ -36,7 +36,7 @@ export const metadata: Metadata = {
         locale: "en_US",
         images: [
             {
-                url: getAssetPath('/images/logo/logo512.png'),
+                url: 'https://jechto.github.io/Tachyons-lab/images/logo/logo512.png',
                 width: 512,
                 height: 512,
                 alt: 'Tachyons Lab Logo',
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
         card: "summary_large_image",
         title: "Free Uma Musume Support Card Tierlist & Deck Builder",
         description: "Build winning decks instantly. AI-powered support card rankings for optimal race strategies.",
-        images: [getAssetPath('/images/logo/logo512.png')],
+        images: ['https://jechto.github.io/Tachyons-lab/images/logo/logo512.png'],
     },
     robots: {
         index: true,

@@ -183,23 +183,70 @@ export class SupportCard {
                 });
 
                 for (const choice of arrowEvent.choices || []) {
+                    // Split rewards by "di" separator - each section is a mutually exclusive outcome
+                    const rewardGroups: Array<Array<{ type: string; value: string }>> = [];
+                    let currentGroup: Array<{ type: string; value: string }> = [];
+                    
+                    for (const reward of choice.rewards || []) {
+                        if (reward.type === "di") {
+                            if (currentGroup.length > 0) {
+                                rewardGroups.push(currentGroup);
+                                currentGroup = [];
+                            }
+                        } else {
+                            currentGroup.push(reward);
+                        }
+                    }
+                    
+                    // Add the last group if it exists
+                    if (currentGroup.length > 0) {
+                        rewardGroups.push(currentGroup);
+                    }
+                    
+                    // If no groups (no rewards or all were "di"), skip this choice
+                    if (rewardGroups.length === 0) {
+                        continue;
+                    }
+                    
+                    // Check if this choice has "ee" (event chain ended) - apply large penalty
+                    const hasEe = (choice.rewards || []).some(reward => reward.type === "ee");
+                    
+                    // Calculate expected value across all reward groups
                     const currentStatsForChoice: Record<string, number> = {};
                     statKeys.forEach((key) => {
                         currentStatsForChoice[key] = 0;
                     });
-
-                    for (const reward of choice.rewards || []) {
-                        const rtype = reward.type;
-                        if (rtype in currentStatsForChoice) {
-                            currentStatsForChoice[rtype] += parseSignedInt(
-                                reward.value,
-                            );
+                    
+                    const probabilityPerGroup = 1.0 / rewardGroups.length;
+                    
+                    for (const group of rewardGroups) {
+                        const groupStats: Record<string, number> = {};
+                        statKeys.forEach((key) => {
+                            groupStats[key] = 0;
+                        });
+                        
+                        for (const reward of group) {
+                            const rtype = reward.type;
+                            if (rtype in groupStats) {
+                                groupStats[rtype] += parseSignedInt(reward.value);
+                            }
+                        }
+                        
+                        // Add this group's contribution weighted by probability
+                        for (const k of statKeys) {
+                            currentStatsForChoice[k] += groupStats[k] * probabilityPerGroup;
                         }
                     }
 
-                    const evalResult = this.evalStatArray(
+                    let evalResult = this.evalStatArray(
                         currentStatsForChoice as unknown as StatsDict,
                     );
+                    
+                    // Apply large penalty if event chain ends
+                    if (hasEe) {
+                        evalResult -= 1000;
+                    }
+                    
                     if (evalResult > bestEval) {
                         bestEval = evalResult;
                         Object.assign(bestStats, currentStatsForChoice);

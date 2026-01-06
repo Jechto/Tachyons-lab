@@ -3,6 +3,8 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
+
+
 class EventScraper:
     from typing import List, Dict, Any
     def get_events_for_support_cards(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -44,6 +46,7 @@ class EventScraper:
         return events
 
     def parse_event_data(self, event_entries: list) -> list:
+
         key_skill_map = {
             "sp": "Speed",
             "st": "Stamina",
@@ -52,7 +55,7 @@ class EventScraper:
             "in": "Intelligence",
             "en": "Energy",
             "sk": "Skill Hint",
-            "sr": "Skill Choice",  # Support card skill choices - different structure
+            "sr": "Skill Choice",
             "bo": "Bond",
             "pt": "Potential",
             "mo": "Mood",

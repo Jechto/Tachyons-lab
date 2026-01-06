@@ -131,13 +131,50 @@ class SupportCard:
             best_eval = 0
             best_stats = {k: 0 for k in stat_keys}
             for choice in arrow_event.get("choices", []):
-                current_stats_for_choice = {k: 0 for k in stat_keys}
+                # Split rewards by "di" separator - each section is a mutually exclusive outcome
+                reward_groups = []
+                current_group = []
+                
                 for reward in choice.get("rewards", []):
-                    rtype = reward["type"]
-                    if rtype in current_stats_for_choice:
-                        current_stats_for_choice[rtype] += parse_signed_int(reward["value"])
+                    if reward["type"] == "di":
+                        if current_group:
+                            reward_groups.append(current_group)
+                            current_group = []
+                    else:
+                        current_group.append(reward)
+                
+                # Add the last group if it exists
+                if current_group:
+                    reward_groups.append(current_group)
+                
+                # If no groups (no rewards or all were "di"), skip this choice
+                if not reward_groups:
+                    continue
+                
+                # Check if this choice has "ee" (event chain ended) - apply large penalty
+                has_ee = any(reward["type"] == "ee" for reward in choice.get("rewards", []))
+                
+                # Calculate expected value across all reward groups
+                current_stats_for_choice = {k: 0 for k in stat_keys}
+                probability_per_group = 1.0 / len(reward_groups)
+                
+                for group in reward_groups:
+                    group_stats = {k: 0 for k in stat_keys}
+                    for reward in group:
+                        rtype = reward["type"]
+                        if rtype in group_stats:
+                            group_stats[rtype] += parse_signed_int(reward["value"])
+                    
+                    # Add this group's contribution weighted by probability
+                    for k in stat_keys:
+                        current_stats_for_choice[k] += group_stats[k] * probability_per_group
 
                 _eval = self.eval_stat_array(current_stats_for_choice)
+                
+                # Apply large penalty if event chain ends
+                if has_ee:
+                    _eval -= 1000
+                
                 if _eval > best_eval:
                     best_eval = _eval
                     best_stats = current_stats_for_choice

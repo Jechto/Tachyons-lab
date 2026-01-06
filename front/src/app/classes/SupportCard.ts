@@ -397,7 +397,7 @@ export class SupportCard {
 
         const cardHints = this.extractSkillHints();
         let usefulHintCount = 0;
-        const goldSkills: Array<{ name: string; value: number; multiplier: number }> = [];
+        const goldSkills: Array<{ name: string; value: number; multiplier: number; icon_id: number }> = [];
 
         // Default deck stats if not provided
         const stats = deckStats || {Speed: 0, Stamina: 0, Power: 0, Guts: 0, Wit: 0};

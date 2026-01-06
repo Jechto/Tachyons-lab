@@ -30,20 +30,6 @@ interface TriggerCondition {
 interface ConditionNode {
     and?: ConditionNode[];
     or?: ConditionNode[];
-    [key: string]: unknown;
-}
-
-interface TriggerCondition {
-    type: 'running_style' | 'distance_type' | 'phase' | 'position' | 'ground_type' | 'other';
-    value: number;
-    operator: string;
-    label?: string;
-}
-
-interface ConditionNode {
-    and?: ConditionNode[];
-    or?: ConditionNode[];
-    [key: string]: unknown;
 }
 
 export class SkillHintEvaluator {

@@ -628,7 +628,7 @@ export class DeckEvaluator {
             total_hints: 0,
             gold_skills: [],
         };
-        const allGoldSkills: Array<{ name: string; value: number; multiplier: number }> = [];
+        const allGoldSkills: Array<{ name: string; value: number; multiplier: number; icon_id: number }> = [];
         const seenSkillNames = new Set<string>();
 
         for (const card of this.deck) {

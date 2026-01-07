@@ -333,15 +333,15 @@ export default function StatPreviewer({
                         {scoreBreakdown ? (
                             /* Score Calculation Receipt with real data */
                             <div>
-                                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     Score Calculation Receipt
                                 </div>
 
                                 {/* Receipt Table */}
                                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
                                     {/* Table Header */}
-                                    <div className="bg-gray-50 dark:bg-gray-700 px-4 py-2 border-b border-gray-200 dark:border-gray-600">
-                                        <div className="grid grid-cols-4 gap-4 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
+                                    <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 border-b border-gray-200 dark:border-gray-600">
+                                        <div className="grid grid-cols-4 gap-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
                                             <div>Stat</div>
                                             <div className="text-right">
                                                 Units
@@ -377,7 +377,7 @@ export default function StatPreviewer({
                                                 return (
                                                 <div
                                                     key={stat.stat}
-                                                    className={`px-4 py-3 grid grid-cols-4 gap-4 items-center ${
+                                                    className={`px-3 py-1 grid grid-cols-4 gap-3 items-center ${
                                                         isGoldSkill
                                                             ? "bg-yellow-50 dark:bg-yellow-900/30"
                                                             : isCapped 
@@ -465,7 +465,7 @@ export default function StatPreviewer({
                                         )}
 
                                         {/* Subtotal */}
-                                        <div className="px-4 py-3 bg-gray-100 dark:bg-gray-700 border-t-2 border-gray-300 dark:border-gray-500">
+                                        <div className="px-3 py-3 bg-gray-100 dark:bg-gray-700 border-t-2 border-gray-300 dark:border-gray-500">
                                             <div className="grid grid-cols-4 gap-4 items-center">
                                                 <div className="col-span-3 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">
                                                     Subtotal:
@@ -480,8 +480,8 @@ export default function StatPreviewer({
 
                                         {/* Penalties */}
                                         {scoreBreakdown.staminaPenalty < 1 && (
-                                            <div className="px-4 py-3 bg-red-50 dark:bg-red-900/20">
-                                                <div className="grid grid-cols-4 gap-4 items-center">
+                                            <div className="px-3 py-2 bg-red-50 dark:bg-red-900/20">
+                                                <div className="grid grid-cols-4 gap-3 items-center">
                                                     <div className="col-span-3 flex items-center gap-2">
                                                         <span className="text-sm text-red-600 dark:text-red-400">
                                                             ⚠️ Stamina Penalty
@@ -515,8 +515,8 @@ export default function StatPreviewer({
 
                                         {/* Speed Penalty */}
                                         {scoreBreakdown.speedPenalty < 1 && (
-                                            <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20">
-                                                <div className="grid grid-cols-4 gap-4 items-center">
+                                            <div className="px-3 py-2 bg-blue-50 dark:bg-blue-900/20">
+                                                <div className="grid grid-cols-4 gap-3 items-center">
                                                     <div className="col-span-3 flex items-center gap-2">
                                                         <span className="text-sm text-blue-600 dark:text-blue-400">
                                                             📉 Speed Penalty
@@ -544,44 +544,13 @@ export default function StatPreviewer({
                                             </div>
                                         )}
 
-                                        {/* Stat Overbuilt Penalty */}
-                                        {scoreBreakdown.statOverbuiltPenalty < 1 && (
-                                            <div className="px-4 py-3 bg-purple-50 dark:bg-purple-900/20">
-                                                <div className="grid grid-cols-4 gap-4 items-center">
-                                                    <div className="col-span-3 flex items-center gap-2">
-                                                        <span className="text-sm text-purple-600 dark:text-purple-400">
-                                                            📊 Overbuilt Penalty
-                                                        </span>
-                                                        <div className="text-xs text-purple-500 dark:text-purple-400">
-                                                            (
-                                                            {(
-                                                                100 -
-                                                                scoreBreakdown.statOverbuiltPenalty * 100
-                                                            ).toFixed(0)}
-                                                            % reduction)
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right text-sm font-semibold text-purple-600 dark:text-purple-400 font-mono">
-                                                        -
-                                                        {(
-                                                            scoreBreakdown.baseScore *
-                                                            (1 - scoreBreakdown.statOverbuiltPenalty)
-                                                        ).toFixed(0)}
-                                                    </div>
-                                                </div>
-                                                <div className="mt-1 text-xs text-purple-600 dark:text-purple-400 col-span-4">
-                                                    {scoreBreakdown.statOverbuiltPenaltyReason}
-                                                </div>
-                                            </div>
-                                        )}
-
                                         {/* Final Total */}
-                                        <div className="px-4 py-4 bg-green-50 dark:bg-green-900/20 border-t-2 border-green-300 dark:border-green-600">
-                                            <div className="grid grid-cols-4 gap-4 items-center">
-                                                <div className="col-span-3 text-right text-lg font-bold text-green-700 dark:text-green-300">
+                                        <div className="px-3 py-4 bg-green-50 dark:bg-green-900/20 border-t-2 border-green-300 dark:border-green-600">
+                                            <div className="grid grid-cols-4 gap-3 items-center">
+                                                <div className="col-span-3 text-right text-base font-bold text-green-700 dark:text-green-300">
                                                     Final Score:
                                                 </div>
-                                                <div className="text-right text-xl font-bold text-green-600 dark:text-green-400 font-mono">
+                                                <div className="text-right text-lg font-bold text-green-600 dark:text-green-400 font-mono">
                                                     {scoreBreakdown.totalScore.toFixed(
                                                         0,
                                                     )}

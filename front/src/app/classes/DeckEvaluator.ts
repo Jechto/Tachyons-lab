@@ -227,12 +227,14 @@ export class DeckEvaluator {
         const crowdBonus = 1.0 + (0.05 * (cards.length + 1));
 
         // Calculate gains for each stat (capped at 100 per training)
+        // Mood effect modifies the mood bonus: finalMood = 1 + (moodBonus - 1) * moodEffect
+        const finalMoodMultiplier = 1 + ((moodBonus - 1) * moodEffect);
+        
         for (let i = 0; i < 5; i++) {
             const baseStat = baseStats[i] + statBonuses[i];
             const calculatedGain = Math.floor(
                 baseStat *
-                moodBonus *
-                moodEffect *
+                finalMoodMultiplier *
                 trainingEffectiveness *
                 friendshipBonus *
                 crowdBonus
@@ -244,7 +246,7 @@ export class DeckEvaluator {
         if (baseStats[5]) {
             gains[5] = Math.floor(
                 (baseStats[5] + statBonuses[5]) *
-                moodBonus *
+                finalMoodMultiplier *
                 trainingEffectiveness *
                 crowdBonus
             );

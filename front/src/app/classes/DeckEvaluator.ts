@@ -235,6 +235,7 @@ export class DeckEvaluator {
             const calculatedGain = Math.floor(
                 baseStat *
                 finalMoodMultiplier *
+                facilityMultiplier *
                 trainingEffectiveness *
                 friendshipBonus *
                 crowdBonus
@@ -247,10 +248,13 @@ export class DeckEvaluator {
             gains[5] = Math.floor(
                 (baseStats[5] + statBonuses[5]) *
                 finalMoodMultiplier *
+                facilityMultiplier *
                 trainingEffectiveness *
                 crowdBonus
             );
         }
+
+        console.log(facilityMultiplier)
 
         return gains;
     }

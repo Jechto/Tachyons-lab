@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, startTransition } from "react";
+import { useState, useEffect, startTransition, useCallback, useRef } from "react";
 import { Tierlist, LimitBreakFilter, TierlistResponse, TierlistEntry, TierlistError } from "./classes/Tierlist";
 import { DeckEvaluator } from "./classes/DeckEvaluator";
 import { SupportCard } from "./classes/SupportCard";
@@ -51,6 +51,9 @@ export default function Home() {
     const [selectedScenario, setSelectedScenario] = useState<string>("Unity");
     const [optionalRaces, setOptionalRaces] = useState<number>(0);
 
+    // Debounce timer ref for auto-regeneration
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
     // Update calculated distribution when deck changes
     useEffect(() => {
         const deckEvaluator = new DeckEvaluator();
@@ -87,63 +90,66 @@ export default function Home() {
     ];
 
     // Deck management functions
-      const handleCardClick = (card: TierlistEntry) => {
-        const cardKey = `${card.id}-${card.limit_break}`;
-        const cardId = card.id;
-        const newLimitBreak = card.limit_break;
-        const charaId = card.chara_id;
+    const handleCardClick = useCallback((card: TierlistEntry) => {
+        // Use startTransition for non-urgent state updates
+        startTransition(() => {
+            const cardKey = `${card.id}-${card.limit_break}`;
+            const cardId = card.id;
+            const newLimitBreak = card.limit_break;
+            const charaId = card.chara_id;
 
-        // Check if this exact card is already in deck
-        if (deckCardIds.has(cardKey)) {
-            return;
-        }
-
-        // Check if any version of this card is already in deck
-        const existingCardInDeck = currentDeck.find(
-            (deckCard) => deckCard.id === cardId,
-        );
-        if (existingCardInDeck) {
-            // If trying to add a lower or equal limit break version, prevent it
-            if (newLimitBreak <= existingCardInDeck.limitBreak) {
+            // Check if this exact card is already in deck
+            if (deckCardIds.has(cardKey)) {
                 return;
             }
-            // If trying to add a higher limit break version, remove the lower one first
-            const existingCardKey = `${existingCardInDeck.id}-${existingCardInDeck.limitBreak}`;
-            setCurrentDeck((prev) =>
-                prev.filter(
-                    (c) => `${c.id}-${c.limitBreak}` !== existingCardKey,
-                ),
-            );
-            setDeckCardIds((prev) => {
-                const newSet = new Set(prev);
-                newSet.delete(existingCardKey);
-                return newSet;
-            });
-        } else {
-            // Check for same character ID
-            const sameCharaCard = currentDeck.find(
-                (deckCard) => deckCard.charaId === charaId
-            );
-            if (sameCharaCard) {
-                return;
-            }
-        }
 
-        // Add to deck (max 6 cards)
-        if (currentDeck.length < 6 || existingCardInDeck) {
-            const deckCard: DeckCard = {
-                id: card.id,
-                charaId: card.chara_id,
-                limitBreak: card.limit_break,
-                cardName: card.card_name,
-                cardRarity: card.card_rarity,
-                cardType: card.card_type,
-            };
-            setCurrentDeck((prev) => [...prev, deckCard]);
-            setDeckCardIds((prev) => new Set([...prev, cardKey]));
-            // useEffect will handle automatic regeneration
-        }
-    };
+            // Check if any version of this card is already in deck
+            const existingCardInDeck = currentDeck.find(
+                (deckCard) => deckCard.id === cardId,
+            );
+            if (existingCardInDeck) {
+                // If trying to add a lower or equal limit break version, prevent it
+                if (newLimitBreak <= existingCardInDeck.limitBreak) {
+                    return;
+                }
+                // If trying to add a higher limit break version, remove the lower one first
+                const existingCardKey = `${existingCardInDeck.id}-${existingCardInDeck.limitBreak}`;
+                setCurrentDeck((prev) =>
+                    prev.filter(
+                        (c) => `${c.id}-${c.limitBreak}` !== existingCardKey,
+                    ),
+                );
+                setDeckCardIds((prev) => {
+                    const newSet = new Set(prev);
+                    newSet.delete(existingCardKey);
+                    return newSet;
+                });
+            } else {
+                // Check for same character ID
+                const sameCharaCard = currentDeck.find(
+                    (deckCard) => deckCard.charaId === charaId
+                );
+                if (sameCharaCard) {
+                    return;
+                }
+            }
+
+            // Add to deck (max 6 cards)
+            if (currentDeck.length < 6 || existingCardInDeck) {
+                const deckCard: DeckCard = {
+                    id: card.id,
+                    charaId: card.chara_id,
+                    limitBreak: card.limit_break,
+                    cardName: card.card_name,
+                    cardRarity: card.card_rarity,
+                    cardType: card.card_type,
+                };
+                setCurrentDeck((prev) => [...prev, deckCard]);
+                setDeckCardIds((prev) => new Set([...prev, cardKey]));
+                // useEffect will handle automatic regeneration
+            }
+        });
+    }, [currentDeck, deckCardIds]);
 
     const clearDeck = () => {
         setCurrentDeck([]);
@@ -297,11 +303,26 @@ export default function Home() {
         });
     };
 
-    // Auto-regenerate tierlist when deck changes
+    // Auto-regenerate tierlist when deck changes (with debounce)
     useEffect(() => {
-        if (canAutoRegenerate()) {
-            generateTierlist();
+        // Clear any pending timer
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
         }
+
+        // Set a new timer to regenerate after 300ms of inactivity
+        debounceTimerRef.current = setTimeout(() => {
+            if (canAutoRegenerate()) {
+                generateTierlist();
+            }
+        }, 300);
+
+        // Cleanup on unmount
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentDeck]); // Only depend on currentDeck changes
 
@@ -351,10 +372,10 @@ export default function Home() {
             />
             
             <div className="flex min-h-screen flex-col items-center justify-center p-1 md:p-12 lg:p-24 max-w-7xl mx-auto">
-            <header className="text-center mb-8 relative min-h-[250px]">
-                {/* Logo Background - positioned much higher up */}
-                <div className="absolute -top-16 md:-top-20 left-1/2 transform -translate-x-1/2 pointer-events-none">
-                    <div className="relative">
+            <header className="text-center mb-8 relative">
+                {/* Logo Background - positioned with reserved space to prevent CLS */}
+                <div className="absolute -top-16 md:-top-20 left-1/2 transform -translate-x-1/2 pointer-events-none w-[160px] h-[160px] md:w-[200px] md:h-[200px]">
+                    <div className="relative w-full h-full">
                         {/* Medium-sized logo for desktop */}
                         <Image
                             src={getAssetPath("/images/logo/logo512.png")}
@@ -364,6 +385,7 @@ export default function Home() {
                             className="opacity-40 dark:opacity-30 hidden md:block"
                             priority
                             unoptimized
+                            loading="eager"
                         />
                         {/* Smaller logo for mobile */}
                         <Image
@@ -374,6 +396,7 @@ export default function Home() {
                             className="opacity-40 dark:opacity-30 md:hidden"
                             priority
                             unoptimized
+                            loading="eager"
                         />
                     </div>
                 </div>
@@ -476,7 +499,7 @@ export default function Home() {
 
                 {/* Current Deck Display */}
                 {currentDeck.length > 0 ? (
-                    <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg border border-blue-200 dark:border-blue-700">
+                    <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg border border-blue-200 dark:border-blue-700 min-h-[180px]">
                         <div className="flex items-center justify-between mb-4">
                             <h4 className="text-lg font-semibold text-blue-800 dark:text-blue-200">
                                 Current Deck ({currentDeck.length}/6)
@@ -497,8 +520,7 @@ export default function Home() {
                                 </span>
                             )}
                         </div>
-                        <div className="flex flex-wrap gap-3">
-                            {currentDeck.map((card) => {
+                        <div className="flex flex-wrap gap-3 min-h-[120px]">{currentDeck.map((card) => {
                                 const cardKey = `${card.id}-${card.limitBreak}`;
                                 
                                 // Find the corresponding tierlist entry for tooltip data
@@ -607,7 +629,7 @@ export default function Home() {
                         )}
                     </div>
                 ) : (
-                    <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 min-h-[180px] flex items-center justify-center">
                         <div className="text-center text-gray-600 dark:text-gray-400">
                             <div className="text-4xl mb-2">🃏</div>
                             <h4 className="text-lg font-semibold mb-2">
@@ -644,7 +666,7 @@ export default function Home() {
                 </div>
 
                 {/* Scenario Selection and Generate Button */}
-                <div className="mt-8 flex flex-col md:flex-row justify-center items-center gap-4 border-t border-gray-200 dark:border-gray-700 pt-6">
+                <div className="mt-8 flex flex-col md:flex-row justify-center items-center gap-4 border-t border-gray-200 dark:border-gray-700 pt-6 min-h-[80px]">
                     <div className="flex items-center gap-2">
                         <label htmlFor="scenario-select" className="font-medium text-gray-700 dark:text-gray-300">
                             Scenario:
@@ -690,7 +712,7 @@ export default function Home() {
             </div>
 
             {/* Stat Previewer */}
-            <div className="w-full max-w-6xl mb-8">
+            <div className="w-full max-w-6xl mb-8 min-h-[200px]">
                 <StatPreviewer
                     currentDeck={currentDeck}
                     allData={allDataRaw as CardData[]}
@@ -707,7 +729,7 @@ export default function Home() {
 
             {/* Tierlist Results */}
             {tierlistResult && (
-                <div className="w-full max-w-6xl space-y-6 mb-8">
+                <div className="w-full max-w-6xl space-y-6 mb-8 min-h-[400px]" style={{contentVisibility: 'auto'}}>
                     {/* Visual Tierlist */}
                     {'tierlist' in tierlistResult && (
                         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-300 dark:border-gray-600">

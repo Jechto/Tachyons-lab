@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { StatsDict, HintResult } from '../types/cardTypes';
 import { getAssetPath } from '../utils/paths';
@@ -41,18 +42,64 @@ export default function CardTooltip({
     const [isVisible, setIsVisible] = useState(false);
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+    const tooltipRef = React.useRef<HTMLDivElement | null>(null);
+    
+    const calculatePosition = (rect: DOMRect) => {
+        const tooltipWidth = 320; // max-w-80 = 320px
+        const tooltipHeight = 400; // estimated height
+        const gap = 10;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const scrollY = window.scrollY || window.pageYOffset;
+        
+        // Start with position to the right of the card
+        let x = rect.right + gap;
+        let y = rect.top; // Use rect.top directly for fixed positioning (already viewport-relative)
+        
+        // Check if tooltip would go off the right edge
+        if (x + tooltipWidth > viewportWidth) {
+            // Try positioning to the left of the card
+            x = rect.left - tooltipWidth - gap;
+            
+            // If it still doesn't fit, align to viewport edge
+            if (x < gap) {
+                x = gap;
+            }
+        }
+        
+        // Check if tooltip would go off the bottom edge of viewport
+        if (y + tooltipHeight > viewportHeight) {
+            // Position it so it fits in the viewport
+            y = Math.max(gap, viewportHeight - tooltipHeight - gap);
+        }
+        
+        // Ensure it doesn't go above viewport
+        if (y < gap) {
+            y = gap;
+        }
+        
+        // Debug logging
+        console.log('Tooltip position:', { 
+            x, 
+            y, 
+            cardRect: { top: rect.top, left: rect.left, right: rect.right, bottom: rect.bottom },
+            viewport: { width: viewportWidth, height: viewportHeight },
+            scrollY 
+        });
+        
+        return { x, y };
+    };
     
     const handleMouseEnter = (e: React.MouseEvent) => {
         // Capture rect immediately before timeout, as e.currentTarget becomes null after event
         const rect = e.currentTarget.getBoundingClientRect();
-        const x = rect.right + 10;
-        const y = rect.top;
         
         // Debounce tooltip display by 150ms to reduce INP
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         
         timeoutRef.current = setTimeout(() => {
-            setPosition({ x, y });
+            const pos = calculatePosition(rect);
+            setPosition(pos);
             setIsVisible(true);
         }, 150);
     };
@@ -90,13 +137,20 @@ export default function CardTooltip({
                 {children}
             </div>
             
-            {isVisible && (
+            {isVisible && typeof window !== 'undefined' && createPortal(
                 <div
-                    className="fixed z-50 pointer-events-none"
-                    style={{ left: position.x, top: position.y }}
+                    ref={tooltipRef}
+                    className="fixed pointer-events-none"
+                    style={{ 
+                        left: `${position.x}px`, 
+                        top: `${position.y}px`,
+                        maxHeight: 'calc(100vh - 20px)',
+                        overflowY: 'auto',
+                        zIndex: 9999
+                    }}
                 >
                     <div 
-                        className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-4 min-w-72 max-w-80"
+                        className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-lg shadow-2xl p-4 min-w-72 max-w-80"
                     >
                         {/* Card Header */}
                         <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200 dark:border-gray-600">
@@ -260,7 +314,8 @@ export default function CardTooltip({
                             </div>
                         )}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );

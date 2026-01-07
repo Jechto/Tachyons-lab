@@ -254,8 +254,6 @@ export class DeckEvaluator {
             );
         }
 
-        console.log(facilityMultiplier)
-
         return gains;
     }
 

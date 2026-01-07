@@ -40,3 +40,13 @@ body {
 img {
   content-visibility: auto;
 }
+
+/* Prevent CLS by ensuring containers have stable dimensions */
+.min-h-\[200px\], .min-h-\[400px\], .min-h-\[80px\] {
+  min-height: var(--min-height);
+}
+
+/* Ensure flex gap is consistent and doesn't cause shifts */
+.flex.items-center.gap-2 {
+  min-height: 40px;
+}

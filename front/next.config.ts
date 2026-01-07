@@ -12,6 +12,9 @@ const nextConfig = {
         assetPrefix: "/Tachyons-lab", // Prefix for assets
     }),
     distDir: ".next", // optional, default build dir
+    env: {
+        NEXT_PUBLIC_BUILD_TIME: new Date().toISOString(),
+    },
 };
 
 export default nextConfig;

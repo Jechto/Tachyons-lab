@@ -485,6 +485,12 @@ export default function TierlistDisplay({
                         Filters are visual only and don&apos;t affect scoring or tier placement
                     </div>
                 </div>
+
+                {/* Score Counter
+                <div className="text-xs text-gray-500 dark:text-gray-400 -mb-4">
+                    {deckCardIds.size === 6 ? "Deck Full" : `Scores for card ${deckCardIds.size + 1}`}
+                </div>
+                 */}
             </div>
 
             {dynamicTiers.map((tier) => {

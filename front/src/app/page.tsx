@@ -775,6 +775,11 @@ export default function Home() {
                         This tool is not affiliated with the developers of Uma Musume. 
                         All materials from the Uma Musume game are copyrights of Cygames, Inc.
                     </p>
+                    <p className="text-center mt-4" suppressHydrationWarning>
+                        Last updated: {process.env.NEXT_PUBLIC_BUILD_TIME 
+                            ? new Date(process.env.NEXT_PUBLIC_BUILD_TIME).toLocaleString(undefined, { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                            : "Unknown"}
+                    </p>
                 </div>
             </div>
         </div>

@@ -23,10 +23,14 @@ export class TrainingData {
                 Guts: 1200,
                 Intelligence: 1200
             },
+            ForcedRaces: 8,
+            DefaultOptional: [2, 0, 0], // G1, G2or3, PreOPorOP
             raceCareerRewards: {
                 finaleRace: [10, 10, 10, 10, 10, 60],
                 careerRace: [3, 3, 3, 3, 3, 45],
-                optionalRace: [2, 2, 2, 2, 2, 45],
+                G1: [2, 2, 2, 2, 2, 45],
+                G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
+                PreOPorOP: [1, 1, 1, 1, 1, 15],
             },
             scenarioBonusStats: {
                 Speed: 15,
@@ -60,10 +64,14 @@ export class TrainingData {
                 Guts: 1200,
                 Intelligence: 1200
             },
+            ForcedRaces: 8,
+            DefaultOptional: [2, 0, 0], // G1, G2or3, PreOPorOP
             raceCareerRewards: {
                 finaleRace: [10, 10, 10, 10, 10, 60],
                 careerRace: [3, 3, 3, 3, 3, 45],
-                optionalRace: [2, 2, 2, 2, 2, 45], // +10 to random stat
+                G1: [2, 2, 2, 2, 2, 45],
+                G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
+                PreOPorOP: [1, 1, 1, 1, 1, 15],
             },
             // 31 are the level up rewards F -> S
             scenarioBonusStats: {

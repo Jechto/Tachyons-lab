@@ -50,6 +50,7 @@ export default function Home() {
     const [calculatedDistribution, setCalculatedDistribution] = useState<number[]>([0.2, 0.2, 0.2, 0.2, 0.2]);
     const [selectedScenario, setSelectedScenario] = useState<string>("Unity");
     const [optionalRaces, setOptionalRaces] = useState<number>(0);
+    const [averageMood, setAverageMood] = useState<number>(0);
 
     // Debounce timer ref for auto-regeneration
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -682,6 +683,29 @@ export default function Home() {
                         </select>
                     </div>
 
+                    <div className="flex flex-col gap-2">
+                        <label htmlFor="average-mood" className="font-medium text-gray-700 dark:text-gray-300">
+                            Average Mood: {averageMood > 0 ? '+' : ''}{averageMood}%
+                        </label>
+                        <div className="flex items-center gap-3">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">-20%</span>
+                            <input
+                                type="range"
+                                id="average-mood"
+                                min="-20"
+                                max="20"
+                                step="1"
+                                value={averageMood}
+                                onChange={(e) => setAverageMood(parseInt(e.target.value))}
+                                className="w-48 h-2 rounded-lg appearance-none cursor-pointer"
+                                style={{
+                                    background: `linear-gradient(to right, #9333ea, #3b82f6 25%, #eab308 50%, #f97316 75%, #ec4899)`
+                                }}
+                            />
+                            <span className="text-xs text-gray-500 dark:text-gray-400">+20%</span>
+                        </div>
+                    </div>
+
                     <div className="flex items-center gap-2">
                         <label htmlFor="optional-races" className="font-medium text-gray-700 dark:text-gray-300">
                             Optional Races:
@@ -721,6 +745,7 @@ export default function Home() {
                     scenarioName={selectedScenario}
                     manualDistribution={isManualDistribution ? manualDistribution : null}
                     optionalRaces={optionalRaces}
+                    averageMood={averageMood}
                 />
             </div>
 

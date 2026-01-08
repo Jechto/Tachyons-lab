@@ -50,6 +50,7 @@ interface StatPreviewerProps {
     scenarioName?: string;
     manualDistribution?: number[] | null;
     optionalRaces?: number;
+    averageMood?: number;
 }
 
 interface StatData {
@@ -78,6 +79,7 @@ export default function StatPreviewer({
     scenarioName = "URA",
     manualDistribution = null,
     optionalRaces = 0,
+    averageMood = 0,
 }: StatPreviewerProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 

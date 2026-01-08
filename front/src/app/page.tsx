@@ -643,7 +643,16 @@ export default function Home() {
                 ) : (
                     <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 min-h-[180px] flex items-center justify-center">
                         <div className="text-center text-gray-600 dark:text-gray-400">
-                            <div className="text-4xl mb-2">🃏</div>
+                            <div className="mb-2 flex justify-center">
+                                <Image
+                                    src={getAssetPath("/images/logo/cry128.png")}
+                                    alt="No cards"
+                                    width={64}
+                                    height={64}
+                                    className="opacity-50"
+                                    unoptimized
+                                />
+                            </div>
                             <h4 className="text-lg font-semibold mb-2">
                                 No cards in deck
                             </h4>

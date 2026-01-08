@@ -49,7 +49,7 @@ interface StatPreviewerProps {
     };
     scenarioName?: string;
     manualDistribution?: number[] | null;
-    optionalRaces?: number;
+    optionalRaces?: {G1: number, G2or3: number, PreOPorOP: number};
     averageMood?: number;
 }
 
@@ -78,7 +78,7 @@ export default function StatPreviewer({
     scoreBreakdown,
     scenarioName = "URA",
     manualDistribution = null,
-    optionalRaces = 0,
+    optionalRaces = {G1: 0, G2or3: 0, PreOPorOP: 0},
     averageMood = 0,
 }: StatPreviewerProps) {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -119,7 +119,7 @@ export default function StatPreviewer({
                     emptyDeckEvaluator.setManualDistribution(manualDistribution);
                 }
                 // Base stats should be calculated with 0 optional races to correctly show the delta
-                const baseStats = emptyDeckEvaluator.evaluateStats(scenarioName, 20, 0);
+                const baseStats = emptyDeckEvaluator.evaluateStats(scenarioName, averageMood, {G1: 0, G2or3: 0, PreOPorOP: 0});
 
                 const totalStats = {
                     Speed: Math.round(

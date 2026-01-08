@@ -260,10 +260,10 @@ export class DeckEvaluator {
     public evaluateStats(
         scenarioName: string = "URA",
         averageMoodBonus: number = 20,
-        optionalRaces: number = 0,
-        forcedRaces: number = 8,
+        optionalRaces: {G1: number, G2or3: number, PreOPorOP: number} = {G1: 0, G2or3: 0, PreOPorOP: 0},
     ): StatsDict {
         const trainingDistribution = this.getTrainingDistribution();
+        const forcedRaces = TrainingData.getForcedRaces(scenarioName);
 
         const totalStatsGained: StatsDict = {
             Speed: 0,
@@ -282,7 +282,8 @@ export class DeckEvaluator {
         // This applies to all facilities based on training distribution
         const globalTrainingEffectiveness: number[] = [0, 0, 0, 0, 0]; // Per facility type
 
-        const maxTrainingTurns = 72 + 6 - 3 - forcedRaces - optionalRaces;
+        const totalOptionalRaces = optionalRaces.G1 + optionalRaces.G2or3 + optionalRaces.PreOPorOP;
+        const maxTrainingTurns = 72 + 6 - 3 - forcedRaces - totalOptionalRaces;
 
         // Prepare card appearances with specialty rates
         const cardAppearances: CardAppearance[] = [];
@@ -581,8 +582,11 @@ export class DeckEvaluator {
         const careerRaces = TrainingData.getRaceCareerRewards(scenarioName);
         const finaleRace = careerRaces.finaleRace || [0, 0, 0, 0, 0, 0];
         const careerRace = careerRaces.careerRace || [0, 0, 0, 0, 0, 0];
-        const optionalRaceRewards = careerRaces.optionalRace || [2, 2, 2, 2, 2, 30];
+        const g1Rewards = careerRaces.G1 || [0, 0, 0, 0, 0, 0];
+        const g2or3Rewards = careerRaces.G2or3 || [0, 0, 0, 0, 0, 0];
+        const preOPorOPRewards = careerRaces.PreOPorOP || [0, 0, 0, 0, 0, 0];
 
+        // Always give 8 career race rewards (even if no forced races in scenario)
         totalStatsGained.Speed += finaleRace[0] * 3 + careerRace[0] * 8 * (1 + raceBonus);
         totalStatsGained.Stamina += finaleRace[1] * 3 + careerRace[1] * 8 * (1 + raceBonus);
         totalStatsGained.Power += finaleRace[2] * 3 + careerRace[2] * 8 * (1 + raceBonus);
@@ -590,12 +594,29 @@ export class DeckEvaluator {
         totalStatsGained.Wit! += finaleRace[4] * 3 + careerRace[4] * 8 * (1 + raceBonus);
         totalStatsGained["Skill Points"]! += finaleRace[5] * 3 + careerRace[5] * 8 * (1 + raceBonus);
 
-        totalStatsGained.Speed += optionalRaces * optionalRaceRewards[0] * (1 + raceBonus);
-        totalStatsGained.Stamina += optionalRaces * optionalRaceRewards[1] * (1 + raceBonus);
-        totalStatsGained.Power += optionalRaces * optionalRaceRewards[2] * (1 + raceBonus);
-        totalStatsGained.Guts += optionalRaces * optionalRaceRewards[3] * (1 + raceBonus);
-        totalStatsGained.Wit! += optionalRaces * optionalRaceRewards[4] * (1 + raceBonus);
-        totalStatsGained["Skill Points"]! += optionalRaces * optionalRaceRewards[5] * (1 + raceBonus);
+        // Add G1 race rewards
+        totalStatsGained.Speed += optionalRaces.G1 * g1Rewards[0] * (1 + raceBonus);
+        totalStatsGained.Stamina += optionalRaces.G1 * g1Rewards[1] * (1 + raceBonus);
+        totalStatsGained.Power += optionalRaces.G1 * g1Rewards[2] * (1 + raceBonus);
+        totalStatsGained.Guts += optionalRaces.G1 * g1Rewards[3] * (1 + raceBonus);
+        totalStatsGained.Wit! += optionalRaces.G1 * g1Rewards[4] * (1 + raceBonus);
+        totalStatsGained["Skill Points"]! += optionalRaces.G1 * g1Rewards[5] * (1 + raceBonus);
+
+        // Add G2/G3 race rewards
+        totalStatsGained.Speed += optionalRaces.G2or3 * g2or3Rewards[0] * (1 + raceBonus);
+        totalStatsGained.Stamina += optionalRaces.G2or3 * g2or3Rewards[1] * (1 + raceBonus);
+        totalStatsGained.Power += optionalRaces.G2or3 * g2or3Rewards[2] * (1 + raceBonus);
+        totalStatsGained.Guts += optionalRaces.G2or3 * g2or3Rewards[3] * (1 + raceBonus);
+        totalStatsGained.Wit! += optionalRaces.G2or3 * g2or3Rewards[4] * (1 + raceBonus);
+        totalStatsGained["Skill Points"]! += optionalRaces.G2or3 * g2or3Rewards[5] * (1 + raceBonus);
+
+        // Add PreOP/OP race rewards
+        totalStatsGained.Speed += optionalRaces.PreOPorOP * preOPorOPRewards[0] * (1 + raceBonus);
+        totalStatsGained.Stamina += optionalRaces.PreOPorOP * preOPorOPRewards[1] * (1 + raceBonus);
+        totalStatsGained.Power += optionalRaces.PreOPorOP * preOPorOPRewards[2] * (1 + raceBonus);
+        totalStatsGained.Guts += optionalRaces.PreOPorOP * preOPorOPRewards[3] * (1 + raceBonus);
+        totalStatsGained.Wit! += optionalRaces.PreOPorOP * preOPorOPRewards[4] * (1 + raceBonus);
+        totalStatsGained["Skill Points"]! += optionalRaces.PreOPorOP * preOPorOPRewards[5] * (1 + raceBonus);
 
         // Add scenario bonuses
         const scenarioBonus = TrainingData.getScenarioBonusStats(scenarioName);

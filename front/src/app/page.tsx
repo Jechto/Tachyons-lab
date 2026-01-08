@@ -13,6 +13,7 @@ import StatPreviewer from "./components/StatPreviewer";
 import { getAssetPath } from "./utils/paths";
 import TrainingDistributionSelector from "./components/TrainingDistributionSelector";
 import CardCollectionManager from "./components/CardCollectionManager";
+import { TrainingData } from "./config/trainingData";
 
 // Types for our form state
 type RaceType = "Sprint" | "Mile" | "Medium" | "Long";
@@ -49,11 +50,20 @@ export default function Home() {
     const [manualDistribution, setManualDistribution] = useState<number[] | null>(null);
     const [calculatedDistribution, setCalculatedDistribution] = useState<number[]>([0.2, 0.2, 0.2, 0.2, 0.2]);
     const [selectedScenario, setSelectedScenario] = useState<string>("Unity");
-    const [optionalRaces, setOptionalRaces] = useState<number>(0);
-    const [averageMood, setAverageMood] = useState<number>(0);
+    const [optionalRaces, setOptionalRaces] = useState<{G1: number, G2or3: number, PreOPorOP: number}>(() => {
+        const defaults = TrainingData.getDefaultOptional("Unity");
+        return {G1: defaults[0], G2or3: defaults[1], PreOPorOP: defaults[2]};
+    });
+    const [averageMood, setAverageMood] = useState<number>(15);
 
     // Debounce timer ref for auto-regeneration
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Update optional races when scenario changes
+    useEffect(() => {
+        const defaults = TrainingData.getDefaultOptional(selectedScenario);
+        setOptionalRaces({G1: defaults[0], G2or3: defaults[1], PreOPorOP: defaults[2]});
+    }, [selectedScenario]);
 
     // Update calculated distribution when deck changes
     useEffect(() => {
@@ -667,71 +677,110 @@ export default function Home() {
                 </div>
 
                 {/* Scenario Selection and Generate Button */}
-                <div className="mt-8 flex flex-col md:flex-row justify-center items-center gap-4 border-t border-gray-200 dark:border-gray-700 pt-6 min-h-[80px]">
-                    <div className="flex items-center gap-2">
-                        <label htmlFor="scenario-select" className="font-medium text-gray-700 dark:text-gray-300">
-                            Scenario:
-                        </label>
-                        <select
-                            id="scenario-select"
-                            value={selectedScenario}
-                            onChange={(e) => setSelectedScenario(e.target.value)}
-                            className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-                        >
-                            <option value="URA">URA Finals</option>
-                            <option value="Unity">Unity</option>
-                        </select>
-                    </div>
+                <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div className="flex flex-col gap-2">
+                            <label htmlFor="scenario-select" className="font-medium text-gray-700 dark:text-gray-300">
+                                Scenario:
+                            </label>
+                            <select
+                                id="scenario-select"
+                                value={selectedScenario}
+                                onChange={(e) => setSelectedScenario(e.target.value)}
+                                className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                            >
+                                <option value="URA">URA Finals</option>
+                                <option value="Unity">Unity</option>
+                            </select>
+                        </div>
 
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="average-mood" className="font-medium text-gray-700 dark:text-gray-300">
-                            Average Mood: {averageMood > 0 ? '+' : ''}{averageMood}%
-                        </label>
-                        <div className="flex items-center gap-3">
-                            <span className="text-xs text-gray-500 dark:text-gray-400">-20%</span>
-                            <input
-                                type="range"
-                                id="average-mood"
-                                min="-20"
-                                max="20"
-                                step="1"
-                                value={averageMood}
-                                onChange={(e) => setAverageMood(parseInt(e.target.value))}
-                                className="w-48 h-2 rounded-lg appearance-none cursor-pointer"
-                                style={{
-                                    background: `linear-gradient(to right, #9333ea, #3b82f6 25%, #eab308 50%, #f97316 75%, #ec4899)`
-                                }}
-                            />
-                            <span className="text-xs text-gray-500 dark:text-gray-400">+20%</span>
+                        <div className="flex flex-col gap-2">
+                            <label htmlFor="average-mood" className="font-medium text-gray-700 dark:text-gray-300">
+                                Average Mood: {averageMood > 0 ? '+' : ''}{averageMood}%
+                            </label>
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs text-gray-500 dark:text-gray-400">-20%</span>
+                                <input
+                                    type="range"
+                                    id="average-mood"
+                                    min="-20"
+                                    max="20"
+                                    step="1"
+                                    value={averageMood}
+                                    onChange={(e) => setAverageMood(parseInt(e.target.value))}
+                                    className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                                    style={{
+                                        background: `linear-gradient(to right, #9333ea, #3b82f6 25%, #eab308 50%, #f97316 75%, #ec4899)`
+                                    }}
+                                />
+                                <span className="text-xs text-gray-500 dark:text-gray-400">+20%</span>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <label className="font-medium text-gray-700 dark:text-gray-300">
+                                Optional Races:
+                            </label>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                    <label htmlFor="g1-races" className="text-sm text-gray-600 dark:text-gray-400 w-20">
+                                        G1:
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="g1-races"
+                                        min="0"
+                                        max="20"
+                                        value={optionalRaces.G1}
+                                        onChange={(e) => setOptionalRaces({...optionalRaces, G1: Math.min(20, Math.max(0, parseInt(e.target.value) || 0))})}
+                                        className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 w-20"
+                                    />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <label htmlFor="g2or3-races" className="text-sm text-gray-600 dark:text-gray-400 w-20">
+                                        G2/G3:
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="g2or3-races"
+                                        min="0"
+                                        max="20"
+                                        value={optionalRaces.G2or3}
+                                        onChange={(e) => setOptionalRaces({...optionalRaces, G2or3: Math.min(20, Math.max(0, parseInt(e.target.value) || 0))})}
+                                        className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 w-20"
+                                    />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <label htmlFor="preop-races" className="text-sm text-gray-600 dark:text-gray-400 w-20">
+                                        PreOP/OP:
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="preop-races"
+                                        min="0"
+                                        max="20"
+                                        value={optionalRaces.PreOPorOP}
+                                        onChange={(e) => setOptionalRaces({...optionalRaces, PreOPorOP: Math.min(20, Math.max(0, parseInt(e.target.value) || 0))})}
+                                        className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 w-20"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <label htmlFor="optional-races" className="font-medium text-gray-700 dark:text-gray-300">
-                            Optional Races:
-                        </label>
-                        <input
-                            type="number"
-                            id="optional-races"
-                            min="0"
-                            max="40"
-                            value={optionalRaces}
-                            onChange={(e) => setOptionalRaces(Math.min(40, Math.max(0, parseInt(e.target.value) || 0)))}
-                            className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 w-20"
-                        />
+                    <div className="flex justify-center">
+                        <button
+                            onClick={generateTierlist}
+                            disabled={
+                                isGenerating ||
+                                selectedRaces.length === 0 ||
+                                selectedStyles.length === 0
+                            }
+                            className="bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-lg"
+                        >
+                            {isGenerating ? "Generating..." : "Get Tierlist"}
+                        </button>
                     </div>
-
-                    <button
-                        onClick={generateTierlist}
-                        disabled={
-                            isGenerating ||
-                            selectedRaces.length === 0 ||
-                            selectedStyles.length === 0
-                        }
-                        className="bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-lg"
-                    >
-                        {isGenerating ? "Generating..." : "Get Tierlist"}
-                    </button>
                 </div>
             </div>
 

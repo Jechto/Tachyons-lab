@@ -24,7 +24,7 @@ export class TrainingData {
                 Intelligence: 1200
             },
             ForcedRaces: 8,
-            DefaultOptional: [2, 0, 0], // G1, G2or3, PreOPorOP
+            DefaultOptional: [0, 0, 0], // G1, G2or3, PreOPorOP
             raceCareerRewards: {
                 finaleRace: [10, 10, 10, 10, 10, 60],
                 careerRace: [3, 3, 3, 3, 3, 45],
@@ -65,7 +65,7 @@ export class TrainingData {
                 Intelligence: 1200
             },
             ForcedRaces: 8,
-            DefaultOptional: [2, 0, 0], // G1, G2or3, PreOPorOP
+            DefaultOptional: [0, 0, 0], // G1, G2or3, PreOPorOP
             raceCareerRewards: {
                 finaleRace: [10, 10, 10, 10, 10, 60],
                 careerRace: [3, 3, 3, 3, 3, 45],
@@ -148,6 +148,24 @@ export class TrainingData {
                     Guts: 1200,
                     Intelligence: 1200,
                 }
+        );
+    }
+
+    static getForcedRaces(
+        scenarioName: string = "URA",
+    ): number {
+        return (
+            this.baseStats[scenarioName as keyof typeof this.baseStats]
+                ?.ForcedRaces || 0
+        );
+    }
+
+    static getDefaultOptional(
+        scenarioName: string = "URA",
+    ): number[] {
+        return (
+            this.baseStats[scenarioName as keyof typeof this.baseStats]
+                ?.DefaultOptional || [0, 0, 0]
         );
     }
 }

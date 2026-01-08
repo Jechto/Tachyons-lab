@@ -428,11 +428,12 @@ export class SupportCard {
     public evaluateCardHints(
         raceTypes: boolean[] = [false, false, false, false],
         runningTypes: boolean[] = [false, false, false, false],
-        optionalRaces: number = 0,
+        optionalRaces: {G1: number, G2or3: number, PreOPorOP: number} = {G1: 0, G2or3: 0, PreOPorOP: 0},
         deckStats?: {Speed: number, Stamina: number, Power: number, Guts: number, Wit: number},
         statWeights?: {Speed: number, Stamina: number, Power: number, Guts: number, Wit: number},
     ): HintResult {
-        const maxTrainingTurns = 72 + 6 - 11 - optionalRaces;
+        const totalOptionalRaces = optionalRaces.G1 + optionalRaces.G2or3 + optionalRaces.PreOPorOP;
+        const maxTrainingTurns = 72 + 6 - 11 - totalOptionalRaces;
         const hintFreq =
             (0.075 * (this.cardBonus["Hint Frequency"] + 100)) / 100;
         const hintFromEvents = this.eventsStatReward["Skill Hint"] || 0;

@@ -99,7 +99,7 @@ export class Tierlist {
         allData: CardData[] = [],
         filter?: LimitBreakFilter,
         scenarioName: string = "URA",
-        optionalRaces: number = 0,
+        optionalRaces: {G1: number, G2or3: number, PreOPorOP: number} = {G1: 0, G2or3: 0, PreOPorOP: 0},
     ): TierlistResponse {
         // Default race types
         if (!raceTypes) {
@@ -175,7 +175,7 @@ export class Tierlist {
             emptyDeckEvaluator.setManualDistribution(deckObject.manualDistribution);
         }
         // Base result for empty deck should be with 0 optional races to correctly calculate the delta
-        const baseResultEmptyDeck = emptyDeckEvaluator.evaluateStats(scenarioName, 20, 0);
+        const baseResultEmptyDeck = emptyDeckEvaluator.evaluateStats(scenarioName, 20, {G1: 0, G2or3: 0, PreOPorOP: 0});
 
         const raceTypesArray = [
             raceTypes.Sprint,

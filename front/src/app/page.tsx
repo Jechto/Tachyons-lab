@@ -304,6 +304,7 @@ export default function Home() {
                 fullLimitBreakFilter,
                 selectedScenario,
                 optionalRaces,
+                averageMood,
             );
             setTierlistResult(result);
         } catch (error) {

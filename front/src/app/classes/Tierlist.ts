@@ -100,6 +100,7 @@ export class Tierlist {
         filter?: LimitBreakFilter,
         scenarioName: string = "URA",
         optionalRaces: {G1: number, G2or3: number, PreOPorOP: number} = {G1: 0, G2or3: 0, PreOPorOP: 0},
+        averageMood: number = 15,
     ): TierlistResponse {
         // Default race types
         if (!raceTypes) {
@@ -168,14 +169,14 @@ export class Tierlist {
 
         // Create a deep copy of the deck
         const originalDeck = this.deepCopyDeck(deckObject);
-        const baseResultForDeck = deckObject.evaluateStats(scenarioName, 20, optionalRaces);
+        const baseResultForDeck = deckObject.evaluateStats(scenarioName, averageMood, optionalRaces);
         
         const emptyDeckEvaluator = new DeckEvaluator();
         if (deckObject.manualDistribution) {
             emptyDeckEvaluator.setManualDistribution(deckObject.manualDistribution);
         }
         // Base result for empty deck should be with 0 optional races to correctly calculate the delta
-        const baseResultEmptyDeck = emptyDeckEvaluator.evaluateStats(scenarioName, 20, {G1: 0, G2or3: 0, PreOPorOP: 0});
+        const baseResultEmptyDeck = emptyDeckEvaluator.evaluateStats(scenarioName, averageMood, {G1: 0, G2or3: 0, PreOPorOP: 0});
 
         const raceTypesArray = [
             raceTypes.Sprint,
@@ -334,7 +335,7 @@ export class Tierlist {
                         : new DeckEvaluator();
                     tempDeck.addCard(card);
 
-                    const result = tempDeck.evaluateStats(scenarioName, 20, optionalRaces);
+                    const result = tempDeck.evaluateStats(scenarioName, averageMood, optionalRaces);
                     const cardHints = card.evaluateCardHints(
                         raceTypesArray,
                         runningTypesArray,

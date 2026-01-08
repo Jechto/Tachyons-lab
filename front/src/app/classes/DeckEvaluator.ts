@@ -641,7 +641,7 @@ export class DeckEvaluator {
     public evaluateHints(
         raceTypes: boolean[] = [false, false, false, false],
         runningTypes: boolean[] = [false, false, false, false],
-        optionalRaces: number = 0,
+        optionalRaces: {G1: number, G2or3: number, PreOPorOP: number} = {G1: 0, G2or3: 0, PreOPorOP: 0},
         deckStats?: {Speed: number, Stamina: number, Power: number, Guts: number, Wit: number},
         statWeights?: {Speed: number, Stamina: number, Power: number, Guts: number, Wit: number},
     ): HintResult {

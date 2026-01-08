@@ -852,7 +852,7 @@ export default function Home() {
                     </p>
                     <p className="text-center mt-4" suppressHydrationWarning>
                         Last updated: {process.env.NEXT_PUBLIC_BUILD_TIME 
-                            ? new Date(process.env.NEXT_PUBLIC_BUILD_TIME).toLocaleString(undefined, { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                            ? new Date(process.env.NEXT_PUBLIC_BUILD_TIME).toLocaleString(undefined, { year: 'numeric', month: 'long', day: 'numeric'})
                             : "Unknown"}
                     </p>
                 </div>

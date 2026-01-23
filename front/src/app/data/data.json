@@ -76078,5 +76078,455 @@
       ],
       "special_events": []
     }
+  },
+  {
+    "id": 30076,
+    "chara_id_card": 1002,
+    "rarity": 3,
+    "effect_table_id": 30076,
+    "unique_effect_id": 30076,
+    "command_id": 101,
+    "skill_set_id": 9081002,
+    "card_chara_name": "Silence Suzuka",
+    "prefered_type_id": 0,
+    "prefered_type": "Speed",
+    "effects": [
+      {
+        "0lb": 20,
+        "1lb": 21,
+        "2lb": 23,
+        "3lb": 25,
+        "mlb": 25,
+        "type": 1,
+        "type_name": "Friendship Bonus"
+      },
+      {
+        "0lb": -1,
+        "1lb": -1,
+        "2lb": -1,
+        "3lb": 15,
+        "mlb": 30,
+        "type": 2,
+        "type_name": "Mood Effect"
+      },
+      {
+        "0lb": -1,
+        "1lb": 1,
+        "2lb": 1,
+        "3lb": 1,
+        "mlb": 1,
+        "type": 3,
+        "type_name": "Speed Bonus"
+      },
+      {
+        "0lb": 10,
+        "1lb": 10,
+        "2lb": 10,
+        "3lb": 10,
+        "mlb": 10,
+        "type": 14,
+        "type_name": "Initial Friendship Gauge"
+      },
+      {
+        "0lb": 1,
+        "1lb": 1,
+        "2lb": 1,
+        "3lb": 1,
+        "mlb": 2,
+        "type": 17,
+        "type_name": "Hint Levels"
+      },
+      {
+        "0lb": 20,
+        "1lb": 22,
+        "2lb": 25,
+        "3lb": 27,
+        "mlb": 30,
+        "type": 18,
+        "type_name": "Hint Frequency"
+      },
+      {
+        "0lb": 35,
+        "1lb": 40,
+        "2lb": 45,
+        "3lb": 50,
+        "mlb": 50,
+        "type": 19,
+        "type_name": "Specialty Priority"
+      }
+    ],
+    "hints_table": [
+      {
+        "type": "skill_hint",
+        "skill_id": 200432,
+        "skill_data": {
+          "id": 200432,
+          "rarity": 1,
+          "group_id": 20043,
+          "icon_id": 20061,
+          "grade_value": 129,
+          "condition_1": "always==1",
+          "skill_time_active": 0,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 10,
+          "ability_value": 9000,
+          "skill_name": "Focus",
+          "skill_desc": "Slightly decrease time lost to slow starts."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200532,
+        "skill_data": {
+          "id": 200532,
+          "rarity": 1,
+          "group_id": 20053,
+          "icon_id": 20041,
+          "grade_value": 217,
+          "condition_1": "running_style==1&phase==0",
+          "skill_time_active": 12000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 31,
+          "ability_value": 2000,
+          "skill_name": "Early Lead",
+          "skill_desc": "Slightly increase ability to go to the front early-race. (Front Runner)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200542,
+        "skill_data": {
+          "id": 200542,
+          "rarity": 1,
+          "group_id": 20054,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "running_style==1&phase_random==1&order_rate<=50",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Fast-Paced",
+          "skill_desc": "Slightly increase ability to go to the front mid-race. (Front Runner)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200552,
+        "skill_data": {
+          "id": 200552,
+          "rarity": 1,
+          "group_id": 20055,
+          "icon_id": 20041,
+          "grade_value": 217,
+          "condition_1": "running_style==1&is_finalcorner_random==1&order==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 31,
+          "ability_value": 2000,
+          "skill_name": "Final Push",
+          "skill_desc": "Slightly increase ability to keep the lead on the final corner. (Front Runner)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200712,
+        "skill_data": {
+          "id": 200712,
+          "rarity": 1,
+          "group_id": 20071,
+          "icon_id": 20021,
+          "grade_value": 217,
+          "condition_1": "distance_type==3&phase_random==1&order<=3",
+          "skill_time_active": 0,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 9,
+          "ability_value": 150,
+          "skill_name": "Rosy Outlook",
+          "skill_desc": "Slightly decrease fatigue when positioned toward the front mid-race. (Medium)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201242,
+        "skill_data": {
+          "id": 201242,
+          "rarity": 1,
+          "group_id": 20124,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "running_style==1&straight_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Front Runner Straightaways ○",
+          "skill_desc": "Slightly increase velocity on a straight. (Front Runner)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201252,
+        "skill_data": {
+          "id": 201252,
+          "rarity": 1,
+          "group_id": 20125,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "running_style==1&all_corner_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Front Runner Corners ○",
+          "skill_desc": "Slightly increase velocity on a corner. (Front Runner)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201522,
+        "skill_data": {
+          "id": 201522,
+          "rarity": 1,
+          "group_id": 20152,
+          "icon_id": 10051,
+          "grade_value": 174,
+          "condition_1": "running_style==1",
+          "skill_time_active": -1,
+          "skill_cooldown_time": 0,
+          "ability_type": 5,
+          "ability_value": 400000,
+          "skill_name": "Front Runner Savvy ○",
+          "skill_desc": "Moderately increase ability to get into a good position. (Front Runner)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201272,
+        "skill_data": {
+          "id": 201272,
+          "rarity": 1,
+          "group_id": 20127,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "running_style==1&phase<=1&change_order_onetime>0&accumulatetime>=5@running_style==1&phase<=1&blocked_side_continuetime>=2&accumulatetime>=5",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Leader's Pride",
+          "skill_desc": "Slightly increase ability to pass or challenge another runner early-race or mid-race. (Front Runner)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "stat_hint",
+        "stats": [
+          {
+            "stat_id": "Stamina",
+            "value": 6
+          },
+          {
+            "stat_id": "Guts",
+            "value": 2
+          }
+        ]
+      }
+    ],
+    "hints_event_table": [
+      {
+        "type": "skill_hint",
+        "skill_id": 200711,
+        "skill_data": {
+          "id": 200711,
+          "rarity": 2,
+          "group_id": 20071,
+          "icon_id": 20022,
+          "grade_value": 508,
+          "condition_1": "distance_type==3&phase_random==1&order<=3",
+          "skill_time_active": 0,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 9,
+          "ability_value": 550,
+          "skill_name": "Trackblazer",
+          "skill_desc": "Decrease fatigue when positioned toward the front mid-race. (Medium)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200022,
+        "skill_data": {
+          "id": 200022,
+          "rarity": 1,
+          "group_id": 20002,
+          "icon_id": 10011,
+          "grade_value": 129,
+          "condition_1": "rotation==2",
+          "skill_time_active": -1,
+          "skill_cooldown_time": 0,
+          "ability_type": 1,
+          "ability_value": 400000,
+          "skill_name": "Left-Handed ○",
+          "skill_desc": "Moderately increase performance on left-handed tracks."
+        },
+        "hint_level": 1
+      }
+    ],
+    "unique_effects": [
+      {
+        "level_unlocked": "2lb",
+        "effects": [
+          {
+            "type": 8,
+            "type_name": "Training Effectiveness",
+            "value": 5
+          },
+          {
+            "type": 15,
+            "type_name": "Race Bonus",
+            "value": 5
+          }
+        ]
+      }
+    ],
+    "all_events": {
+      "dates": [],
+      "chain_events": [
+        {
+          "name": "Guided to Scenery",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Speed",
+                  "value": "+15"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Shared Scenery",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Potential",
+                  "value": "+20"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "The Scenery Ahead",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Speed",
+                  "value": "+15"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 200711
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "random_events": [
+        {
+          "name": "On and On",
+          "choices": [
+            {
+              "option": "構わないよ",
+              "rewards": [
+                {
+                  "type": "Speed",
+                  "value": "+10"
+                },
+                {
+                  "type": "Stamina",
+                  "value": "+5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5"
+                }
+              ]
+            },
+            {
+              "option": "全力で走ってみて",
+              "rewards": [
+                {
+                  "type": "Speed",
+                  "value": "+15"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "What Should I Do?",
+          "choices": [
+            {
+              "option": "一緒に併走してあげるのは？",
+              "rewards": [
+                {
+                  "type": "Speed",
+                  "value": "+5"
+                },
+                {
+                  "type": "Stamina",
+                  "value": "+5"
+                },
+                {
+                  "type": "Intelligence",
+                  "value": "+5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5"
+                }
+              ]
+            },
+            {
+              "option": "その左回りにコツが隠されてるのかも",
+              "rewards": [
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 200022
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "special_events": []
+    }
   }
 ]

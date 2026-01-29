@@ -157,7 +157,7 @@ export class SupportCard {
             "Stamina",
             "Power",
             "Guts",
-            "Intelligence",
+            "Wit",
             "Energy",
             "Potential",
             "Bond",
@@ -208,18 +208,65 @@ export class SupportCard {
                         continue;
                     }
                     
-                    // Check if this choice has "ee" (event chain ended) - apply large penalty
-                    const hasEe = (choice.rewards || []).some(reward => reward.type === "ee");
-                    
                     // Calculate expected value across all reward groups
                     const currentStatsForChoice: Record<string, number> = {};
                     statKeys.forEach((key) => {
                         currentStatsForChoice[key] = 0;
                     });
                     
-                    const probabilityPerGroup = 1.0 / rewardGroups.length;
-                    
-                    for (const group of rewardGroups) {
+                    // For groups with "di", pick the best group instead of averaging
+                    // This represents choosing the best RNG outcome
+                    if (rewardGroups.length > 1) {
+                        let bestGroupStats: Record<string, number> | null = null;
+                        let bestGroupEval = -Infinity;
+                        
+                        for (const group of rewardGroups) {
+                            const groupStats: Record<string, number> = {};
+                            statKeys.forEach((key) => {
+                                groupStats[key] = 0;
+                            });
+                            
+                            // Check if this group has "ee" (ends event chain)
+                            const groupHasEe = group.some(reward => reward.type === "ee");
+                            
+                            for (const reward of group) {
+                                const rtype = reward.type;
+                                // Handle "All Stats" type - add value to all 5 main stats
+                                if (rtype === "All Stats") {
+                                    const value = parseSignedInt(reward.value);
+                                    groupStats["Speed"] += value;
+                                    groupStats["Stamina"] += value;
+                                    groupStats["Power"] += value;
+                                    groupStats["Guts"] += value;
+                                    groupStats["Wit"] += value;
+                                } else if (rtype === "Intelligence") {
+                                    // Map "Intelligence" from events to "Wit" in stats
+                                    groupStats["Wit"] += parseSignedInt(reward.value);
+                                } else if (rtype in groupStats) {
+                                    groupStats[rtype] += parseSignedInt(reward.value);
+                                }
+                            }
+                            
+                            let groupEval = this.evalStatArray(groupStats as unknown as StatsDict);
+                            
+                            // Heavily penalize groups that end the event chain
+                            if (groupHasEe) {
+                                groupEval -= 1000;
+                            }
+                            
+                            if (groupEval > bestGroupEval) {
+                                bestGroupEval = groupEval;
+                                bestGroupStats = groupStats;
+                            }
+                        }
+                        
+                        // Use the best group's stats
+                        if (bestGroupStats) {
+                            Object.assign(currentStatsForChoice, bestGroupStats);
+                        }
+                    } else {
+                        // Only one group, use it directly
+                        const group = rewardGroups[0];
                         const groupStats: Record<string, number> = {};
                         statKeys.forEach((key) => {
                             groupStats[key] = 0;
@@ -227,25 +274,28 @@ export class SupportCard {
                         
                         for (const reward of group) {
                             const rtype = reward.type;
-                            if (rtype in groupStats) {
+                            // Handle "All Stats" type - add value to all 5 main stats
+                            if (rtype === "All Stats") {
+                                const value = parseSignedInt(reward.value);
+                                groupStats["Speed"] += value;
+                                groupStats["Stamina"] += value;
+                                groupStats["Power"] += value;
+                                groupStats["Guts"] += value;
+                                groupStats["Wit"] += value;
+                            } else if (rtype === "Intelligence") {
+                                // Map "Intelligence" from events to "Wit" in stats
+                                groupStats["Wit"] += parseSignedInt(reward.value);
+                            } else if (rtype in groupStats) {
                                 groupStats[rtype] += parseSignedInt(reward.value);
                             }
                         }
                         
-                        // Add this group's contribution weighted by probability
-                        for (const k of statKeys) {
-                            currentStatsForChoice[k] += groupStats[k] * probabilityPerGroup;
-                        }
+                        Object.assign(currentStatsForChoice, groupStats);
                     }
 
-                    let evalResult = this.evalStatArray(
+                    const evalResult = this.evalStatArray(
                         currentStatsForChoice as unknown as StatsDict,
                     );
-                    
-                    // Apply large penalty if event chain ends
-                    if (hasEe) {
-                        evalResult -= 1000;
-                    }
                     
                     if (evalResult > bestEval) {
                         bestEval = evalResult;

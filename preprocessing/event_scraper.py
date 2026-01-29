@@ -59,6 +59,7 @@ class EventScraper:
             "bo": "Bond",
             "pt": "Potential",
             "mo": "Mood",
+            "5s": "All Stats",
         }
 
         parsed_events = []

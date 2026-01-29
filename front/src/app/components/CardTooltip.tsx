@@ -78,15 +78,6 @@ export default function CardTooltip({
             y = gap;
         }
         
-        // Debug logging
-        console.log('Tooltip position:', { 
-            x, 
-            y, 
-            cardRect: { top: rect.top, left: rect.left, right: rect.right, bottom: rect.bottom },
-            viewport: { width: viewportWidth, height: viewportHeight },
-            scrollY 
-        });
-        
         return { x, y };
     };
     

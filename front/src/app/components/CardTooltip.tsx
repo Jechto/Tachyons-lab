@@ -41,8 +41,43 @@ export default function CardTooltip({
 }: CardTooltipProps) {
     const [isVisible, setIsVisible] = useState(false);
     const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
     const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
     const tooltipRef = React.useRef<HTMLDivElement | null>(null);
+    const containerRef = React.useRef<HTMLDivElement | null>(null);
+    
+    // Detect if this is a touch device
+    React.useEffect(() => {
+        const checkTouch = () => {
+            setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+        };
+        checkTouch();
+    }, []);
+    
+    // Close tooltip when clicking outside on touch devices
+    React.useEffect(() => {
+        if (!isTouchDevice || !isVisible) return;
+        
+        const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+            if (
+                tooltipRef.current && 
+                containerRef.current &&
+                !tooltipRef.current.contains(e.target as Node) &&
+                !containerRef.current.contains(e.target as Node)
+            ) {
+                setIsVisible(false);
+            }
+        };
+        
+        // Use capture phase to catch events before they bubble
+        document.addEventListener('touchstart', handleClickOutside, true);
+        document.addEventListener('click', handleClickOutside, true);
+        
+        return () => {
+            document.removeEventListener('touchstart', handleClickOutside, true);
+            document.removeEventListener('click', handleClickOutside, true);
+        };
+    }, [isVisible, isTouchDevice]);
     
     const calculatePosition = (rect: DOMRect) => {
         const tooltipWidth = 320; // max-w-80 = 320px
@@ -82,6 +117,9 @@ export default function CardTooltip({
     };
     
     const handleMouseEnter = (e: React.MouseEvent) => {
+        // Don't show tooltip on hover for touch devices
+        if (isTouchDevice) return;
+        
         // Capture rect immediately before timeout, as e.currentTarget becomes null after event
         const rect = e.currentTarget.getBoundingClientRect();
         
@@ -96,11 +134,26 @@ export default function CardTooltip({
     };
     
     const handleMouseLeave = () => {
+        // Don't hide on mouse leave for touch devices (they use click outside instead)
+        if (isTouchDevice) return;
+        
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
             timeoutRef.current = null;
         }
         setIsVisible(false);
+    };
+    
+    const handleTouchStart = (e: React.TouchEvent) => {
+        if (!isTouchDevice) return;
+        
+        // If tooltip is already visible, let the click outside handler deal with it
+        if (isVisible) return;
+        
+        const rect = e.currentTarget.getBoundingClientRect();
+        const pos = calculatePosition(rect);
+        setPosition(pos);
+        setIsVisible(true);
     };
     
     React.useEffect(() => {
@@ -121,9 +174,11 @@ export default function CardTooltip({
     return (
         <>
             <div
+                ref={containerRef}
                 className={className}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
+                onTouchStart={handleTouchStart}
             >
                 {children}
             </div>

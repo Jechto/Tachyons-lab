@@ -1,7 +1,47 @@
 
 import argparse
+import shutil
+import os
+from pathlib import Path
 
 from data_collecter import DataCollector
+
+
+def copy_db_from_steam() -> bool:
+    """Copy master.mdb from Steam installation to preprocessing/db/"""
+    try:
+        # Get username from environment variable
+        username = os.environ.get('USERNAME') or os.environ.get('USER')
+        if not username:
+            print("Error: Could not determine username")
+            return False
+        
+        # Source path in Steam installation
+        source_path = Path(f"C:/Users/{username}/AppData/LocalLow/Cygames/Umamusume/master/master.mdb")
+        
+        # Destination path relative to project root
+        # Get the script's directory and go up one level to project root
+        script_dir = Path(__file__).parent
+        project_root = script_dir.parent
+        dest_path = project_root / "preprocessing" / "db" / "master.mdb"
+        
+        # Check if source exists
+        if not source_path.exists():
+            print(f"Error: Source database not found at {source_path}")
+            return False
+        
+        # Create destination directory if it doesn't exist
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Copy the file
+        print(f"Copying database from {source_path} to {dest_path}...")
+        shutil.copy2(source_path, dest_path)
+        print("Database copied successfully!")
+        return True
+        
+    except Exception as e:
+        print(f"Error copying database: {e}")
+        return False
 
 
 def main() -> None:
@@ -11,7 +51,17 @@ def main() -> None:
     parser.add_argument('--output_images', default='../front/public/images/cards/', help='Path to output images directory')
     parser.add_argument('--output_skill_icons', default='../front/public/images/skills/', help='Path to output skill icons directory')
     parser.add_argument('--del', action='store_true', default=False, help='Skip loading existing data.json and start fresh')
+    parser.add_argument('--copy-db-from-steam', action='store_true', default=False, help='Copy master.mdb from Steam installation to preprocessing/db/')
     args = parser.parse_args()
+
+    # Handle database copy if requested
+    if args.copy_db_from_steam:
+        if not copy_db_from_steam():
+            print("Database copy failed. Exiting.")
+            raise SystemExit(1)
+        # If only copying DB, exit after successful copy
+        if len([arg for arg in vars(args).values() if arg is True]) == 1:
+            print("Database copy completed")
 
     data_collector = DataCollector()
     data = data_collector.get_data(db_path=args.db, output_path=args.output_data, skip_existing=getattr(args, 'del'))

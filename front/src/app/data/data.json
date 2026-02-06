@@ -78374,5 +78374,1700 @@
       ],
       "special_events": []
     }
+  },
+  {
+    "id": 10074,
+    "chara_id_card": 9005,
+    "rarity": 1,
+    "effect_table_id": 10074,
+    "unique_effect_id": null,
+    "command_id": 0,
+    "skill_set_id": 9089005,
+    "card_chara_name": "Sasami Anshinzawa",
+    "prefered_type_id": 6,
+    "prefered_type": "Support",
+    "effects": [
+      {
+        "0lb": 25,
+        "1lb": 27,
+        "2lb": 30,
+        "3lb": 32,
+        "mlb": 35,
+        "type": 2,
+        "type_name": "Mood Effect"
+      },
+      {
+        "0lb": 15,
+        "1lb": 16,
+        "2lb": 18,
+        "3lb": 20,
+        "mlb": 20,
+        "type": 14,
+        "type_name": "Initial Friendship Gauge"
+      },
+      {
+        "0lb": 5,
+        "1lb": 10,
+        "2lb": 15,
+        "3lb": 20,
+        "mlb": 25,
+        "type": 26,
+        "type_name": "Event Effectiveness"
+      },
+      {
+        "0lb": -1,
+        "1lb": -1,
+        "2lb": -1,
+        "3lb": -1,
+        "mlb": 1,
+        "type": 30,
+        "type_name": "Skill Point Bonus"
+      }
+    ],
+    "hints_table": [],
+    "hints_event_table": [
+      {
+        "type": "skill_hint",
+        "skill_id": 202032,
+        "skill_data": {
+          "id": 202032,
+          "rarity": 1,
+          "group_id": 20203,
+          "icon_id": 20011,
+          "grade_value": 129,
+          "condition_1": "distance_rate_after_random==50",
+          "skill_time_active": 18000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 2500,
+          "skill_name": "Risky Business",
+          "skill_desc": "Moderately increase velocity in the second half of the race, but also greatly increase fatigue sometimes."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201591,
+        "skill_data": {
+          "id": 201591,
+          "rarity": 1,
+          "group_id": 20159,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "near_count>=3&accumulatetime>=5",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Uma Stan",
+          "skill_desc": "Slightly increase velocity when close to many runners."
+        },
+        "hint_level": 1
+      }
+    ],
+    "all_events": {
+      "dates": [
+        {
+          "name": "Trusty Teamwork?!",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+30"
+                },
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "rs",
+                  "value": "+10",
+                  "detail": 1
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Energy",
+                  "value": "+10"
+                },
+                {
+                  "type": "Mood",
+                  "value": "-1"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Storied ☆ Sunglasses",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+30"
+                },
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "rs",
+                  "value": "+10",
+                  "detail": 2
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Energy",
+                  "value": "+10"
+                },
+                {
+                  "type": "Mood",
+                  "value": "-1"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "The Final Race ☆ For a Worry-Free Future!",
+          "choices": [
+            {
+              "option": "思いっきりやっちゃってください！",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+10"
+                },
+                {
+                  "type": "All Stats",
+                  "value": "+3"
+                },
+                {
+                  "type": "Potential",
+                  "value": "+10"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+3",
+                  "detail": 202032
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Energy",
+                  "value": "-10"
+                },
+                {
+                  "type": "Mood",
+                  "value": "-2"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            },
+            {
+              "option": "あんし～ん第一でお願いします……！",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+20"
+                },
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 202032
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "chain_events": [],
+      "random_events": [
+        {
+          "name": "The Applications of Acupuncture",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "rs",
+                  "value": "+10",
+                  "detail": 1
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "se",
+                  "value": null,
+                  "detail": 7
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Potential",
+                  "value": "+50"
+                },
+                {
+                  "type": "sg",
+                  "value": null,
+                  "detail": 200283
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "A Pleasant Practice Partner?",
+          "choices": [
+            {
+              "option": "わかりました、お付き合いします！",
+              "rewards": [
+                {
+                  "type": "me",
+                  "value": "+4"
+                },
+                {
+                  "type": "Energy",
+                  "value": "+10"
+                },
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+10",
+                  "detail": 9005
+                },
+                {
+                  "type": "ds",
+                  "value": null
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Potential",
+                  "value": "+50"
+                },
+                {
+                  "type": "sg",
+                  "value": null,
+                  "detail": 200353
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "ds",
+                  "value": null
+                }
+              ]
+            },
+            {
+              "option": "じゃ、じゃあ様子を見ながらで……",
+              "rewards": [
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "Stamina",
+                  "value": "+10"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "ds",
+                  "value": null
+                }
+              ]
+            },
+            {
+              "option": "遠慮しておきます！！",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "-10"
+                },
+                {
+                  "type": "Potential",
+                  "value": "+100"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 202032
+                },
+                {
+                  "type": "sg",
+                  "value": null,
+                  "detail": 200521
+                },
+                {
+                  "type": "Bond",
+                  "value": "-10",
+                  "detail": 9005
+                },
+                {
+                  "type": "ee",
+                  "value": null
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "special_events": [
+        {
+          "name": "Just a Poke ☆",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "All Stats",
+                  "value": "+3"
+                },
+                {
+                  "type": "se",
+                  "value": null,
+                  "detail": 10
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Energy",
+                  "value": "-10"
+                },
+                {
+                  "type": "Mood",
+                  "value": "-2"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Suspicious, But Safe?!",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "rs",
+                  "value": "+20",
+                  "detail": 1
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "An Accurate Acupuncturist ☆",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+2"
+                },
+                {
+                  "type": "rs",
+                  "value": "+4",
+                  "detail": 1
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Energy",
+                  "value": "-5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Healing Hot Spring Holiday ☆",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "rs",
+                  "value": "+15",
+                  "detail": 2
+                },
+                {
+                  "type": "Potential",
+                  "value": "+45"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "An Encouraging Entrustment?!",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "rs",
+                  "value": "+10",
+                  "detail": 2
+                },
+                {
+                  "type": "Potential",
+                  "value": "+30"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "A Bond Bolstered by Booze?",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+10"
+                },
+                {
+                  "type": "rs",
+                  "value": "+10",
+                  "detail": 2
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+3",
+                  "detail": 201591
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": 20022,
+    "chara_id_card": 1021,
+    "rarity": 2,
+    "effect_table_id": 20022,
+    "unique_effect_id": 20022,
+    "command_id": 103,
+    "skill_set_id": 9081021,
+    "card_chara_name": "Tamamo Cross",
+    "prefered_type_id": 3,
+    "prefered_type": "Guts",
+    "effects": [
+      {
+        "0lb": 15,
+        "1lb": 16,
+        "2lb": 18,
+        "3lb": 20,
+        "mlb": 20,
+        "type": 1,
+        "type_name": "Friendship Bonus"
+      },
+      {
+        "0lb": -1,
+        "1lb": -1,
+        "2lb": -1,
+        "3lb": -1,
+        "mlb": 1,
+        "type": 6,
+        "type_name": "Guts Bonus"
+      },
+      {
+        "0lb": 10,
+        "1lb": 11,
+        "2lb": 12,
+        "3lb": 13,
+        "mlb": 15,
+        "type": 8,
+        "type_name": "Training Effectiveness"
+      },
+      {
+        "0lb": 15,
+        "1lb": 16,
+        "2lb": 18,
+        "3lb": 20,
+        "mlb": 20,
+        "type": 11,
+        "type_name": "Initial Power"
+      },
+      {
+        "0lb": 15,
+        "1lb": 16,
+        "2lb": 18,
+        "3lb": 20,
+        "mlb": 20,
+        "type": 14,
+        "type_name": "Initial Friendship Gauge"
+      },
+      {
+        "0lb": 2,
+        "1lb": 2,
+        "2lb": 2,
+        "3lb": 2,
+        "mlb": 2,
+        "type": 17,
+        "type_name": "Hint Levels"
+      },
+      {
+        "0lb": 30,
+        "1lb": 32,
+        "2lb": 35,
+        "3lb": 37,
+        "mlb": 40,
+        "type": 18,
+        "type_name": "Hint Frequency"
+      },
+      {
+        "0lb": -1,
+        "1lb": 30,
+        "2lb": 45,
+        "3lb": 60,
+        "mlb": 60,
+        "type": 19,
+        "type_name": "Specialty Priority"
+      }
+    ],
+    "hints_table": [
+      {
+        "type": "skill_hint",
+        "skill_id": 200712,
+        "skill_data": {
+          "id": 200712,
+          "rarity": 1,
+          "group_id": 20071,
+          "icon_id": 20021,
+          "grade_value": 217,
+          "condition_1": "distance_type==3&phase_random==1&order<=3",
+          "skill_time_active": 0,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 9,
+          "ability_value": 150,
+          "skill_name": "Rosy Outlook",
+          "skill_desc": "Slightly decrease fatigue when positioned toward the front mid-race. (Medium)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200811,
+        "skill_data": {
+          "id": 200811,
+          "rarity": 1,
+          "group_id": 20081,
+          "icon_id": 30041,
+          "grade_value": 174,
+          "condition_1": "running_style_temptation_count_sashi>=1&is_temptation==0",
+          "skill_time_active": 0,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 13,
+          "ability_value": 50000,
+          "skill_name": "Frenzied Late Surgers",
+          "skill_desc": "Increase time needed for late surgers to calm down when they become rushed."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200901,
+        "skill_data": {
+          "id": 200901,
+          "rarity": 1,
+          "group_id": 20090,
+          "icon_id": 30051,
+          "grade_value": 217,
+          "condition_1": "running_style_count_sashi_otherself>=1&phase_random==1",
+          "skill_time_active": 0,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 9,
+          "ability_value": -100,
+          "skill_name": "Flustered Late Surgers",
+          "skill_desc": "Slightly increase fatigue for late surgers mid-race."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201112,
+        "skill_data": {
+          "id": 201112,
+          "rarity": 1,
+          "group_id": 20111,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "distance_type==3&all_corner_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Medium Corners ○",
+          "skill_desc": "Slightly increase velocity on a corner. (Medium)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201132,
+        "skill_data": {
+          "id": 201132,
+          "rarity": 1,
+          "group_id": 20113,
+          "icon_id": 20051,
+          "grade_value": 174,
+          "condition_1": "distance_type==3&phase_random==1&order_rate>50",
+          "skill_time_active": 40000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 28,
+          "ability_value": 250,
+          "skill_name": "Thunderbolt Step",
+          "skill_desc": "Moderately avoid becoming surrounded for a medium duration when positioned toward the back mid-race. (Medium)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201142,
+        "skill_data": {
+          "id": 201142,
+          "rarity": 1,
+          "group_id": 20114,
+          "icon_id": 20021,
+          "grade_value": 217,
+          "condition_1": "distance_type==3&is_move_lane==1&accumulatetime>=10@distance_type==3&is_move_lane==2&accumulatetime>=10",
+          "skill_time_active": 0,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 9,
+          "ability_value": 150,
+          "skill_name": "Soft Step",
+          "skill_desc": "Slightly decrease fatigue when moving sideways. (Medium)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201412,
+        "skill_data": {
+          "id": 201412,
+          "rarity": 1,
+          "group_id": 20141,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "running_style==3&up_slope_random==1",
+          "skill_time_active": 24000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "1,500,000 CC",
+          "skill_desc": "Slightly increase velocity on an uphill. (Late Surger)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "stat_hint",
+        "stats": [
+          {
+            "stat_id": "Intelligence",
+            "value": 6
+          },
+          {
+            "stat_id": "Stamina",
+            "value": 1
+          },
+          {
+            "stat_id": "Guts",
+            "value": 1
+          }
+        ]
+      }
+    ],
+    "hints_event_table": [
+      {
+        "type": "skill_hint",
+        "skill_id": 201322,
+        "skill_data": {
+          "id": 201322,
+          "rarity": 1,
+          "group_id": 20132,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "running_style==2&all_corner_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Pace Chaser Corners ○",
+          "skill_desc": "Slightly increase velocity on a corner. (Pace Chaser)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201392,
+        "skill_data": {
+          "id": 201392,
+          "rarity": 1,
+          "group_id": 20139,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "running_style==3&all_corner_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Late Surger Corners ○",
+          "skill_desc": "Slightly increase velocity on a corner. (Late Surger)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200482,
+        "skill_data": {
+          "id": 200482,
+          "rarity": 1,
+          "group_id": 20048,
+          "icon_id": 20021,
+          "grade_value": 217,
+          "condition_1": "phase==1&is_surrounded==1",
+          "skill_time_active": 0,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 9,
+          "ability_value": 150,
+          "skill_name": "Calm in a Crowd",
+          "skill_desc": "Slightly recover endurance when surrounded mid-race."
+        },
+        "hint_level": 1
+      }
+    ],
+    "unique_effects": [
+      {
+        "level_unlocked": "0lb",
+        "effects": [
+          {
+            "type": 30,
+            "type_name": "Skill Point Bonus",
+            "value": 1
+          },
+          {
+            "type": 12,
+            "type_name": "Initial Guts",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "all_events": {
+      "dates": [],
+      "chain_events": [
+        {
+          "name": "Rhapsody of Kindness",
+          "choices": [
+            {
+              "option": "どうしてそこまで親身に？",
+              "rewards": [
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "Speed",
+                  "value": "+5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1021
+                }
+              ]
+            },
+            {
+              "option": "優しいんだな",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+10"
+                },
+                {
+                  "type": "Stamina",
+                  "value": "+5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1021
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "The Path of Profit and People",
+          "choices": [
+            {
+              "option": "俺も食べたくなってきた",
+              "rewards": [
+                {
+                  "type": "Speed",
+                  "value": "+10"
+                },
+                {
+                  "type": "Potential",
+                  "value": "+10"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 201322
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1021
+                }
+              ]
+            },
+            {
+              "option": "どんどん売り込もう",
+              "rewards": [
+                {
+                  "type": "Stamina",
+                  "value": "+10"
+                },
+                {
+                  "type": "Potential",
+                  "value": "+10"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 201392
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1021
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "random_events": [
+        {
+          "name": "Tamamo's School Tour",
+          "choices": [
+            {
+              "option": "案内って、図書室とか？",
+              "rewards": [
+                {
+                  "type": "Intelligence",
+                  "value": "+10"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1021
+                }
+              ]
+            },
+            {
+              "option": "案内って、ジムとか？",
+              "rewards": [
+                {
+                  "type": "Stamina",
+                  "value": "+5"
+                },
+                {
+                  "type": "Guts",
+                  "value": "+5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1021
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "A Battle I Can't Lose!",
+          "choices": [
+            {
+              "option": "人の流れを掴め！",
+              "rewards": [
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 200482
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1021
+                }
+              ]
+            },
+            {
+              "option": "ライバルをよく観察しよう",
+              "rewards": [
+                {
+                  "type": "Stamina",
+                  "value": "+5"
+                },
+                {
+                  "type": "Intelligence",
+                  "value": "+5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1021
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "special_events": []
+    }
+  },
+  {
+    "id": 30080,
+    "chara_id_card": 9005,
+    "rarity": 3,
+    "effect_table_id": 30080,
+    "unique_effect_id": 30080,
+    "command_id": 0,
+    "skill_set_id": 9089005,
+    "card_chara_name": "Sasami Anshinzawa",
+    "prefered_type_id": 6,
+    "prefered_type": "Support",
+    "effects": [
+      {
+        "0lb": 40,
+        "1lb": 45,
+        "2lb": 50,
+        "3lb": 55,
+        "mlb": 60,
+        "type": 2,
+        "type_name": "Mood Effect"
+      },
+      {
+        "0lb": 20,
+        "1lb": 21,
+        "2lb": 23,
+        "3lb": 25,
+        "mlb": 25,
+        "type": 14,
+        "type_name": "Initial Friendship Gauge"
+      },
+      {
+        "0lb": -1,
+        "1lb": -1,
+        "2lb": -1,
+        "3lb": 30,
+        "mlb": 60,
+        "type": 25,
+        "type_name": "Event Recovery"
+      },
+      {
+        "0lb": 10,
+        "1lb": 20,
+        "2lb": 30,
+        "3lb": 40,
+        "mlb": 50,
+        "type": 26,
+        "type_name": "Event Effectiveness"
+      },
+      {
+        "0lb": -1,
+        "1lb": 1,
+        "2lb": 1,
+        "3lb": 1,
+        "mlb": 1,
+        "type": 30,
+        "type_name": "Skill Point Bonus"
+      }
+    ],
+    "hints_table": [],
+    "hints_event_table": [
+      {
+        "type": "skill_hint",
+        "skill_id": 202031,
+        "skill_data": {
+          "id": 202031,
+          "rarity": 2,
+          "group_id": 20203,
+          "icon_id": 20012,
+          "grade_value": 334,
+          "condition_1": "distance_rate_after_random==50",
+          "skill_time_active": 18000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 4500,
+          "skill_name": "Nothing Ventured",
+          "skill_desc": "Greatly increase velocity in the second half of the race, but also greatly increase fatigue sometimes."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 202032,
+        "skill_data": {
+          "id": 202032,
+          "rarity": 1,
+          "group_id": 20203,
+          "icon_id": 20011,
+          "grade_value": 129,
+          "condition_1": "distance_rate_after_random==50",
+          "skill_time_active": 18000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 2500,
+          "skill_name": "Risky Business",
+          "skill_desc": "Moderately increase velocity in the second half of the race, but also greatly increase fatigue sometimes."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201591,
+        "skill_data": {
+          "id": 201591,
+          "rarity": 1,
+          "group_id": 20159,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "near_count>=3&accumulatetime>=5",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Uma Stan",
+          "skill_desc": "Slightly increase velocity when close to many runners."
+        },
+        "hint_level": 1
+      }
+    ],
+    "unique_effects": [
+      {
+        "level_unlocked": "0lb",
+        "effects": []
+      }
+    ],
+    "all_events": {
+      "dates": [
+        {
+          "name": "Trusty Teamwork?!",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+30"
+                },
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "rs",
+                  "value": "+10",
+                  "detail": 1
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Energy",
+                  "value": "+10"
+                },
+                {
+                  "type": "Mood",
+                  "value": "-1"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Storied ☆ Sunglasses",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+30"
+                },
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "rs",
+                  "value": "+10",
+                  "detail": 2
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Energy",
+                  "value": "+10"
+                },
+                {
+                  "type": "Mood",
+                  "value": "-1"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "The Final Race ☆ For a Worry-Free Future!",
+          "choices": [
+            {
+              "option": "思いっきりやっちゃってください！",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+30"
+                },
+                {
+                  "type": "All Stats",
+                  "value": "+10"
+                },
+                {
+                  "type": "Potential",
+                  "value": "+20"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+3",
+                  "detail": 202031
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Energy",
+                  "value": "-10"
+                },
+                {
+                  "type": "Mood",
+                  "value": "-2"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            },
+            {
+              "option": "あんし～ん第一でお願いします……！",
+              "rewards": [
+                {
+                  "type": "fe",
+                  "value": null
+                },
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 202031
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Energy",
+                  "value": "+20"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 202032
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "chain_events": [],
+      "random_events": [
+        {
+          "name": "The Applications of Acupuncture",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "rs",
+                  "value": "+10",
+                  "detail": 1
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "se",
+                  "value": null,
+                  "detail": 7
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Potential",
+                  "value": "+50"
+                },
+                {
+                  "type": "sg",
+                  "value": null,
+                  "detail": 200283
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "A Pleasant Practice Partner?",
+          "choices": [
+            {
+              "option": "わかりました、お付き合いします！",
+              "rewards": [
+                {
+                  "type": "me",
+                  "value": "+4"
+                },
+                {
+                  "type": "Energy",
+                  "value": "+10"
+                },
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+10",
+                  "detail": 9005
+                },
+                {
+                  "type": "ds",
+                  "value": null
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Potential",
+                  "value": "+50"
+                },
+                {
+                  "type": "sg",
+                  "value": null,
+                  "detail": 200353
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "ds",
+                  "value": null
+                }
+              ]
+            },
+            {
+              "option": "じゃ、じゃあ様子を見ながらで……",
+              "rewards": [
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "Stamina",
+                  "value": "+10"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "ds",
+                  "value": null
+                }
+              ]
+            },
+            {
+              "option": "遠慮しておきます！！",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "-10"
+                },
+                {
+                  "type": "Potential",
+                  "value": "+100"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 202032
+                },
+                {
+                  "type": "sg",
+                  "value": null,
+                  "detail": 200521
+                },
+                {
+                  "type": "Bond",
+                  "value": "-10",
+                  "detail": 9005
+                },
+                {
+                  "type": "ee",
+                  "value": null
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "special_events": [
+        {
+          "name": "Just a Poke ☆",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "All Stats",
+                  "value": "+3"
+                },
+                {
+                  "type": "se",
+                  "value": null,
+                  "detail": 10
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Energy",
+                  "value": "-10"
+                },
+                {
+                  "type": "Mood",
+                  "value": "-2"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Suspicious, But Safe?!",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "rs",
+                  "value": "+20",
+                  "detail": 1
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "An Accurate Acupuncturist ☆",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+2"
+                },
+                {
+                  "type": "rs",
+                  "value": "+4",
+                  "detail": 1
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Energy",
+                  "value": "-5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Healing Hot Spring Holiday ☆",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "rs",
+                  "value": "+15",
+                  "detail": 2
+                },
+                {
+                  "type": "Potential",
+                  "value": "+45"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "An Encouraging Entrustment?!",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "rs",
+                  "value": "+10",
+                  "detail": 2
+                },
+                {
+                  "type": "Potential",
+                  "value": "+30"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "A Bond Bolstered by Booze?",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+10"
+                },
+                {
+                  "type": "rs",
+                  "value": "+10",
+                  "detail": 2
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+3",
+                  "detail": 201591
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 9005
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
   }
 ]

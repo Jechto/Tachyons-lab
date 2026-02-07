@@ -79,6 +79,13 @@ export default function CardTooltip({
         };
     }, [isVisible, isTouchDevice]);
     
+    // Close tooltip when card is added to deck
+    React.useEffect(() => {
+        if (isInDeck && isVisible) {
+            setIsVisible(false);
+        }
+    }, [isInDeck, isVisible]);
+    
     const calculatePosition = (rect: DOMRect) => {
         const tooltipWidth = 320; // max-w-80 = 320px
         const tooltipHeight = 400; // estimated height

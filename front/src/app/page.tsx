@@ -55,6 +55,7 @@ export default function Home() {
         return {G1: defaults[0], G2or3: defaults[1], PreOPorOP: defaults[2]};
     });
     const [averageMood, setAverageMood] = useState<number>(15);
+    const [tempAverageMood, setTempAverageMood] = useState<number>(15); // Temporary state for slider
 
     // Debounce timer ref for auto-regeneration
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -241,6 +242,9 @@ export default function Home() {
             alert("Please select at least one race type and one running style");
             return;
         }
+
+        // Commit the temporary mood value
+        setAverageMood(tempAverageMood);
 
         setIsGenerating(true);
         
@@ -699,14 +703,17 @@ export default function Home() {
                                 onChange={(e) => setSelectedScenario(e.target.value)}
                                 className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
                             >
-                                <option value="URA">URA Finals</option>
-                                <option value="Unity">Unity</option>
+                                {TrainingData.getScenarios().map(scenario => (
+                                    <option key={scenario.key} value={scenario.key}>
+                                        {scenario.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
                         <div className="flex flex-col gap-2">
                             <label htmlFor="average-mood" className="font-medium text-gray-700 dark:text-gray-300">
-                                Average Mood: {averageMood > 0 ? '+' : ''}{averageMood}%
+                                Average Mood: {tempAverageMood > 0 ? '+' : ''}{tempAverageMood}%
                             </label>
                             <div className="flex items-center gap-3">
                                 <span className="text-xs text-gray-500 dark:text-gray-400">-20%</span>
@@ -716,8 +723,8 @@ export default function Home() {
                                     min="-20"
                                     max="20"
                                     step="1"
-                                    value={averageMood}
-                                    onChange={(e) => setAverageMood(parseInt(e.target.value))}
+                                    value={tempAverageMood}
+                                    onChange={(e) => setTempAverageMood(parseInt(e.target.value))}
                                     className="w-full h-2 rounded-lg appearance-none cursor-pointer"
                                     style={{
                                         background: `linear-gradient(to right, #9333ea, #3b82f6 25%, #eab308 50%, #f97316 75%, #ec4899)`

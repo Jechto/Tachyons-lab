@@ -2,6 +2,7 @@
 export class TrainingData {
     private static readonly baseStats = {
         URA: {
+            name: "URA Finals",
             training: {
                 Speed: [10, 0, 5, 0, 0, 2, -21],
                 Stamina: [0, 9, 0, 4, 0, 2, -19],
@@ -42,6 +43,7 @@ export class TrainingData {
             scenarioTrainingDistributedBonusStats: 0,
         },
         Unity: {
+            name: "Unity Cup",
             // A flat assumption of an average 2 UMA unity training (white flame training). With the rare 3 Uma trainings (+0.25 to second stat)
             training: {
                 Speed: [8+2, 0, 4+0.25, 0, 0, 4, -19],
@@ -82,6 +84,49 @@ export class TrainingData {
                 Intelligence: 15+31,
             },
             scenarioTrainingDistributedBonusStats: 8*15+8*7, // 8 spirit bursts of 15 mainstat + 7 substat each assumed
+        },
+        MANT: {
+            name: "MANT (not complete)",
+            // A flat assumption of an average 2 UMA unity training (white flame training). With the rare 3 Uma trainings (+0.25 to second stat)
+            training: {
+                Speed: [8, 0, 4, 0, 0, 2, -19],
+                Stamina: [0, 7, 0, 3, 0, 2, -17],
+                Power: [0, 4, 6, 0, 0, 2, -18],
+                Guts: [3, 0, 3, 6, 0, 4, -20],
+                Intelligence: [2, 0, 0, 0, 6, 3, 5],
+            },
+            facilityMultipliers: {
+                Speed: 1 / 8,
+                Stamina: 1 / 7,
+                Power: 1 / 6,
+                Guts: 1 / 6,
+                Intelligence: 1 / 6,
+            },
+            maxStats: {
+                Speed: 1200,
+                Stamina: 1200,
+                Power: 1200,
+                Guts: 1200,
+                Intelligence: 1200
+            },
+            ForcedRaces: 0,
+            DefaultOptional: [10, 4, 1], // G1, G2or3, PreOPorOP
+            raceCareerRewards: {
+                finaleRace: [10, 10, 10, 10, 10, 60],
+                careerRace: [3, 3, 3, 3, 3, 45],
+                G1: [2, 2, 2, 2, 2, 45],
+                G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
+                PreOPorOP: [1, 1, 1, 1, 1, 15],
+            },
+            // 31 are the level up rewards F -> S
+            scenarioBonusStats: {
+                Speed: 15,
+                Stamina: 15,
+                Power: 15,
+                Guts: 15,
+                Intelligence: 15,
+            },
+            scenarioTrainingDistributedBonusStats: 0,
         }
     };
 
@@ -166,6 +211,19 @@ export class TrainingData {
         return (
             this.baseStats[scenarioName as keyof typeof this.baseStats]
                 ?.DefaultOptional || [0, 0, 0]
+        );
+    }
+
+    static getScenarios(): Array<{ key: string; name: string }> {
+        return Object.entries(this.baseStats).map(([key, data]) => ({
+            key,
+            name: data.name,
+        }));
+    }
+
+    static getScenarioName(scenarioKey: string): string {
+        return (
+            this.baseStats[scenarioKey as keyof typeof this.baseStats]?.name || scenarioKey
         );
     }
 }

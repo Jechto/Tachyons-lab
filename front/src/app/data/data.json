@@ -80069,5 +80069,1482 @@
         }
       ]
     }
+  },
+  {
+    "id": 30082,
+    "chara_id_card": 1051,
+    "rarity": 3,
+    "effect_table_id": 30082,
+    "unique_effect_id": 30082,
+    "command_id": 106,
+    "skill_set_id": 9081051,
+    "card_chara_name": "Nishino Flower",
+    "prefered_type_id": 4,
+    "prefered_type": "Intelligence",
+    "effects": [
+      {
+        "0lb": 25,
+        "1lb": 26,
+        "2lb": 27,
+        "3lb": 28,
+        "mlb": 30,
+        "type": 1,
+        "type_name": "Friendship Bonus"
+      },
+      {
+        "0lb": -1,
+        "1lb": 1,
+        "2lb": 1,
+        "3lb": 1,
+        "mlb": 1,
+        "type": 3,
+        "type_name": "Speed Bonus"
+      },
+      {
+        "0lb": 5,
+        "1lb": 5,
+        "2lb": 5,
+        "3lb": 5,
+        "mlb": 5,
+        "type": 8,
+        "type_name": "Training Effectiveness"
+      },
+      {
+        "0lb": -1,
+        "1lb": -1,
+        "2lb": -1,
+        "3lb": 15,
+        "mlb": 30,
+        "type": 13,
+        "type_name": "Initial Wit"
+      },
+      {
+        "0lb": 25,
+        "1lb": 26,
+        "2lb": 27,
+        "3lb": 28,
+        "mlb": 30,
+        "type": 14,
+        "type_name": "Initial Friendship Gauge"
+      },
+      {
+        "0lb": 1,
+        "1lb": 1,
+        "2lb": 1,
+        "3lb": 1,
+        "mlb": 1,
+        "type": 17,
+        "type_name": "Hint Levels"
+      },
+      {
+        "0lb": 20,
+        "1lb": 20,
+        "2lb": 20,
+        "3lb": 20,
+        "mlb": 20,
+        "type": 18,
+        "type_name": "Hint Frequency"
+      },
+      {
+        "0lb": 35,
+        "1lb": 40,
+        "2lb": 45,
+        "3lb": 50,
+        "mlb": 50,
+        "type": 19,
+        "type_name": "Specialty Priority"
+      },
+      {
+        "0lb": 3,
+        "1lb": 3,
+        "2lb": 4,
+        "3lb": 4,
+        "mlb": 5,
+        "type": 31,
+        "type_name": "Wit Friendship Recovery"
+      }
+    ],
+    "hints_table": [
+      {
+        "type": "skill_hint",
+        "skill_id": 200052,
+        "skill_data": {
+          "id": 200052,
+          "rarity": 1,
+          "group_id": 20005,
+          "icon_id": 10021,
+          "grade_value": 129,
+          "condition_1": "track_id==10009",
+          "skill_time_active": -1,
+          "skill_cooldown_time": 0,
+          "ability_type": 2,
+          "ability_value": 400000,
+          "skill_name": "Hanshin Racecourse ○",
+          "skill_desc": "Moderately increase performance at Hanshin Racecourse."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200132,
+        "skill_data": {
+          "id": 200132,
+          "rarity": 1,
+          "group_id": 20013,
+          "icon_id": 10021,
+          "grade_value": 129,
+          "condition_1": "is_basis_distance==1",
+          "skill_time_active": -1,
+          "skill_cooldown_time": 0,
+          "ability_type": 2,
+          "ability_value": 400000,
+          "skill_name": "Standard Distance ○",
+          "skill_desc": "Moderately increase performance over standard distances (multiples of 400m)."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200152,
+        "skill_data": {
+          "id": 200152,
+          "rarity": 1,
+          "group_id": 20015,
+          "icon_id": 10031,
+          "grade_value": 129,
+          "condition_1": "ground_condition==1",
+          "skill_time_active": -1,
+          "skill_cooldown_time": 0,
+          "ability_type": 3,
+          "ability_value": 400000,
+          "skill_name": "Firm Conditions ○",
+          "skill_desc": "Moderately increase performance on firm ground."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200702,
+        "skill_data": {
+          "id": 200702,
+          "rarity": 1,
+          "group_id": 20070,
+          "icon_id": 20041,
+          "grade_value": 217,
+          "condition_1": "distance_type==2&phase_random==2&order_rate>50",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 31,
+          "ability_value": 2000,
+          "skill_name": "Updrafters",
+          "skill_desc": "Slightly increase passing ability when positioned toward the back late-race. (Mile)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201322,
+        "skill_data": {
+          "id": 201322,
+          "rarity": 1,
+          "group_id": 20132,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "running_style==2&all_corner_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Pace Chaser Corners ○",
+          "skill_desc": "Slightly increase velocity on a corner. (Pace Chaser)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "stat_hint",
+        "stats": [
+          {
+            "stat_id": "Unknown",
+            "value": 6
+          },
+          {
+            "stat_id": "Unknown",
+            "value": 5
+          }
+        ]
+      }
+    ],
+    "hints_event_table": [
+      {
+        "type": "skill_hint",
+        "skill_id": 201052,
+        "skill_data": {
+          "id": 201052,
+          "rarity": 1,
+          "group_id": 20105,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "distance_type==2&phase_random==1&order_rate<=50",
+          "skill_time_active": 24000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Shifting Gears",
+          "skill_desc": "Slightly increase passing ability when positioned toward the front mid-race. (Mile)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201341,
+        "skill_data": {
+          "id": 201341,
+          "rarity": 2,
+          "group_id": 20134,
+          "icon_id": 20042,
+          "grade_value": 334,
+          "condition_1": "running_style==2&down_slope_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 31,
+          "ability_value": 3000,
+          "skill_name": "Determined Descent",
+          "skill_desc": "Moderately improve running on a downhill. (Pace Chaser)"
+        },
+        "hint_level": 1
+      }
+    ],
+    "unique_effects": [
+      {
+        "level_unlocked": "0lb",
+        "effects": [
+          {
+            "type": 101,
+            "type_name": null,
+            "value": 100
+          }
+        ]
+      }
+    ],
+    "all_events": {
+      "dates": [],
+      "chain_events": [
+        {
+          "name": "Nourishment for a Flower Bud",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Intelligence",
+                  "value": "+10"
+                },
+                {
+                  "type": "Potential",
+                  "value": "+10"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1051
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "I'm Gonna Be a Mommy!",
+          "choices": [
+            {
+              "option": "今日の君はバッチリだったよ！",
+              "rewards": [
+                {
+                  "type": "Potential",
+                  "value": "+15"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 201052
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1051
+                }
+              ]
+            },
+            {
+              "option": "その気持ちは届いてるよ",
+              "rewards": [
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "he",
+                  "value": null
+                },
+                {
+                  "type": "Bond",
+                  "value": "+10",
+                  "detail": 1051
+                }
+              ]
+            },
+            {
+              "option": "いつかなれるといいな",
+              "rewards": [
+                {
+                  "type": "Power",
+                  "value": "+25"
+                },
+                {
+                  "type": "Bond",
+                  "value": "-5",
+                  "detail": 1051
+                },
+                {
+                  "type": "ee",
+                  "value": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Blooming Emotions, with Love",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+20"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 201341
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "random_events": [
+        {
+          "name": "Warmth, Love, and Lunch",
+          "choices": [
+            {
+              "option": "可愛いおかずだ",
+              "rewards": [
+                {
+                  "type": "se",
+                  "value": null,
+                  "detail": 8
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1051
+                }
+              ]
+            },
+            {
+              "option": "栄養ありそうだ",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+20"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1051
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Let's Bloom Beautifully ♪",
+          "choices": [
+            {
+              "option": "手分けして効率化をはかろう！",
+              "rewards": [
+                {
+                  "type": "Intelligence",
+                  "value": "+15"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1051
+                }
+              ]
+            },
+            {
+              "option": "急いでじょうろに水を入れてくる！",
+              "rewards": [
+                {
+                  "type": "Speed",
+                  "value": "+10"
+                },
+                {
+                  "type": "Power",
+                  "value": "+5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1051
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "special_events": []
+    }
+  },
+  {
+    "id": 30083,
+    "chara_id_card": 1041,
+    "rarity": 3,
+    "effect_table_id": 30083,
+    "unique_effect_id": 30083,
+    "command_id": 103,
+    "skill_set_id": 9081041,
+    "card_chara_name": "Sakura Bakushin O",
+    "prefered_type_id": 3,
+    "prefered_type": "Guts",
+    "effects": [
+      {
+        "0lb": 25,
+        "1lb": 27,
+        "2lb": 30,
+        "3lb": 32,
+        "mlb": 35,
+        "type": 1,
+        "type_name": "Friendship Bonus"
+      },
+      {
+        "0lb": 20,
+        "1lb": 23,
+        "2lb": 26,
+        "3lb": 30,
+        "mlb": 30,
+        "type": 2,
+        "type_name": "Mood Effect"
+      },
+      {
+        "0lb": -1,
+        "1lb": 1,
+        "2lb": 1,
+        "3lb": 1,
+        "mlb": 1,
+        "type": 6,
+        "type_name": "Guts Bonus"
+      },
+      {
+        "0lb": -1,
+        "1lb": -1,
+        "2lb": -1,
+        "3lb": 15,
+        "mlb": 30,
+        "type": 12,
+        "type_name": "Initial Guts"
+      },
+      {
+        "0lb": 20,
+        "1lb": 21,
+        "2lb": 23,
+        "3lb": 25,
+        "mlb": 25,
+        "type": 14,
+        "type_name": "Initial Friendship Gauge"
+      },
+      {
+        "0lb": 5,
+        "1lb": 6,
+        "2lb": 7,
+        "3lb": 8,
+        "mlb": 10,
+        "type": 15,
+        "type_name": "Race Bonus"
+      },
+      {
+        "0lb": 15,
+        "1lb": 16,
+        "2lb": 17,
+        "3lb": 18,
+        "mlb": 20,
+        "type": 16,
+        "type_name": "Fan Bonus"
+      },
+      {
+        "0lb": 2,
+        "1lb": 2,
+        "2lb": 2,
+        "3lb": 2,
+        "mlb": 3,
+        "type": 17,
+        "type_name": "Hint Levels"
+      },
+      {
+        "0lb": 40,
+        "1lb": 42,
+        "2lb": 45,
+        "3lb": 47,
+        "mlb": 50,
+        "type": 18,
+        "type_name": "Hint Frequency"
+      }
+    ],
+    "hints_table": [
+      {
+        "type": "skill_hint",
+        "skill_id": 200652,
+        "skill_data": {
+          "id": 200652,
+          "rarity": 1,
+          "group_id": 20065,
+          "icon_id": 20041,
+          "grade_value": 217,
+          "condition_1": "distance_type==1&straight_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 31,
+          "ability_value": 2000,
+          "skill_name": "Sprinting Gear",
+          "skill_desc": "Slightly increase acceleration on a straight. (Sprint)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200791,
+        "skill_data": {
+          "id": 200791,
+          "rarity": 1,
+          "group_id": 20079,
+          "icon_id": 30041,
+          "grade_value": 174,
+          "condition_1": "running_style_temptation_count_nige>=1&is_temptation==0",
+          "skill_time_active": 0,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 13,
+          "ability_value": 50000,
+          "skill_name": "Frenzied Front Runners",
+          "skill_desc": "Increase time needed for front runners to calm down when they become rushed."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200841,
+        "skill_data": {
+          "id": 200841,
+          "rarity": 1,
+          "group_id": 20084,
+          "icon_id": 30051,
+          "grade_value": 217,
+          "condition_1": "running_style_count_nige_otherself>=1&phase_random==1",
+          "skill_time_active": 0,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 9,
+          "ability_value": -100,
+          "skill_name": "Flustered Front Runners",
+          "skill_desc": "Slightly increase fatigue for front runners mid-race."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200962,
+        "skill_data": {
+          "id": 200962,
+          "rarity": 1,
+          "group_id": 20096,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "distance_type==1&straight_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Sprint Straightaways ○",
+          "skill_desc": "Slightly increase velocity on a straight. (Sprint)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200972,
+        "skill_data": {
+          "id": 200972,
+          "rarity": 1,
+          "group_id": 20097,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "distance_type==1&all_corner_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Sprint Corners ○",
+          "skill_desc": "Slightly increase velocity on a corner. (Sprint)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200982,
+        "skill_data": {
+          "id": 200982,
+          "rarity": 1,
+          "group_id": 20098,
+          "icon_id": 20011,
+          "grade_value": 262,
+          "condition_1": "distance_type==1&phase==1&bashin_diff_behind>=3&order==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Huge Lead",
+          "skill_desc": "Slightly increase ability to maintain the lead when leading by a large margin mid-race. (Sprint)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200992,
+        "skill_data": {
+          "id": 200992,
+          "rarity": 1,
+          "group_id": 20099,
+          "icon_id": 20041,
+          "grade_value": 217,
+          "condition_1": "distance_type==1&phase_laterhalf_random==1&order>=2&order_rate<=50",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 31,
+          "ability_value": 2000,
+          "skill_name": "Countermeasure",
+          "skill_desc": "Slightly increase passing ability when positioned toward the front upon approaching late-race. (Sprint)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201012,
+        "skill_data": {
+          "id": 201012,
+          "rarity": 1,
+          "group_id": 20101,
+          "icon_id": 30011,
+          "grade_value": 262,
+          "condition_1": "distance_type==1&phase_random==0&order_rate<=50&accumulatetime>=5",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 21,
+          "ability_value": -2000,
+          "skill_name": "Intimidate",
+          "skill_desc": "Moderately intimidate runners behind when positioned toward the front early-race. (Sprint)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "stat_hint",
+        "stats": [
+          {
+            "stat_id": "Stamina",
+            "value": 1
+          },
+          {
+            "stat_id": "Guts",
+            "value": 1
+          },
+          {
+            "stat_id": "Intelligence",
+            "value": 6
+          }
+        ]
+      }
+    ],
+    "hints_event_table": [
+      {
+        "type": "skill_hint",
+        "skill_id": 201601,
+        "skill_data": {
+          "id": 201601,
+          "rarity": 1,
+          "group_id": 20160,
+          "icon_id": 20041,
+          "grade_value": 217,
+          "condition_1": "activate_count_start>=3",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 31,
+          "ability_value": 2000,
+          "skill_name": "Groundwork",
+          "skill_desc": "Slightly increase acceleration after activating many skills early-race."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 202041,
+        "skill_data": {
+          "id": 202041,
+          "rarity": 2,
+          "group_id": 20204,
+          "icon_id": 20012,
+          "grade_value": 508,
+          "condition_1": "distance_type==1&phase_laterhalf_random==1&order_rate<=50",
+          "skill_time_active": 24000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 3500,
+          "skill_name": "In High Spirits",
+          "skill_desc": "Increase velocity when positioned toward the front upon approaching late-race. (Sprint)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 202042,
+        "skill_data": {
+          "id": 202042,
+          "rarity": 1,
+          "group_id": 20204,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "distance_type==1&phase_laterhalf_random==1&order_rate<=50",
+          "skill_time_active": 24000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Light as a Feather",
+          "skill_desc": "Slightly increase velocity when positioned toward the front upon approaching late-race. (Sprint)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200672,
+        "skill_data": {
+          "id": 200672,
+          "rarity": 1,
+          "group_id": 20067,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "distance_type==1&phase_random==2&order_rate>50",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Gap Closer",
+          "skill_desc": "Slightly increase spurting ability when positioned toward the back late-race. (Sprint)"
+        },
+        "hint_level": 1
+      }
+    ],
+    "unique_effects": [
+      {
+        "level_unlocked": "0lb",
+        "effects": [
+          {
+            "type": 102,
+            "type_name": null,
+            "value": 80
+          }
+        ]
+      }
+    ],
+    "all_events": {
+      "dates": [],
+      "chain_events": [
+        {
+          "name": "Uma Kids Footrace Meet",
+          "choices": [
+            {
+              "option": "今はそっとしておこう",
+              "rewards": [
+                {
+                  "type": "Guts",
+                  "value": "+5"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 201601
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1041
+                }
+              ]
+            },
+            {
+              "option": "特訓をしてあげるとか！",
+              "rewards": [
+                {
+                  "type": "me",
+                  "value": "+4"
+                },
+                {
+                  "type": "Speed",
+                  "value": "+5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1041
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Chasing My Sister",
+          "choices": [
+            {
+              "option": "わかった、応援してるよ",
+              "rewards": [
+                {
+                  "type": "Guts",
+                  "value": "+10"
+                },
+                {
+                  "type": "Speed",
+                  "value": "+5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1041
+                }
+              ]
+            },
+            {
+              "option": "準備、手伝わせてほしい！",
+              "rewards": [
+                {
+                  "type": "Potential",
+                  "value": "+30"
+                },
+                {
+                  "type": "ee",
+                  "value": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Just the Way You Are",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Speed",
+                  "value": "+15"
+                },
+                {
+                  "type": "Guts",
+                  "value": "+15"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+3",
+                  "detail": 202041
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Speed",
+                  "value": "+5"
+                },
+                {
+                  "type": "Guts",
+                  "value": "+5"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+3",
+                  "detail": 202042
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "random_events": [
+        {
+          "name": "Genius Efficiency!",
+          "choices": [
+            {
+              "option": "雑巾がけで、スピード強化！",
+              "rewards": [
+                {
+                  "type": "Speed",
+                  "value": "+15"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1041
+                }
+              ]
+            },
+            {
+              "option": "資料室の整理で、パワーも強化！",
+              "rewards": [
+                {
+                  "type": "Speed",
+                  "value": "+5"
+                },
+                {
+                  "type": "Power",
+                  "value": "+10"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1041
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Enough to Break into a Dash!",
+          "choices": [
+            {
+              "option": "読み終わったら借りてもいいか？",
+              "rewards": [
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 200672
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1041
+                }
+              ]
+            },
+            {
+              "option": "参考に、走りを見せてもらえるか？",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "-10"
+                },
+                {
+                  "type": "Speed",
+                  "value": "+10"
+                },
+                {
+                  "type": "Power",
+                  "value": "+5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1041
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "special_events": []
+    }
+  },
+  {
+    "id": 30084,
+    "chara_id_card": 1048,
+    "rarity": 3,
+    "effect_table_id": 30084,
+    "unique_effect_id": 30084,
+    "command_id": 101,
+    "skill_set_id": 9081048,
+    "card_chara_name": "Tosen Jordan",
+    "prefered_type_id": 0,
+    "prefered_type": "Speed",
+    "effects": [
+      {
+        "0lb": 15,
+        "1lb": 16,
+        "2lb": 18,
+        "3lb": 20,
+        "mlb": 20,
+        "type": 1,
+        "type_name": "Friendship Bonus"
+      },
+      {
+        "0lb": -1,
+        "1lb": 1,
+        "2lb": 1,
+        "3lb": 1,
+        "mlb": 1,
+        "type": 3,
+        "type_name": "Speed Bonus"
+      },
+      {
+        "0lb": 5,
+        "1lb": 5,
+        "2lb": 10.25,
+        "3lb": 10.25,
+        "mlb": 10.25,
+        "type": 8,
+        "type_name": "Training Effectiveness"
+      },
+      {
+        "0lb": 25,
+        "1lb": 27,
+        "2lb": 30,
+        "3lb": 32,
+        "mlb": 35,
+        "type": 9,
+        "type_name": "Initial Speed"
+      },
+      {
+        "0lb": -1,
+        "1lb": -1,
+        "2lb": -1,
+        "3lb": 15,
+        "mlb": 30,
+        "type": 11,
+        "type_name": "Initial Power"
+      },
+      {
+        "0lb": 20,
+        "1lb": 21,
+        "2lb": 23,
+        "3lb": 25,
+        "mlb": 25,
+        "type": 14,
+        "type_name": "Initial Friendship Gauge"
+      },
+      {
+        "0lb": 1,
+        "1lb": 2,
+        "2lb": 3,
+        "3lb": 5,
+        "mlb": 5,
+        "type": 15,
+        "type_name": "Race Bonus"
+      },
+      {
+        "0lb": 5,
+        "1lb": 6,
+        "2lb": 8,
+        "3lb": 10,
+        "mlb": 10,
+        "type": 16,
+        "type_name": "Fan Bonus"
+      },
+      {
+        "0lb": 35,
+        "1lb": 40,
+        "2lb": 45,
+        "3lb": 50,
+        "mlb": 50,
+        "type": 19,
+        "type_name": "Specialty Priority"
+      }
+    ],
+    "hints_table": [
+      {
+        "type": "skill_hint",
+        "skill_id": 200302,
+        "skill_data": {
+          "id": 200302,
+          "rarity": 1,
+          "group_id": 20030,
+          "icon_id": 10011,
+          "grade_value": 129,
+          "condition_1": "popularity>=4",
+          "skill_time_active": -1,
+          "skill_cooldown_time": 0,
+          "ability_type": 1,
+          "ability_value": 400000,
+          "skill_name": "Long Shot ○",
+          "skill_desc": "Moderately increase performance when 4th favorite or below."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200562,
+        "skill_data": {
+          "id": 200562,
+          "rarity": 1,
+          "group_id": 20056,
+          "icon_id": 20021,
+          "grade_value": 217,
+          "condition_1": "running_style==2&phase_laterhalf_random==0&order_rate<=50",
+          "skill_time_active": 0,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 9,
+          "ability_value": 150,
+          "skill_name": "Stamina to Spare",
+          "skill_desc": "Slightly decrease fatigue upon approaching mid-race. (Pace Chaser)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200592,
+        "skill_data": {
+          "id": 200592,
+          "rarity": 1,
+          "group_id": 20059,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "running_style==3&phase_random==1&order_rate>50",
+          "skill_time_active": 24000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Position Pilfer",
+          "skill_desc": "Slightly increase velocity mid-race. (Late Surger)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201102,
+        "skill_data": {
+          "id": 201102,
+          "rarity": 1,
+          "group_id": 20110,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "distance_type==3&straight_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Medium Straightaways ○",
+          "skill_desc": "Slightly increase velocity on a straight. (Medium)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201112,
+        "skill_data": {
+          "id": 201112,
+          "rarity": 1,
+          "group_id": 20111,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "distance_type==3&all_corner_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Medium Corners ○",
+          "skill_desc": "Slightly increase velocity on a corner. (Medium)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201312,
+        "skill_data": {
+          "id": 201312,
+          "rarity": 1,
+          "group_id": 20131,
+          "icon_id": 20011,
+          "grade_value": 217,
+          "condition_1": "running_style==2&straight_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 1500,
+          "skill_name": "Pace Chaser Straightaways ○",
+          "skill_desc": "Slightly increase velocity on a straight. (Pace Chaser)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "stat_hint",
+        "stats": [
+          {
+            "stat_id": "Stamina",
+            "value": 6
+          },
+          {
+            "stat_id": "Guts",
+            "value": 2
+          }
+        ]
+      }
+    ],
+    "hints_event_table": [
+      {
+        "type": "skill_hint",
+        "skill_id": 200381,
+        "skill_data": {
+          "id": 200381,
+          "rarity": 2,
+          "group_id": 20038,
+          "icon_id": 20022,
+          "grade_value": 508,
+          "condition_1": "straight_random==1",
+          "skill_time_active": 0,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 9,
+          "ability_value": 550,
+          "skill_name": "Breath of Fresh Air",
+          "skill_desc": "Recover endurance on a straight."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200382,
+        "skill_data": {
+          "id": 200382,
+          "rarity": 1,
+          "group_id": 20038,
+          "icon_id": 20021,
+          "grade_value": 217,
+          "condition_1": "straight_random==1",
+          "skill_time_active": 0,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 9,
+          "ability_value": 150,
+          "skill_name": "Straightaway Recovery",
+          "skill_desc": "Slightly recover endurance on a straight."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 201562,
+        "skill_data": {
+          "id": 201562,
+          "rarity": 1,
+          "group_id": 20156,
+          "icon_id": 10061,
+          "grade_value": 174,
+          "condition_1": "random_lot==50&post_number==7",
+          "skill_time_active": -1,
+          "skill_cooldown_time": 0,
+          "ability_type": 1,
+          "ability_value": 400000,
+          "skill_name": "Lucky Seven",
+          "skill_desc": "Moderately good things may happen when in bracket 7."
+        },
+        "hint_level": 1
+      }
+    ],
+    "unique_effects": [
+      {
+        "level_unlocked": "2lb",
+        "effects": [
+          {
+            "type": 8,
+            "type_name": "Training Effectiveness",
+            "value": 5
+          },
+          {
+            "type": 18,
+            "type_name": "Hint Frequency",
+            "value": 20
+          }
+        ]
+      }
+    ],
+    "all_events": {
+      "dates": [],
+      "chain_events": [
+        {
+          "name": "Leave It to the Roomie",
+          "choices": [
+            {
+              "option": "DIYに挑戦！",
+              "rewards": [
+                {
+                  "type": "Speed",
+                  "value": "+10"
+                },
+                {
+                  "type": "Stamina",
+                  "value": "+5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1048
+                }
+              ]
+            },
+            {
+              "option": "イメチェン☆着回しオトナコーデ",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+10"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1048
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "A Gal's Gotta Glam",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Speed",
+                  "value": "+10"
+                },
+                {
+                  "type": "Potential",
+                  "value": "+10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "If You Got It, Own It",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "-10"
+                },
+                {
+                  "type": "Speed",
+                  "value": "+15"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+3",
+                  "detail": 200381
+                },
+                {
+                  "type": "di",
+                  "value": null
+                },
+                {
+                  "type": "Energy",
+                  "value": "-10"
+                },
+                {
+                  "type": "Speed",
+                  "value": "+10"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+3",
+                  "detail": 200382
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "random_events": [
+        {
+          "name": "Doomscrolling the Time Away",
+          "choices": [
+            {
+              "option": "まずは1本タイムを計ってみる",
+              "rewards": [
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "Speed",
+                  "value": "+5"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1048
+                }
+              ]
+            },
+            {
+              "option": "いつもと違う場所でジョギング",
+              "rewards": [
+                {
+                  "type": "Stamina",
+                  "value": "+10"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1048
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Sponsored Posts Can Be Low-Key Sus",
+          "choices": [
+            {
+              "option": "走らない日だけつけるとか",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+10"
+                },
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1048
+                }
+              ]
+            },
+            {
+              "option": "別の活用法を探す",
+              "rewards": [
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 201562
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5",
+                  "detail": 1048
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "special_events": []
+    }
   }
 ]

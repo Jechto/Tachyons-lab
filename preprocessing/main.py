@@ -51,11 +51,11 @@ def main() -> None:
     parser.add_argument('--output_images', default='../front/public/images/cards/', help='Path to output images directory')
     parser.add_argument('--output_skill_icons', default='../front/public/images/skills/', help='Path to output skill icons directory')
     parser.add_argument('--del', action='store_true', default=False, help='Skip loading existing data.json and start fresh')
-    parser.add_argument('--copy-db-from-steam', action='store_true', default=False, help='Copy master.mdb from Steam installation to preprocessing/db/')
+    parser.add_argument('--copy-db', action='store_true', default=False, help='Copy master.mdb from Steam installation to preprocessing/db/')
     args = parser.parse_args()
 
     # Handle database copy if requested
-    if args.copy_db_from_steam:
+    if args.copy_db:
         if not copy_db_from_steam():
             print("Database copy failed. Exiting.")
             raise SystemExit(1)

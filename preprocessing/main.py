@@ -10,14 +10,8 @@ from data_collecter import DataCollector
 def copy_db_from_steam() -> bool:
     """Copy master.mdb from Steam installation to preprocessing/db/"""
     try:
-        # Get username from environment variable
-        username = os.environ.get('USERNAME') or os.environ.get('USER')
-        if not username:
-            print("Error: Could not determine username")
-            return False
-        
         # Source path in Steam installation
-        source_path = Path(f"C:/Users/{username}/AppData/LocalLow/Cygames/Umamusume/master/master.mdb")
+        source_path = Path.home() / "AppData/LocalLow/Cygames/Umamusume/master/master.mdb"
         
         # Destination path relative to project root
         # Get the script's directory and go up one level to project root

@@ -307,7 +307,7 @@ export default function TierlistDisplay({
             return {
                 effectName,
                 slot: slotIndex,
-                badgeClass: SUBSTAT_SLOT_STYLES[slotIndex].badgeClass,
+                badgeClass: SUBSTAT_SLOT_STYLES[slotIndex].badgeClass as string,
             };
         })
         .filter((value): value is { effectName: SupportEffectName; slot: number; badgeClass: string } => value !== null);

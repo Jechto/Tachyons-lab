@@ -56,12 +56,49 @@ export interface TierlistEntry {
     card_rarity: string;
     limit_break: number;
     card_type: string;
+    support_effects: Record<SupportEffectName, number>;
     hints: HintResult;
     hintTypes: string[];
     stats: StatsDict;
     stats_diff_only_added_to_deck: StatsDict;
     score: number;
 }
+
+export const SUPPORT_EFFECT_NAMES = [
+    "Friendship Bonus",
+    "Mood Effect",
+    "Speed Bonus",
+    "Stamina Bonus",
+    "Power Bonus",
+    "Guts Bonus",
+    "Wit Bonus",
+    "Training Effectiveness",
+    "Initial Speed",
+    "Initial Stamina",
+    "Initial Power",
+    "Initial Guts",
+    "Initial Wit",
+    "Initial Friendship Gauge",
+    "Race Bonus",
+    "Fan Bonus",
+    "Hint Levels",
+    "Hint Frequency",
+    "Specialty Priority",
+    "Max Speed",
+    "Max Stamina",
+    "Max Power",
+    "Max Guts",
+    "Max Wit",
+    "Event Recovery",
+    "Event Effectiveness",
+    "Failure Protection",
+    "Energy Cost Reduction",
+    "Minigame Effectiveness",
+    "Skill Point Bonus",
+    "Wit Friendship Recovery",
+] as const;
+
+export type SupportEffectName = typeof SUPPORT_EFFECT_NAMES[number];
 
 export interface TierlistSuccess {
     tierlist: Record<string, TierlistEntry[]>;
@@ -396,6 +433,16 @@ export class Tierlist {
                     // Extract hint types for this card
                     const cardInstance = new SupportCard(cardId, limitBreak, allData);
                     const hintTypes = cardInstance.extractHintTypes();
+                    const supportEffects = SUPPORT_EFFECT_NAMES.reduce(
+                        (acc, effectName) => {
+                            acc[effectName] = Math.max(
+                                cardInstance.cardBonus[effectName] || 0,
+                                0,
+                            );
+                            return acc;
+                        },
+                        {} as Record<SupportEffectName, number>,
+                    );
 
                     results.push({
                         id: cardId,
@@ -404,6 +451,7 @@ export class Tierlist {
                         card_rarity: cardRarity,
                         limit_break: limitBreak,
                         card_type: cardType,
+                        support_effects: supportEffects,
                         hints: cardHints,
                         hintTypes: hintTypes,
                         stats: deltaStat,

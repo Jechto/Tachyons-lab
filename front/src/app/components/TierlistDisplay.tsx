@@ -1,6 +1,11 @@
 import { StatsDict } from "../types/cardTypes";
 import TierlistCard from "./TierlistCard";
-import { TierlistEntry, LimitBreakFilter } from "../classes/Tierlist";
+import {
+    TierlistEntry,
+    LimitBreakFilter,
+    SUPPORT_EFFECT_NAMES,
+    SupportEffectName,
+} from "../classes/Tierlist";
 import { useState, useMemo, useEffect } from "react";
 import { getAssetPath } from "../utils/paths";
 import Image from "next/image";
@@ -26,6 +31,46 @@ interface TierDefinition {
     maxScore: number;
 }
 
+type SelectedSubstatSlot = SupportEffectName | "";
+
+const DEFAULT_SUBSTAT_SLOTS: SelectedSubstatSlot[] = [
+    "",
+    "",
+    "",
+    "",
+];
+
+const SUBSTAT_SLOT_STYLES = [
+    {
+        labelClass:
+            "bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-900/40 dark:text-rose-100 dark:border-rose-700",
+        selectClass:
+            "bg-gray-50 border-rose-400 text-gray-900 dark:bg-gray-700 dark:border-rose-500 dark:text-white",
+        badgeClass: "bg-rose-700 text-white border border-rose-300",
+    },
+    {
+        labelClass:
+            "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-900/40 dark:text-blue-100 dark:border-blue-700",
+        selectClass:
+            "bg-gray-50 border-blue-400 text-gray-900 dark:bg-gray-700 dark:border-blue-500 dark:text-white",
+        badgeClass: "bg-blue-700 text-white border border-blue-300",
+    },
+    {
+        labelClass:
+            "bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-900/40 dark:text-violet-100 dark:border-violet-700",
+        selectClass:
+            "bg-gray-50 border-violet-400 text-gray-900 dark:bg-gray-700 dark:border-violet-500 dark:text-white",
+        badgeClass: "bg-violet-700 text-white border border-violet-300",
+    },
+    {
+        labelClass:
+            "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-900/40 dark:text-emerald-100 dark:border-emerald-700",
+        selectClass:
+            "bg-gray-50 border-emerald-400 text-gray-900 dark:bg-gray-700 dark:border-emerald-500 dark:text-white",
+        badgeClass: "bg-emerald-700 text-white border border-emerald-300",
+    },
+] as const;
+
 export default function TierlistDisplay({
     tierlistData,
     onCardClick,
@@ -43,6 +88,9 @@ export default function TierlistDisplay({
     });
     const [showOwnedOnly, setShowOwnedOnly] = useState(false);
     const [ownedCards, setOwnedCards] = useState<Map<number, number>>(new Map());
+    const [selectedSubstatSlots, setSelectedSubstatSlots] = useState<SelectedSubstatSlot[]>(
+        DEFAULT_SUBSTAT_SLOTS,
+    );
 
     // Load owned cards from localStorage
     useEffect(() => {
@@ -206,7 +254,63 @@ export default function TierlistDisplay({
             SSR: [0, 4],
         });
         setShowOwnedOnly(false);
+        setSelectedSubstatSlots(DEFAULT_SUBSTAT_SLOTS);
     };
+
+    const handleSubstatSlotChange = (
+        slotIndex: number,
+        value: SelectedSubstatSlot,
+    ) => {
+        setSelectedSubstatSlots((prev) => {
+            const next = [...prev];
+
+            if (value === "") {
+                for (let i = slotIndex; i < next.length; i++) {
+                    next[i] = "";
+                }
+                return next;
+            }
+
+            for (let i = 0; i < next.length; i++) {
+                if (i !== slotIndex && next[i] === value) {
+                    next[i] = "";
+                }
+            }
+
+            if (slotIndex > 0) {
+                for (let i = 0; i < slotIndex; i++) {
+                    if (next[i] === "") {
+                        return next;
+                    }
+                }
+            }
+
+            next[slotIndex] = value;
+            return next;
+        });
+    };
+
+    const firstEmptySlotIndex = selectedSubstatSlots.findIndex(
+        (slot) => slot === "",
+    );
+    const visibleSlotCount =
+        firstEmptySlotIndex === -1
+            ? selectedSubstatSlots.length
+            : firstEmptySlotIndex + 1;
+
+    const selectedSubstatsToDisplay = selectedSubstatSlots
+        .slice(0, visibleSlotCount)
+        .map((effectName, slotIndex) => {
+            if (!effectName) {
+                return null;
+            }
+            return {
+                effectName,
+                slot: slotIndex,
+                badgeClass: SUBSTAT_SLOT_STYLES[slotIndex].badgeClass,
+            };
+        })
+        .filter((value): value is { effectName: SupportEffectName; slot: number; badgeClass: string } => value !== null);
 
     // Calculate score percentiles for dynamic tier assignment (use all cards, not filtered)
     const scores = allCards.map((card) => card.score).sort((a, b) => b - a);
@@ -473,6 +577,44 @@ export default function TierlistDisplay({
                     </div>
                 </div>
 
+                {/* Substat Selector */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Substat Selector:
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {selectedSubstatSlots.slice(0, visibleSlotCount).map((selectedEffect, slotIndex) => {
+                            const slotStyle = SUBSTAT_SLOT_STYLES[slotIndex];
+                            return (
+                                <div key={`substat-slot-${slotIndex}`} className="space-y-1">
+                                    <div
+                                        className={`text-xs px-2 py-1 rounded border font-semibold ${slotStyle.labelClass}`}
+                                    >
+                                        Selection {slotIndex + 1}
+                                    </div>
+                                    <select
+                                        value={selectedEffect}
+                                        onChange={(e) =>
+                                            handleSubstatSlotChange(
+                                                slotIndex,
+                                                e.target.value as SelectedSubstatSlot,
+                                            )
+                                        }
+                                        className={`w-full px-2 py-1.5 rounded border text-sm font-medium ${slotStyle.selectClass}`}
+                                    >
+                                        <option value="">None</option>
+                                        {SUPPORT_EFFECT_NAMES.map((effectName) => (
+                                            <option key={effectName} value={effectName}>
+                                                {effectName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
                 {/* Filter Actions */}
                 <div className="flex items-center gap-2">
                     <button
@@ -532,6 +674,8 @@ export default function TierlistDisplay({
                                             limitBreak={card.limit_break}
                                             cardType={card.card_type}
                                             score={card.score}
+                                            substatsToDisplay={selectedSubstatsToDisplay}
+                                            substatValues={card.support_effects}
                                             onClick={() => onCardClick?.(card)}
                                             isInDeck={isDisabled}
                                             disabledReason={disabledInfo.reason}

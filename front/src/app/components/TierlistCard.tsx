@@ -11,6 +11,12 @@ interface TierlistCardProps {
     limitBreak: number;
     cardType: string;
     score: number;
+    substatsToDisplay?: Array<{
+        effectName: string;
+        slot: number;
+        badgeClass: string;
+    }>;
+    substatValues?: Record<string, number>;
     className?: string;
     onClick?: () => void;
     isInDeck?: boolean;
@@ -29,6 +35,8 @@ function TierlistCard({
     limitBreak,
     cardType,
     score,
+    substatsToDisplay = [],
+    substatValues = {},
     className = "",
     onClick,
     isInDeck = false,
@@ -152,16 +160,26 @@ function TierlistCard({
                     }}
                 />
 
-                {/* Score Overlay - show for both positive and negative scores */}
-                {score !== 0 && (
-                    <div className={`absolute top-0.5 right-0.5 text-white text-sm px-1.5 py-0.5 rounded z-1 font-bold leading-none ${
-                        score > 0 
-                            ? "bg-black bg-opacity-80" 
-                            : "bg-red-600 bg-opacity-90"
-                    }`}>
-                        {score > 0 ? Math.round(score) : Math.round(score)}
-                    </div>
-                )}
+                {/* Score + Selected Substats Overlay */}
+                <div className="absolute top-0.5 right-0.5 z-10 flex flex-col items-end gap-0.5">
+                    {score !== 0 && (
+                        <div className={`text-white text-sm px-1.5 py-0.5 rounded font-bold leading-none ${
+                            score > 0
+                                ? "bg-black bg-opacity-80"
+                                : "bg-red-600 bg-opacity-90"
+                        }`}>
+                            {Math.round(score)}
+                        </div>
+                    )}
+                    {substatsToDisplay.map(({ effectName, slot, badgeClass }) => (
+                        <div
+                            key={`${effectName}-${slot}`}
+                            className={`text-xs px-1.5 py-0.5 rounded font-bold leading-none shadow-sm ring-1 ring-black/20 dark:ring-white/20 ${badgeClass}`}
+                        >
+                            {Math.round(substatValues[effectName] || 0)}
+                        </div>
+                    ))}
+                </div>
 
                 {/* Limit Break Badge */}
                 <div

@@ -580,11 +580,19 @@ export class DeckEvaluator {
 
         // Add race rewards
         const careerRaces = TrainingData.getRaceCareerRewards(scenarioName);
+        const careerRacesFixed = TrainingData.getRaceCareerRewardsFixed(scenarioName);
         const finaleRace = careerRaces.finaleRace || [0, 0, 0, 0, 0, 0];
         const careerRace = careerRaces.careerRace || [0, 0, 0, 0, 0, 0];
         const g1Rewards = careerRaces.G1 || [0, 0, 0, 0, 0, 0];
         const g2or3Rewards = careerRaces.G2or3 || [0, 0, 0, 0, 0, 0];
         const preOPorOPRewards = careerRaces.PreOPorOP || [0, 0, 0, 0, 0, 0];
+
+        // Fixed race rewards (no multiplier)
+        const finaleRaceFixed = careerRacesFixed.finaleRace || [0, 0, 0, 0, 0, 0];
+        const careerRaceFixed = careerRacesFixed.careerRace || [0, 0, 0, 0, 0, 0];
+        const g1RewardsFixed = careerRacesFixed.G1 || [0, 0, 0, 0, 0, 0];
+        const g2or3RewardsFixed = careerRacesFixed.G2or3 || [0, 0, 0, 0, 0, 0];
+        const preOPorOPRewardsFixed = careerRacesFixed.PreOPorOP || [0, 0, 0, 0, 0, 0];
 
         // Always give 8 career race rewards (even if no forced races in scenario)
         totalStatsGained.Speed += finaleRace[0] * 3 + careerRace[0] * 8 * (1 + raceBonus);
@@ -617,6 +625,47 @@ export class DeckEvaluator {
         totalStatsGained.Guts += optionalRaces.PreOPorOP * preOPorOPRewards[3] * (1 + raceBonus);
         totalStatsGained.Wit! += optionalRaces.PreOPorOP * preOPorOPRewards[4] * (1 + raceBonus);
         totalStatsGained["Skill Points"]! += optionalRaces.PreOPorOP * preOPorOPRewards[5] * (1 + raceBonus);
+
+        // Add fixed race rewards (no multipliers, flat amounts)
+        // Finale races: 3 fixed
+        totalStatsGained.Speed += finaleRaceFixed[0] * 3;
+        totalStatsGained.Stamina += finaleRaceFixed[1] * 3;
+        totalStatsGained.Power += finaleRaceFixed[2] * 3;
+        totalStatsGained.Guts += finaleRaceFixed[3] * 3;
+        totalStatsGained.Wit! += finaleRaceFixed[4] * 3;
+        totalStatsGained["Skill Points"]! += finaleRaceFixed[5] * 3;
+
+        // Career races: 8 fixed
+        totalStatsGained.Speed += careerRaceFixed[0] * 8;
+        totalStatsGained.Stamina += careerRaceFixed[1] * 8;
+        totalStatsGained.Power += careerRaceFixed[2] * 8;
+        totalStatsGained.Guts += careerRaceFixed[3] * 8;
+        totalStatsGained.Wit! += careerRaceFixed[4] * 8;
+        totalStatsGained["Skill Points"]! += careerRaceFixed[5] * 8;
+
+        // G1 races: based on optionalRaces.G1 count
+        totalStatsGained.Speed += optionalRaces.G1 * g1RewardsFixed[0];
+        totalStatsGained.Stamina += optionalRaces.G1 * g1RewardsFixed[1];
+        totalStatsGained.Power += optionalRaces.G1 * g1RewardsFixed[2];
+        totalStatsGained.Guts += optionalRaces.G1 * g1RewardsFixed[3];
+        totalStatsGained.Wit! += optionalRaces.G1 * g1RewardsFixed[4];
+        totalStatsGained["Skill Points"]! += optionalRaces.G1 * g1RewardsFixed[5];
+
+        // G2/G3 races: based on optionalRaces.G2or3 count
+        totalStatsGained.Speed += optionalRaces.G2or3 * g2or3RewardsFixed[0];
+        totalStatsGained.Stamina += optionalRaces.G2or3 * g2or3RewardsFixed[1];
+        totalStatsGained.Power += optionalRaces.G2or3 * g2or3RewardsFixed[2];
+        totalStatsGained.Guts += optionalRaces.G2or3 * g2or3RewardsFixed[3];
+        totalStatsGained.Wit! += optionalRaces.G2or3 * g2or3RewardsFixed[4];
+        totalStatsGained["Skill Points"]! += optionalRaces.G2or3 * g2or3RewardsFixed[5];
+
+        // PreOP/OP races: based on optionalRaces.PreOPorOP count
+        totalStatsGained.Speed += optionalRaces.PreOPorOP * preOPorOPRewardsFixed[0];
+        totalStatsGained.Stamina += optionalRaces.PreOPorOP * preOPorOPRewardsFixed[1];
+        totalStatsGained.Power += optionalRaces.PreOPorOP * preOPorOPRewardsFixed[2];
+        totalStatsGained.Guts += optionalRaces.PreOPorOP * preOPorOPRewardsFixed[3];
+        totalStatsGained.Wit! += optionalRaces.PreOPorOP * preOPorOPRewardsFixed[4];
+        totalStatsGained["Skill Points"]! += optionalRaces.PreOPorOP * preOPorOPRewardsFixed[5];
 
         // Add scenario bonuses
         const scenarioBonus = TrainingData.getScenarioBonusStats(scenarioName);

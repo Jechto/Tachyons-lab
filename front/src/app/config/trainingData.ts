@@ -1,6 +1,56 @@
 // Training data constants ported from training_data.py
 export class TrainingData {
     private static readonly baseStats = {
+        MANT: {
+            name: "Trackblazers",
+            // Assuming a 20% stat increase from base stats (megaphone)
+            training: {
+                Speed: [8*1.2, 0, 4*1.2, 0, 0, 2*1.2, -19],
+                Stamina: [0, 7*1.2, 0, 3*1.2, 0, 2*1.2, -17],
+                Power: [0, 4*1.2, 6*1.2, 0, 0, 2*1.2, -18],
+                Guts: [3*1.2, 0, 3*1.2, 6*1.2, 0, 4*1.2, -20],
+                Intelligence: [2*1.2, 0, 0, 0, 6*1.2, 3*1.2, 5],
+            },
+            facilityMultipliers: {
+                Speed: 1 / 8,
+                Stamina: 1 / 7,
+                Power: 1 / 6,
+                Guts: 1 / 6,
+                Intelligence: 1 / 6,
+            },
+            maxStats: {
+                Speed: 1200,
+                Stamina: 1200,
+                Power: 1200,
+                Guts: 1200,
+                Intelligence: 1200
+            },
+            ForcedRaces: 0,
+            DefaultOptional: [2+6+8, 5+5+5, 1+0+0], // G1, G2or3, PreOPorOP
+            raceCareerRewards: {
+                finaleRace: [10*1.35, 10*1.35, 10*1.35, 10*1.35, 10*1.35, 60*1.35], // assuming we use 3 golden hammers on finale.
+                careerRace: [3, 3, 3, 3, 3, 45],
+                G1: [2*1.2, 2*1.2, 2*1.2, 2*1.2, 2*1.2, 45*1.2], // assuming we use normal hammers on G1s
+                G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
+                PreOPorOP: [1, 1, 1, 1, 1, 15],
+            },
+            raceCareerRewardsFixed: { // Assuming we have 2 scrolls to use after each race. scrolls are random. 
+                finaleRace: [6, 6, 6, 6, 6, 0],
+                careerRace: [6, 6, 6, 6, 6, 0],
+                G1: [6, 6, 6, 6, 6, 0],
+                G2or3: [6, 6, 6, 6, 6, 0],
+                PreOPorOP: [6, 6, 6, 6, 6, 0],
+            },
+            // 31 are the level up rewards F -> S
+            scenarioBonusStats: {
+                Speed: 15+21,
+                Stamina: 15+21,
+                Power: 15+21,
+                Guts: 15+21,
+                Intelligence: 15+21,
+            },
+            scenarioTrainingDistributedBonusStats: 0,
+        },
         URA: {
             name: "URA Finals",
             training: {
@@ -27,6 +77,13 @@ export class TrainingData {
             ForcedRaces: 8,
             DefaultOptional: [0, 0, 0], // G1, G2or3, PreOPorOP
             raceCareerRewards: {
+                finaleRace: [10, 10, 10, 10, 10, 60],
+                careerRace: [3, 3, 3, 3, 3, 45],
+                G1: [2, 2, 2, 2, 2, 45],
+                G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
+                PreOPorOP: [1, 1, 1, 1, 1, 15],
+            },
+            raceCareerRewardsFixed: {
                 finaleRace: [10, 10, 10, 10, 10, 60],
                 careerRace: [3, 3, 3, 3, 3, 45],
                 G1: [2, 2, 2, 2, 2, 45],
@@ -75,6 +132,13 @@ export class TrainingData {
                 G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
                 PreOPorOP: [1, 1, 1, 1, 1, 15],
             },
+            raceCareerRewardsFixed: {
+                finaleRace: [10, 10, 10, 10, 10, 60],
+                careerRace: [3, 3, 3, 3, 3, 45],
+                G1: [2, 2, 2, 2, 2, 45],
+                G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
+                PreOPorOP: [1, 1, 1, 1, 1, 15],
+            },
             // 31 are the level up rewards F -> S
             scenarioBonusStats: {
                 Speed: 15+31,
@@ -85,49 +149,6 @@ export class TrainingData {
             },
             scenarioTrainingDistributedBonusStats: 8*15+8*7, // 8 spirit bursts of 15 mainstat + 7 substat each assumed
         },
-        MANT: {
-            name: "MANT (not complete)",
-            // A flat assumption of an average 2 UMA unity training (white flame training). With the rare 3 Uma trainings (+0.25 to second stat)
-            training: {
-                Speed: [8, 0, 4, 0, 0, 2, -19],
-                Stamina: [0, 7, 0, 3, 0, 2, -17],
-                Power: [0, 4, 6, 0, 0, 2, -18],
-                Guts: [3, 0, 3, 6, 0, 4, -20],
-                Intelligence: [2, 0, 0, 0, 6, 3, 5],
-            },
-            facilityMultipliers: {
-                Speed: 1 / 8,
-                Stamina: 1 / 7,
-                Power: 1 / 6,
-                Guts: 1 / 6,
-                Intelligence: 1 / 6,
-            },
-            maxStats: {
-                Speed: 1200,
-                Stamina: 1200,
-                Power: 1200,
-                Guts: 1200,
-                Intelligence: 1200
-            },
-            ForcedRaces: 0,
-            DefaultOptional: [10, 4, 1], // G1, G2or3, PreOPorOP
-            raceCareerRewards: {
-                finaleRace: [10, 10, 10, 10, 10, 60],
-                careerRace: [3, 3, 3, 3, 3, 45],
-                G1: [2, 2, 2, 2, 2, 45],
-                G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
-                PreOPorOP: [1, 1, 1, 1, 1, 15],
-            },
-            // 31 are the level up rewards F -> S
-            scenarioBonusStats: {
-                Speed: 15,
-                Stamina: 15,
-                Power: 15,
-                Guts: 15,
-                Intelligence: 15,
-            },
-            scenarioTrainingDistributedBonusStats: 0,
-        }
     };
 
     static getBaseTrainingStats(
@@ -154,6 +175,15 @@ export class TrainingData {
         return (
             this.baseStats[scenarioName as keyof typeof this.baseStats]
                 ?.raceCareerRewards || {}
+        );
+    }
+
+    static getRaceCareerRewardsFixed(
+        scenarioName: string = "URA",
+    ): Record<string, number[]> {
+        return (
+            this.baseStats[scenarioName as keyof typeof this.baseStats]
+                ?.raceCareerRewardsFixed || {}
         );
     }
 

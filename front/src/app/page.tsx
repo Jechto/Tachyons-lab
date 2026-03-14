@@ -49,13 +49,14 @@ export default function Home() {
     const [isManualDistribution, setIsManualDistribution] = useState(false);
     const [manualDistribution, setManualDistribution] = useState<number[] | null>(null);
     const [calculatedDistribution, setCalculatedDistribution] = useState<number[]>([0.2, 0.2, 0.2, 0.2, 0.2]);
-    const [selectedScenario, setSelectedScenario] = useState<string>("Unity");
+    const [selectedScenario, setSelectedScenario] = useState<string>("MANT");
     const [optionalRaces, setOptionalRaces] = useState<{G1: number, G2or3: number, PreOPorOP: number}>(() => {
-        const defaults = TrainingData.getDefaultOptional("Unity");
+        const defaults = TrainingData.getDefaultOptional("MANT");
         return {G1: defaults[0], G2or3: defaults[1], PreOPorOP: defaults[2]};
     });
     const [averageMood, setAverageMood] = useState<number>(15);
     const [tempAverageMood, setTempAverageMood] = useState<number>(15); // Temporary state for slider
+    const [statsVersion, setStatsVersion] = useState<number>(0);
 
     // Debounce timer ref for auto-regeneration
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -158,6 +159,7 @@ export default function Home() {
                 };
                 setCurrentDeck((prev) => [...prev, deckCard]);
                 setDeckCardIds((prev) => new Set([...prev, cardKey]));
+                setStatsVersion((v) => v + 1);
                 // useEffect will handle automatic regeneration
             }
         });
@@ -166,6 +168,7 @@ export default function Home() {
     const clearDeck = () => {
         setCurrentDeck([]);
         setDeckCardIds(new Set());
+        setStatsVersion((v) => v + 1);
         // useEffect will handle automatic regeneration
     };
 
@@ -311,6 +314,7 @@ export default function Home() {
                 averageMood,
             );
             setTierlistResult(result);
+            setStatsVersion((v) => v + 1);
         } catch (error) {
             setTierlistResult({ success: false, error: error?.toString() } as TierlistError);
         } finally {
@@ -812,6 +816,7 @@ export default function Home() {
                     manualDistribution={isManualDistribution ? manualDistribution : null}
                     optionalRaces={optionalRaces}
                     averageMood={averageMood}
+                    statsVersion={statsVersion}
                 />
             </div>
 

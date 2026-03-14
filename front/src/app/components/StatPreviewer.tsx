@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { DeckEvaluator } from "../classes/DeckEvaluator";
 import { SupportCard } from "../classes/SupportCard";
@@ -51,6 +51,7 @@ interface StatPreviewerProps {
     manualDistribution?: number[] | null;
     optionalRaces?: {G1: number, G2or3: number, PreOPorOP: number};
     averageMood?: number;
+    statsVersion?: number;
 }
 
 interface StatData {
@@ -76,12 +77,40 @@ export default function StatPreviewer({
     allData,
     deckStats,
     scoreBreakdown,
-    scenarioName = "URA",
+    scenarioName = "MANT",
     manualDistribution = null,
     optionalRaces = {G1: 0, G2or3: 0, PreOPorOP: 0},
     averageMood = 0,
+    statsVersion = 0,
 }: StatPreviewerProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [cachedStats, setCachedStats] = useState<{ currentStats: StatData; statDifference: StatDifference } | null>(null);
+
+    // Use refs to store latest values for the effect to access
+    const currentDeckRef = useRef(currentDeck);
+    const deckStatsRef = useRef(deckStats);
+    const scenarioNameRef = useRef(scenarioName);
+    const manualDistributionRef = useRef(manualDistribution);
+    const averageMoodRef = useRef(averageMood);
+
+    // Keep refs updated
+    currentDeckRef.current = currentDeck;
+    deckStatsRef.current = deckStats;
+    scenarioNameRef.current = scenarioName;
+    manualDistributionRef.current = manualDistribution;
+    averageMoodRef.current = averageMood;
+
+    // Update cached stats only when statsVersion changes
+    useEffect(() => {
+        const newStats = calculateStatDifference(
+            currentDeckRef.current,
+            deckStatsRef.current,
+            scenarioNameRef.current,
+            manualDistributionRef.current,
+            averageMoodRef.current
+        );
+        setCachedStats(newStats);
+    }, [statsVersion]);
 
     // Load expansion state
     useEffect(() => {
@@ -96,9 +125,26 @@ export default function StatPreviewer({
         localStorage.setItem("tachyons_stat_preview_expanded", String(isExpanded));
     }, [isExpanded]);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const calculateStatDifference = (
         currentDeck: DeckCard[],
+        deckStats?: {
+            Speed: number;
+            Stamina: number;
+            Power: number;
+            Guts: number;
+            Wit?: number;
+            "Skill Points"?: number;
+        },
+        scenarioNameProp?: string,
+        manualDistributionProp?: number[] | null,
+        averageMoodProp?: number,
     ): { currentStats: StatData; statDifference: StatDifference } => {
+        // Use passed props or fall back to component props
+        const scenario = scenarioNameProp ?? scenarioName;
+        const mood = averageMoodProp ?? averageMood;
+        const manualDist = manualDistributionProp ?? manualDistribution;
+        
         // If we have deckStats from the API, use those for the delta stats
         if (deckStats) {
             // deckStats from API are the delta stats (support card contributions)
@@ -115,11 +161,11 @@ export default function StatPreviewer({
             // We need to get base stats from an empty deck
             try {
                 const emptyDeckEvaluator = new DeckEvaluator();
-                if (manualDistribution) {
-                    emptyDeckEvaluator.setManualDistribution(manualDistribution);
+                if (manualDist) {
+                    emptyDeckEvaluator.setManualDistribution(manualDist);
                 }
                 // Base stats should be calculated with 0 optional races to correctly show the delta
-                const baseStats = emptyDeckEvaluator.evaluateStats(scenarioName, averageMood, {G1: 0, G2or3: 0, PreOPorOP: 0});
+                const baseStats = emptyDeckEvaluator.evaluateStats(scenario, mood, {G1: 0, G2or3: 0, PreOPorOP: 0});
 
                 const totalStats = {
                     Speed: Math.round(
@@ -172,8 +218,10 @@ export default function StatPreviewer({
         };
     };
 
-    const { currentStats, statDifference } =
-        calculateStatDifference(currentDeck);
+    const { currentStats, statDifference } = cachedStats || {
+        currentStats: { Speed: 0, Stamina: 0, Power: 0, Guts: 0, Wit: 0, "Skill Points": 0 },
+        statDifference: { Speed: 0, Stamina: 0, Power: 0, Guts: 0, Wit: 0, "Skill Points": 0 }
+    };
 
     const getStatColor = (value: number): string => {
         if (value > 0) return "text-green-600 dark:text-green-400";

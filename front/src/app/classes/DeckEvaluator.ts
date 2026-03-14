@@ -684,6 +684,9 @@ export class DeckEvaluator {
             totalStatsGained.Wit! += scenarioDistributedBonus * trainingDistribution[4];
         }
 
+        // Record total race bonus as a percentage (e.g. 0.25 -> 25)
+        totalStatsGained["Race Bonus"] = raceBonus * 100;
+
         return totalStatsGained;
     }
 

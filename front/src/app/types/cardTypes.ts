@@ -113,6 +113,7 @@ export interface StatsDict {
     Bond?: number;
     "Skill Hint"?: number;
     "Skill Points"?: number;
+    "Race Bonus"?: number;
 }
 
 export interface HintEvaluation {

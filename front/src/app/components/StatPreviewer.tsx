@@ -32,6 +32,8 @@ interface StatPreviewerProps {
         staminaPenaltyReason: string;
         speedPenalty: number;
         speedPenaltyReason: string;
+        raceBonusPenalty: number;
+        raceBonusPenaltyReason: string;
         usefulHintsPenalty: number;
         usefulHintsPenaltyReason: string;
         statOverbuiltPenalty: number;
@@ -590,6 +592,37 @@ export default function StatPreviewer({
                                                 </div>
                                                 <div className="mt-1 text-xs text-blue-600 dark:text-blue-400 col-span-4">
                                                     {scoreBreakdown.speedPenaltyReason}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Race Bonus Penalty (Trackblazers only) */}
+                                        {scoreBreakdown.raceBonusPenalty < 1 && (
+                                            <div className="px-3 py-2 bg-purple-50 dark:bg-purple-900/20">
+                                                <div className="grid grid-cols-4 gap-3 items-center">
+                                                    <div className="col-span-3 flex items-center gap-2">
+                                                        <span className="text-sm text-purple-600 dark:text-purple-400">
+                                                            🐎 Race Bonus Penalty
+                                                        </span>
+                                                        <div className="text-xs text-purple-500 dark:text-purple-400">
+                                                            (
+                                                            {(
+                                                                100 -
+                                                                scoreBreakdown.raceBonusPenalty * 100
+                                                            ).toFixed(0)}
+                                                            % reduction)
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right text-sm font-semibold text-purple-600 dark:text-purple-400 font-mono">
+                                                        -
+                                                        {(
+                                                            scoreBreakdown.baseScore *
+                                                            (1 - scoreBreakdown.raceBonusPenalty)
+                                                        ).toFixed(0)}
+                                                    </div>
+                                                </div>
+                                                <div className="mt-1 text-xs text-purple-600 dark:text-purple-400 col-span-4">
+                                                    {scoreBreakdown.raceBonusPenaltyReason}
                                                 </div>
                                             </div>
                                         )}

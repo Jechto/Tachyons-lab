@@ -33,6 +33,8 @@ interface TierlistDeck {
         staminaPenaltyReason: string;
         speedPenalty: number;
         speedPenaltyReason: string;
+        raceBonusPenalty: number;
+        raceBonusPenaltyReason: string;
         usefulHintsPenalty: number;
         usefulHintsPenaltyReason: string;
         statOverbuiltPenalty: number;
@@ -245,6 +247,8 @@ export class Tierlist {
                 staminaPenaltyReason: "",
                 speedPenalty: 0,
                 speedPenaltyReason: "",
+                raceBonusPenalty: 0,
+                raceBonusPenaltyReason: "",
                 usefulHintsPenalty: 0,
                 usefulHintsPenaltyReason: "",
                 statOverbuiltPenalty: 0,
@@ -331,6 +335,8 @@ export class Tierlist {
             hintsForDeck,
             weights,
             raceTypes,
+            ACTIVE_PENALTY_CONFIG,
+            scenarioName,
         );
 
         // Generate score breakdown for the deck using the delta stats
@@ -340,6 +346,8 @@ export class Tierlist {
             hintsForDeck,
             weights,
             raceTypes,
+            ACTIVE_PENALTY_CONFIG,
+            scenarioName,
         );
 
         const results: TierlistEntry[] = [];
@@ -422,6 +430,8 @@ export class Tierlist {
                         deckHints, // hints of deck + this card
                         weights,
                         raceTypes,
+                        ACTIVE_PENALTY_CONFIG,
+                        scenarioName,
                     );
 
                     // The card's actual impact is the difference between new deck score and current deck score
@@ -544,6 +554,7 @@ export class Tierlist {
         weights: Record<string, number>,
         raceTypes?: RaceTypes,
         penaltyConfig: PenaltyConfig = ACTIVE_PENALTY_CONFIG,
+        scenarioName: string = "URA",
     ): number {
         // Clamp stats to max values before calculating score
         const maxStats = TrainingData.getMaxStats("URA"); // Assuming URA for now, or pass scenario
@@ -623,9 +634,23 @@ export class Tierlist {
 
         // Stat overbuilt penalty removed as requested
 
+        // Trackblazers race bonus penalty
+        let raceBonusPenaltyPercent = 0;
+        if (scenarioName === "MANT") {
+            // Race bonus comes from DeckEvaluator as a raw stat field
+            const raceBonus = rawStats["Race Bonus"] || 0;
+
+            // If race bonus is below 50, apply 5% penalty for each 5 below 50 (max 25%)
+            if (raceBonus < 50) {
+                const deficiency = 50 - raceBonus;
+                const penaltyLevels = Math.floor(deficiency / 5);
+                raceBonusPenaltyPercent = Math.min(penaltyLevels * 0.05, 0.25);
+            }
+        }
+
         // Apply additive penalties (like taxes)
         const totalPenaltyPercent =
-            staminaPenaltyPercent + speedPenaltyPercent;
+            staminaPenaltyPercent + speedPenaltyPercent + raceBonusPenaltyPercent;
         const finalMultiplier = 1.0 - totalPenaltyPercent;
 
         const finalScore = baseScore * finalMultiplier;
@@ -640,6 +665,7 @@ export class Tierlist {
         weights: Record<string, number>,
         raceTypes?: RaceTypes,
         penaltyConfig: PenaltyConfig = ACTIVE_PENALTY_CONFIG,
+        scenarioName: string = "URA",
     ): {
         totalScore: number;
         baseScore: number;
@@ -647,6 +673,8 @@ export class Tierlist {
         staminaPenaltyReason: string;
         speedPenalty: number;
         speedPenaltyReason: string;
+        raceBonusPenalty: number;
+        raceBonusPenaltyReason: string;
         usefulHintsPenalty: number;
         usefulHintsPenaltyReason: string;
         statOverbuiltPenalty: number;
@@ -810,9 +838,28 @@ export class Tierlist {
         const statOverbuiltPenaltyReason = "No penalty: Overbuilt penalty disabled";
         const statOverbuiltPenaltyPercent = 0;
 
+        // Trackblazers race bonus penalty
+        let raceBonusPenaltyPercent = 0;
+        let raceBonusPenalty = 1.0;
+        let raceBonusPenaltyReason = "No penalty: Not Trackblazers scenario";
+        
+        if (scenarioName === "MANT") {
+            const raceBonus = rawStats["Race Bonus"] || 0;
+
+            if (raceBonus < 50) {
+                const deficiency = 50 - raceBonus;
+                const penaltyLevels = Math.floor(deficiency / 5);
+                raceBonusPenaltyPercent = Math.min(penaltyLevels * 0.05, 0.25);
+                raceBonusPenalty = 1.0 - raceBonusPenaltyPercent;
+                raceBonusPenaltyReason = `${Math.round(raceBonusPenaltyPercent * 100)}% penalty: Race bonus ${Math.round(raceBonus)} is below 50 (deficiency: ${Math.round(deficiency)})`;
+            } else {
+                raceBonusPenaltyReason = `No penalty: Race bonus ${Math.round(raceBonus)} meets threshold of 50`;
+            }
+        }
+
         // Apply additive penalties (like taxes)
         const totalPenaltyPercent =
-            staminaPenaltyPercent + speedPenaltyPercent + statOverbuiltPenaltyPercent;
+            staminaPenaltyPercent + speedPenaltyPercent + statOverbuiltPenaltyPercent + raceBonusPenaltyPercent;
         const finalMultiplier = 1.0 - totalPenaltyPercent;
         const totalScore = baseScore * finalMultiplier;
 
@@ -823,6 +870,8 @@ export class Tierlist {
             staminaPenaltyReason,
             speedPenalty,
             speedPenaltyReason,
+            raceBonusPenalty,
+            raceBonusPenaltyReason,
             usefulHintsPenalty,
             usefulHintsPenaltyReason,
             statOverbuiltPenalty,

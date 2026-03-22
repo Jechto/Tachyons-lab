@@ -856,13 +856,21 @@ export default function Home() {
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-blue-600 dark:text-blue-400 hover:underline"
-                    >GameTora</a></p>
+                    ></a></p>
                     <p>Inspired by <a 
                         href="https://euophrys.github.io/uma-tiers/" 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-blue-600 dark:text-blue-400 hover:underline"
                     >uma-tiers</a></p>
+                    <p>Source code available on
+                        <a 
+                        href="https://github.com/Jechto/Tachyons-lab"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:underline"
+                    > github</a>
+                    </p>
                 </div>
                 
                 {/* Legal Disclaimer */}

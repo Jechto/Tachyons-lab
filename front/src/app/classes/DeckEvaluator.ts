@@ -261,6 +261,7 @@ export class DeckEvaluator {
         scenarioName: string = "URA",
         averageMoodBonus: number = 20,
         optionalRaces: {G1: number, G2or3: number, PreOPorOP: number} = {G1: 0, G2or3: 0, PreOPorOP: 0},
+        debug: boolean = false,
     ): StatsDict {
         const trainingDistribution = this.getTrainingDistribution();
         const forcedRaces = TrainingData.getForcedRaces(scenarioName);
@@ -345,11 +346,13 @@ export class DeckEvaluator {
                 ? card.cardBonus["Specialty Priority"] || 0 
                 : 0;
             
-            // Base 20% chance + specialty bonus
-            const rainbowSpecialty = Math.min(1.0, 0.2 + (specialtyRate / 100));
-            
-            // Off-specialty is base 20% divided by 4 other facilities
-            const offSpecialty = 0.05;
+            // Total weight = (100 + specialtyPriority) + 4*100 + 50 = 550 + specialtyPriority
+            // Specialty:    (100 + specialtyPriority) / (550 + specialtyPriority) ~18% base
+            // Off-specialty: 100 / (550 + specialtyPriority)
+            // No appearance:  50 / (550 + specialtyPriority)
+            const totalWeight = 550 + specialtyRate;
+            const rainbowSpecialty = (100 + specialtyRate) / totalWeight;
+            const offSpecialty = 100 / totalWeight;
 
             cardAppearances.push({
                 card: card,
@@ -470,11 +473,48 @@ export class DeckEvaluator {
                 // Track gains for debug
                 const totalTurnGains = [0, 0, 0, 0, 0, 0];
                 let totalProbability = 0;
-                
+
+                // Pre-compute probability that NO specialty cards appear at this facility
+                let probabilityNoneAppear = 1.0;
+                for (const card of facilityCards) {
+                    probabilityNoneAppear *= (1 - card.rainbowSpecialty);
+                }
+
+                let lastPrintedLevel = -1;
+
                 // For each turn, evaluate all possible combinations
                 for (let turn = 0; turn < Math.ceil(turnsToTrainAtThisFacility); turn++) {
                     const facilityMultiplier = 1 + Math.min(Math.floor(turn / 4), 4) * facilityMultiplierValue;
-                    
+                    const currentLevel = Math.min(Math.floor(turn / 4), 4);
+
+                    // Print stats + probability table once per facility level
+                    if (debug && currentLevel !== lastPrintedLevel) {
+                        lastPrintedLevel = currentLevel;
+                        console.log(`\n=== Facility: ${name} | Level ${currentLevel + 1}/5 (multiplier: ${facilityMultiplier.toFixed(3)}) ===`);
+                        const tableData: { cards: string; prob: string; Speed: number; Stamina: number; Power: number; Guts: number; Wit: number; SP: number }[] = [];
+                        for (const combo of allCombinations) {
+                            const prob = this.calculateCombinationProbability(combo, facilityCards, name);
+                            const primary = combo[0].card;
+                            const others = combo.slice(1);
+                            const bonded = turn >= primary.turnsToMaxBond;
+                            const g = this.calculateTrainingGains(coreStats, others, primary, name, bonded, scenarioName, facilityMultiplier, moodBonus, globalTrainingEffectiveness[index]);
+                            tableData.push({
+                                cards: combo.map(c => c.card.cardUma?.name || `Card${c.index}`).join(' + '),
+                                prob: (prob * 100).toFixed(1) + '%',
+                                Speed: g[0], Stamina: g[1], Power: g[2], Guts: g[3], Wit: g[4], SP: g[5],
+                            });
+                        }
+                        // No-card baseline
+                        const baseTE = 1.0 + globalTrainingEffectiveness[index];
+                        const noG = coreStats.map(stat => Math.floor(stat * facilityMultiplier * moodBonus * baseTE));
+                        tableData.push({
+                            cards: '(no cards)',
+                            prob: (probabilityNoneAppear * 100).toFixed(1) + '%',
+                            Speed: noG[0], Stamina: noG[1], Power: noG[2], Guts: noG[3], Wit: noG[4], SP: noG[5] || 0,
+                        });
+                        console.table(tableData);
+                    }
+
                     // Calculate expected gains across all combinations
                     const expectedGains = [0, 0, 0, 0, 0, 0];
                     let turnProbSum = 0;
@@ -536,11 +576,6 @@ export class DeckEvaluator {
                 }
                 
                 // Add base training for turns when NO cards appear
-                // Calculate probability that NO cards appear
-                let probabilityNoneAppear = 1.0;
-                for (const card of facilityCards) {
-                    probabilityNoneAppear *= (1 - card.rainbowSpecialty);
-                }
                 const noCardProbability = probabilityNoneAppear;
                 
                 let noCardGuts = 0;

@@ -208,7 +208,7 @@ export class Tierlist {
 
         // Create a deep copy of the deck
         const originalDeck = this.deepCopyDeck(deckObject);
-        const baseResultForDeck = deckObject.evaluateStats(scenarioName, averageMood, optionalRaces);
+        const baseResultForDeck = deckObject.evaluateStats(scenarioName, averageMood, optionalRaces, true);
         
         const emptyDeckEvaluator = new DeckEvaluator();
         if (deckObject.manualDistribution) {

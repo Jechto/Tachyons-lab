@@ -114,6 +114,11 @@ export class SkillHintEvaluator {
             statWeights.Stamina * ability_value/10000 +
             statWeights.Power * ability_value/10000;
         }
+        if (ability_type === 3) {
+            return statWeights.Speed * ability_value/10000 +
+            statWeights.Power * ability_value/10000
+        }
+
         if (ability_type === 9) { // Stamina Recovery
             return statWeights.Stamina * ability_value * 200/550; // Approximation based on in-game effectiveness, Swinging Maestro = approx 200 stam
         }
@@ -270,7 +275,10 @@ export class SkillHintEvaluator {
             return 0.8;
         }
         if (field === "post_number") {
-            return 0.125
+            return 0.125;
+        }
+        if (field === "ground_condition") {
+            return 0.33;
         }
         // Default for unimplemented field types
         return this.getSkillWitProcChance(this.wit);

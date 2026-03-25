@@ -61,6 +61,14 @@ export default function Home() {
     // Debounce timer ref for auto-regeneration
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+    // Stale flag: true when params changed but tierlist hasn't been recalculated
+    const [paramsStale, setParamsStale] = useState(false);
+
+    useEffect(() => {
+        if (tierlistResult) setParamsStale(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedRaces, selectedStyles, isManualDistribution, manualDistribution, selectedScenario, tempAverageMood, optionalRaces]);
+
     // Update optional races when scenario changes
     useEffect(() => {
         const defaults = TrainingData.getDefaultOptional(selectedScenario);
@@ -314,6 +322,7 @@ export default function Home() {
                 averageMood,
             );
             setTierlistResult(result);
+            setParamsStale(false);
             setStatsVersion((v) => v + 1);
         } catch (error) {
             setTierlistResult({ success: false, error: error?.toString() } as TierlistError);
@@ -805,8 +814,19 @@ export default function Home() {
                 </div>
             </div>
 
+            {/* Stat Previewer + Tierlist Results — wrapped so stale overlay covers both */}
+            <div className="relative w-full max-w-6xl">
+            {paramsStale && tierlistResult && (
+                <div className="absolute inset-0 bg-gray-900/60 rounded-lg z-10 flex items-start justify-center pt-8">
+                    <div className="bg-gray-800 text-white text-center px-6 py-4 rounded-lg shadow-xl">
+                        <p className="text-lg font-semibold">Parameters Updated</p>
+                        <p className="text-sm text-gray-300 mt-1">Recalculate Tierlist</p>
+                    </div>
+                </div>
+            )}
+
             {/* Stat Previewer */}
-            <div className="w-full max-w-6xl mb-8 min-h-[200px]">
+            <div className="w-full mb-8 min-h-[200px]">
                 <StatPreviewer
                     currentDeck={currentDeck}
                     allData={allDataRaw as CardData[]}
@@ -840,6 +860,8 @@ export default function Home() {
                     )}
                 </div>
             )}
+
+            </div>{/* end stale overlay wrapper */}
 
             <div className="mt-8 text-center text-gray-500 dark:text-gray-400">
                 <p className="text-lg font-medium mb-4">Uma Musume support card optimization tools</p>

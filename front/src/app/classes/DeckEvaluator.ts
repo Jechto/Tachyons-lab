@@ -240,7 +240,7 @@ export class DeckEvaluator {
                 friendshipBonus *
                 crowdBonus
             );
-            gains[i] = Math.min(calculatedGain, 100);
+            gains[i] = calculatedGain;
         }
 
         // Skill points (if applicable, not capped)
@@ -487,71 +487,96 @@ export class DeckEvaluator {
                     const facilityMultiplier = 1 + Math.min(Math.floor(turn / 4), 4) * facilityMultiplierValue;
                     const currentLevel = Math.min(Math.floor(turn / 4), 4);
 
-                    // Print stats + probability table once per facility level
-                    if (debug && currentLevel !== lastPrintedLevel) {
-                        lastPrintedLevel = currentLevel;
-                        console.log(`\n=== Facility: ${name} | Level ${currentLevel + 1}/5 (multiplier: ${facilityMultiplier.toFixed(3)}) ===`);
-                        const tableData: { cards: string; prob: string; Speed: number; Stamina: number; Power: number; Guts: number; Wit: number; SP: number }[] = [];
-                        for (const combo of allCombinations) {
-                            const prob = this.calculateCombinationProbability(combo, facilityCards, name);
-                            const primary = combo[0].card;
-                            const others = combo.slice(1);
-                            const bonded = turn >= primary.turnsToMaxBond;
-                            const g = this.calculateTrainingGains(coreStats, others, primary, name, bonded, scenarioName, facilityMultiplier, moodBonus, globalTrainingEffectiveness[index]);
-                            tableData.push({
-                                cards: combo.map(c => c.card.cardUma?.name || `Card${c.index}`).join(' + '),
-                                prob: (prob * 100).toFixed(1) + '%',
-                                Speed: g[0], Stamina: g[1], Power: g[2], Guts: g[3], Wit: g[4], SP: g[5],
-                            });
-                        }
-                        // No-card baseline
-                        const baseTE = 1.0 + globalTrainingEffectiveness[index];
-                        const noG = coreStats.map(stat => Math.floor(stat * facilityMultiplier * moodBonus * baseTE));
-                        tableData.push({
-                            cards: '(no cards)',
-                            prob: (probabilityNoneAppear * 100).toFixed(1) + '%',
-                            Speed: noG[0], Stamina: noG[1], Power: noG[2], Guts: noG[3], Wit: noG[4], SP: noG[5] || 0,
-                        });
-                        console.table(tableData);
-                    }
+                    // Baseline (no-card) stats for this turn
+                    const baseTE = 1.0 + globalTrainingEffectiveness[index];
+                    const baseStatsPerTurn = coreStats.map((stat) =>
+                        Math.floor(stat * facilityMultiplier * moodBonus * baseTE)
+                    );
 
-                    // Calculate expected gains across all combinations
-                    const expectedGains = [0, 0, 0, 0, 0, 0];
+                    // Build unified entry list: all card combos + no-card case
+                    type Entry = { label: string; gains: number[]; probability: number; totalStats: number; usedProb: number };
+                    const allEntries: Entry[] = [];
                     let turnProbSum = 0;
-                    
+
                     for (const combination of allCombinations) {
-                        // Calculate probability of this exact combination appearing
-                        const probability = this.calculateCombinationProbability(
-                            combination,
-                            facilityCards,
-                            name
-                        );
-                        
-                        turnProbSum += probability;
-                        
-                        // Pick the first card in the combination as the "primary" card for bonus calculation
+                        const probability = this.calculateCombinationProbability(combination, facilityCards, name);
                         const primaryCard = combination[0].card;
                         const otherCards = combination.slice(1);
                         const isBonded = turn >= primaryCard.turnsToMaxBond;
-                        
                         const gains = this.calculateTrainingGains(
-                            coreStats,
-                            otherCards,
-                            primaryCard,
-                            name,
-                            isBonded,
-                            scenarioName,
-                            facilityMultiplier,
-                            moodBonus,
-                            globalTrainingEffectiveness[index]
+                            coreStats, otherCards, primaryCard, name, isBonded,
+                            scenarioName, facilityMultiplier, moodBonus, globalTrainingEffectiveness[index]
                         );
-                        
+                        turnProbSum += probability;
+                        allEntries.push({
+                            label: combination.map(c => c.card.cardUma?.name || `Card${c.index}`).join(' + '),
+                            gains,
+                            probability,
+                            totalStats: gains.reduce((a, b) => a + b, 0),
+                            usedProb: 0,
+                        });
+                    }
+                    // No-card entry — always last after sort (lowest stats)
+                    allEntries.push({
+                        label: '(no cards)',
+                        gains: [...baseStatsPerTurn, 0],
+                        probability: probabilityNoneAppear,
+                        totalStats: baseStatsPerTurn.reduce((a, b) => a + b, 0),
+                        usedProb: 0,
+                    });
+
+                    // Sort best → worst by total stats
+                    allEntries.sort((a, b) => b.totalStats - a.totalStats);
+
+                    // Keep top trainingDistribution[index] probability mass.
+                    // Simulates a player only choosing to train here when good combos are present.
+                    const targetProb = trainingDistribution[index];
+                    let accumulated = 0;
+                    const selectedEntries: { gains: number[]; probability: number }[] = [];
+                    for (const entry of allEntries) {
+                        if (accumulated >= targetProb) break;
+                        const usedProb = Math.min(entry.probability, targetProb - accumulated);
+                        selectedEntries.push({ gains: entry.gains, probability: usedProb });
+                        entry.usedProb = usedProb;
+                        accumulated += usedProb;
+                    }
+
+                    // Renormalize selected probabilities to sum to 1
+                    const selectedProbSum = selectedEntries.reduce((s, e) => s + e.probability, 0);
+
+                    // Debug table once per level (sorted, with kept marker)
+                    // Expected gains from selected (renormalized) entries
+                    const expectedGains = [0, 0, 0, 0, 0, 0];
+                    for (const entry of selectedEntries) {
+                        const normProb = selectedProbSum > 0 ? entry.probability / selectedProbSum : 0;
                         for (let i = 0; i < 6; i++) {
-                            expectedGains[i] += gains[i] * probability;
-                            //console.log(i,gains[i],probability)
+                            expectedGains[i] += (entry.gains[i] ?? 0) * normProb;
                         }
                     }
-                    
+
+                    if (debug && currentLevel !== lastPrintedLevel) {
+                        lastPrintedLevel = currentLevel;
+                        console.log(`\n=== Facility: ${name} | Level ${currentLevel + 1}/5 (multiplier: ${facilityMultiplier.toFixed(3)}) | keeping top ${(targetProb * 100).toFixed(0)}% ===`);
+                        const rows = allEntries.map(e => ({
+                            cards: (e.usedProb > 0 ? '✓ ' : '✗ ') + e.label,
+                            prob: (e.probability * 100).toFixed(1) + '%',
+                            used: e.usedProb > 0 ? (e.usedProb * 100).toFixed(1) + '%' : '-',
+                            Speed: e.gains[0] ?? 0, Stamina: e.gains[1] ?? 0,
+                            Power: e.gains[2] ?? 0, Guts: e.gains[3] ?? 0,
+                            Wit: e.gains[4] ?? 0, SP: e.gains[5] ?? 0,
+                            total: e.totalStats,
+                        }));
+                        rows.push({
+                            cards: '→ AVERAGE',
+                            prob: '-', used: '-',
+                            Speed: Math.round(expectedGains[0]), Stamina: Math.round(expectedGains[1]),
+                            Power: Math.round(expectedGains[2]), Guts: Math.round(expectedGains[3]),
+                            Wit: Math.round(expectedGains[4]), SP: Math.round(expectedGains[5]),
+                            total: Math.round(expectedGains.reduce((a, b) => a + b, 0)),
+                        });
+                        console.table(rows);
+                    }
+
                     // Handle partial turns
                     let turnMultiplier = 1.0;
                     if (turn === Math.ceil(turnsToTrainAtThisFacility) - 1) {
@@ -560,52 +585,18 @@ export class DeckEvaluator {
                             turnMultiplier = fraction;
                         }
                     }
-                    
+
                     totalStatsGained.Speed += expectedGains[0] * turnMultiplier;
                     totalStatsGained.Stamina += expectedGains[1] * turnMultiplier;
                     totalStatsGained.Power += expectedGains[2] * turnMultiplier;
                     totalStatsGained.Guts += expectedGains[3] * turnMultiplier;
                     totalStatsGained.Wit! += expectedGains[4] * turnMultiplier;
                     totalStatsGained["Skill Points"]! += expectedGains[5] * turnMultiplier;
-                    
+
                     totalTurnGains[3] += expectedGains[3] * turnMultiplier;
-                    
+
                     if (turn === 0) {
                         totalProbability = turnProbSum;
-                    }
-                }
-                
-                // Add base training for turns when NO cards appear
-                const noCardProbability = probabilityNoneAppear;
-                
-                let noCardGuts = 0;
-                if (noCardProbability > 0) {
-                    for (let turn = 0; turn < Math.ceil(turnsToTrainAtThisFacility); turn++) {
-                        const facilityMultiplier = 1 + Math.min(Math.floor(turn / 4), 4) * facilityMultiplierValue;
-                        
-                        // Base training with just global training effectiveness
-                        const baseTrainingEffectiveness = 1.0 + globalTrainingEffectiveness[index];
-                        const baseStatsPerTurn = coreStats.map((stat) =>
-                            Math.floor(stat * facilityMultiplier * moodBonus * baseTrainingEffectiveness)
-                        );
-
-                        // Handle partial turns
-                        let turnMultiplier = 1.0;
-                        if (turn === Math.ceil(turnsToTrainAtThisFacility) - 1) {
-                            const fraction = turnsToTrainAtThisFacility % 1;
-                            if (fraction > 0) {
-                                turnMultiplier = fraction;
-                            }
-                        }
-
-                        totalStatsGained.Speed += baseStatsPerTurn[0] * noCardProbability * turnMultiplier;
-                        totalStatsGained.Stamina += baseStatsPerTurn[1] * noCardProbability * turnMultiplier;
-                        totalStatsGained.Power += baseStatsPerTurn[2] * noCardProbability * turnMultiplier;
-                        totalStatsGained.Guts += baseStatsPerTurn[3] * noCardProbability * turnMultiplier;
-                        totalStatsGained.Wit! += baseStatsPerTurn[4] * noCardProbability * turnMultiplier;
-                        totalStatsGained["Skill Points"]! += (baseStatsPerTurn[5] || 0) * noCardProbability * turnMultiplier;
-                        
-                        noCardGuts += baseStatsPerTurn[3] * noCardProbability * turnMultiplier;
                     }
                 }
             }

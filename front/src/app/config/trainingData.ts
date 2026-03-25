@@ -3,13 +3,13 @@ export class TrainingData {
     private static readonly baseStats = {
         MANT: {
             name: "Trackblazers",
-            // Assuming a 20% stat increase from base stats (megaphone)
+            // Assuming a 30% stat increase from base stats (megaphone)
             training: {
-                Speed: [8*1.2, 0, 4*1.2, 0, 0, 2*1.2, -19],
-                Stamina: [0, 7*1.2, 0, 3*1.2, 0, 2*1.2, -17],
-                Power: [0, 4*1.2, 6*1.2, 0, 0, 2*1.2, -18],
-                Guts: [3*1.2, 0, 3*1.2, 6*1.2, 0, 4*1.2, -20],
-                Intelligence: [2*1.2, 0, 0, 0, 6*1.2, 3*1.2, 5],
+                Speed: [8*1.3, 0, 4*1.3, 0, 0, 2*1.3, -19],
+                Stamina: [0, 7*1.3, 0, 3*1.3, 0, 2*1.3, -17],
+                Power: [0, 4*1.3, 6*1.3, 0, 0, 2*1.3, -18],
+                Guts: [3*1.3, 0, 3*1.3, 6*1.3, 0, 4*1.3, -20],
+                Intelligence: [2*1.3, 0, 0, 0, 6*1.3, 3*1.3, 5],
             },
             facilityMultipliers: {
                 Speed: 1 / 8,
@@ -48,54 +48,6 @@ export class TrainingData {
                 Power: 15+21,
                 Guts: 15+21,
                 Intelligence: 15+21,
-            },
-            scenarioTrainingDistributedBonusStats: 0,
-        },
-        URA: {
-            name: "URA Finals",
-            training: {
-                Speed: [10, 0, 5, 0, 0, 2, -21],
-                Stamina: [0, 9, 0, 4, 0, 2, -19],
-                Power: [0, 5, 8, 0, 0, 2, -20],
-                Guts: [4, 0, 4, 8, 0, 2, -22],
-                Intelligence: [2, 0, 0, 0, 9, 4, 5],
-            },
-            facilityMultipliers: {
-                Speed: 1 / 10,
-                Stamina: 1 / 9,
-                Power: 1 / 8,
-                Guts: 1 / 8,
-                Intelligence: 1 / 9,
-            },
-            maxStats: {
-                Speed: 1200,
-                Stamina: 1200,
-                Power: 1200,
-                Guts: 1200,
-                Intelligence: 1200
-            },
-            ForcedRaces: 8,
-            DefaultOptional: [0, 0, 0], // G1, G2or3, PreOPorOP
-            raceCareerRewards: {
-                finaleRace: [10, 10, 10, 10, 10, 60],
-                careerRace: [3, 3, 3, 3, 3, 45],
-                G1: [2, 2, 2, 2, 2, 45],
-                G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
-                PreOPorOP: [1, 1, 1, 1, 1, 15],
-            },
-            raceCareerRewardsFixed: {
-                finaleRace: [10, 10, 10, 10, 10, 60],
-                careerRace: [3, 3, 3, 3, 3, 45],
-                G1: [2, 2, 2, 2, 2, 45],
-                G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
-                PreOPorOP: [1, 1, 1, 1, 1, 15],
-            },
-            scenarioBonusStats: {
-                Speed: 15,
-                Stamina: 15,
-                Power: 15,
-                Guts: 15,
-                Intelligence: 15,
             },
             scenarioTrainingDistributedBonusStats: 0,
         },
@@ -148,6 +100,54 @@ export class TrainingData {
                 Intelligence: 15+31,
             },
             scenarioTrainingDistributedBonusStats: 8*15+8*7, // 8 spirit bursts of 15 mainstat + 7 substat each assumed
+        },
+        URA: {
+            name: "URA Finals",
+            training: {
+                Speed: [10, 0, 5, 0, 0, 2, -21],
+                Stamina: [0, 9, 0, 4, 0, 2, -19],
+                Power: [0, 5, 8, 0, 0, 2, -20],
+                Guts: [4, 0, 4, 8, 0, 2, -22],
+                Intelligence: [2, 0, 0, 0, 9, 4, 5],
+            },
+            facilityMultipliers: {
+                Speed: 1 / 10,
+                Stamina: 1 / 9,
+                Power: 1 / 8,
+                Guts: 1 / 8,
+                Intelligence: 1 / 9,
+            },
+            maxStats: {
+                Speed: 1200,
+                Stamina: 1200,
+                Power: 1200,
+                Guts: 1200,
+                Intelligence: 1200
+            },
+            ForcedRaces: 8,
+            DefaultOptional: [0, 0, 0], // G1, G2or3, PreOPorOP
+            raceCareerRewards: {
+                finaleRace: [10, 10, 10, 10, 10, 60],
+                careerRace: [3, 3, 3, 3, 3, 45],
+                G1: [2, 2, 2, 2, 2, 45],
+                G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
+                PreOPorOP: [1, 1, 1, 1, 1, 15],
+            },
+            raceCareerRewardsFixed: {
+                finaleRace: [10, 10, 10, 10, 10, 60],
+                careerRace: [3, 3, 3, 3, 3, 45],
+                G1: [2, 2, 2, 2, 2, 45],
+                G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
+                PreOPorOP: [1, 1, 1, 1, 1, 15],
+            },
+            scenarioBonusStats: {
+                Speed: 15,
+                Stamina: 15,
+                Power: 15,
+                Guts: 15,
+                Intelligence: 15,
+            },
+            scenarioTrainingDistributedBonusStats: 0,
         },
     };
 

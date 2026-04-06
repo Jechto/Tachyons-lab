@@ -107,6 +107,8 @@ function TierlistCard({
                 return getAssetPath("images/icons/Intelligence.png");
             case "Support":
                 return getAssetPath("images/icons/Support.png");
+            case "Buddy":
+                return getAssetPath("images/icons/Buddy.png");
             default:
                 return getAssetPath("images/icons/Support.png");
         }

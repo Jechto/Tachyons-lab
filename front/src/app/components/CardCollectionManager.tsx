@@ -44,6 +44,7 @@ const getTypeIcon = (type: string): string => {
         case "Wit": 
         case "Intelligence": return getAssetPath("images/icons/Intelligence.png");
         case "Support": return getAssetPath("images/icons/Support.png"); // Friend/Group
+        case "Buddy": return getAssetPath("images/icons/Buddy.png");
         default: return getAssetPath("images/icons/Support.png");
     }
 };

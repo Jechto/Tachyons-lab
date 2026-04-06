@@ -1,6 +1,6 @@
 import { getAssetPath } from "../utils/paths";
 
-export type CardTypeFilter = "All" | "Speed" | "Stamina" | "Power" | "Guts" | "Wit" | "Support";
+export type CardTypeFilter = "All" | "Speed" | "Stamina" | "Power" | "Guts" | "Wit" | "Support" | "Buddy";
 
 interface CardTypeSelectorProps {
     selectedType: string;
@@ -23,6 +23,8 @@ export default function CardTypeSelector({ selectedType, onSelect, className = "
                 return getAssetPath("images/icons/Intelligence.png");
             case "Support":
                 return getAssetPath("images/icons/Support.png");
+            case "Buddy":
+                return getAssetPath("images/icons/Buddy.png");
             default: // "All"
                 return getAssetPath("images/icons/Support.png");
         }
@@ -34,7 +36,7 @@ export default function CardTypeSelector({ selectedType, onSelect, className = "
                 Card Type:
             </label>
             <div className="flex flex-wrap gap-2">
-                {(["All", "Speed", "Stamina", "Power", "Guts", "Wit", "Support"] as CardTypeFilter[]).map((type) => (
+                {(["All", "Speed", "Stamina", "Power", "Guts", "Wit", "Support", "Buddy"] as CardTypeFilter[]).map((type) => (
                     <label key={type} className="flex items-center">
                         <input
                             type="radio"
@@ -63,7 +65,9 @@ export default function CardTypeSelector({ selectedType, onSelect, className = "
                                         ? "border-pink-300"
                                         : type === "Wit"
                                         ? "border-green-300"
-                                        : "border-purple-300" // Support
+                                        : type === "Support"
+                                        ? "border-purple-300"
+                                        : "border-yellow-300" // Buddy
                                     : ""
                             }`}
                             style={type !== "All" ? {

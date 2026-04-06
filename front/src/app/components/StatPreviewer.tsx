@@ -379,7 +379,7 @@ export default function StatPreviewer({
                     {/* Score Breakdown Section - Always show when expanded */}
                     <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900 dark:to-green-900 rounded-lg border border-blue-200 dark:border-blue-700">
                         <h5 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-4">
-                            🔍 Deck Score Breakdown
+                            Deck Score Breakdown
                         </h5>
 
                         {scoreBreakdown ? (
@@ -536,7 +536,7 @@ export default function StatPreviewer({
                                                 <div className="grid grid-cols-4 gap-3 items-center">
                                                     <div className="col-span-3 flex items-center gap-2">
                                                         <span className="text-sm text-red-600 dark:text-red-400">
-                                                            ⚠️ Stamina Penalty
+                                                            Stamina Penalty
                                                         </span>
                                                         <div className="text-xs text-red-500 dark:text-red-400">
                                                             (
@@ -571,7 +571,7 @@ export default function StatPreviewer({
                                                 <div className="grid grid-cols-4 gap-3 items-center">
                                                     <div className="col-span-3 flex items-center gap-2">
                                                         <span className="text-sm text-blue-600 dark:text-blue-400">
-                                                            📉 Speed Penalty
+                                                            Speed Penalty
                                                         </span>
                                                         <div className="text-xs text-blue-500 dark:text-blue-400">
                                                             (
@@ -602,7 +602,7 @@ export default function StatPreviewer({
                                                 <div className="grid grid-cols-4 gap-3 items-center">
                                                     <div className="col-span-3 flex items-center gap-2">
                                                         <span className="text-sm text-purple-600 dark:text-purple-400">
-                                                            🐎 Race Bonus Penalty
+                                                            Race Bonus Penalty
                                                         </span>
                                                         <div className="text-xs text-purple-500 dark:text-purple-400">
                                                             (

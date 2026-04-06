@@ -424,6 +424,7 @@ export class DeckEvaluator {
         const baseTrainingStats = TrainingData.getBaseTrainingStats(scenarioName);
         const facilityMultipliers = TrainingData.getFacilityMultipliers(scenarioName);
         const moodBonus = 1 + averageMoodBonus / 100;
+        const totalGameTurns = maxTrainingTurns + forcedRaces + totalOptionalRaces;
 
         let index = 0;
         for (const [name, stats] of Object.entries(baseTrainingStats)) {
@@ -528,9 +529,9 @@ export class DeckEvaluator {
                     // Sort best → worst by total stats
                     allEntries.sort((a, b) => b.totalStats - a.totalStats);
 
-                    // Keep top trainingDistribution[index] probability mass.
+                    // Keep top actual-distribution probability mass (turns at facility / all turns incl. races).
                     // Simulates a player only choosing to train here when good combos are present.
-                    const targetProb = trainingDistribution[index];
+                    const targetProb = turnsToTrainAtThisFacility / totalGameTurns;
                     let accumulated = 0;
                     const selectedEntries: { gains: number[]; probability: number }[] = [];
                     for (const entry of allEntries) {
@@ -556,7 +557,7 @@ export class DeckEvaluator {
 
                     if (debug && currentLevel !== lastPrintedLevel) {
                         lastPrintedLevel = currentLevel;
-                        console.log(`\n=== Facility: ${name} | Level ${currentLevel + 1}/5 (multiplier: ${facilityMultiplier.toFixed(3)}) | keeping top ${(targetProb * 100).toFixed(0)}% ===`);
+                        console.log(`\n=== Facility: ${name} | Level ${currentLevel + 1}/5 (multiplier: ${facilityMultiplier.toFixed(3)}) | keeping top ${(targetProb * 100).toFixed(1)}% of all-turn prob ===`);
                         const rows = allEntries.map(e => ({
                             cards: (e.usedProb > 0 ? '✓ ' : '✗ ') + e.label,
                             prob: (e.probability * 100).toFixed(1) + '%',

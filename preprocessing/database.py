@@ -68,7 +68,7 @@ class Database:
             raise ValueError("Database path not configured.")
         conn = sqlite3.connect(self._db_path)
         cursor = conn.cursor()
-        cursor.execute('SELECT id, chara_id AS chara_id_card, rarity, effect_table_id, unique_effect_id, command_id, skill_set_id FROM support_card_data')
+        cursor.execute('SELECT id, chara_id AS chara_id_card, rarity, effect_table_id, unique_effect_id, command_id, skill_set_id, support_card_type FROM support_card_data')
         result = cursor.fetchall()
         conn.close()
         
@@ -85,17 +85,16 @@ class Database:
                     existing_ids.add(card)
 
         for row in tqdm(result):
-            keys = ['id', 'chara_id_card', 'rarity', 'effect_table_id', 'unique_effect_id', 'command_id', 'skill_set_id']
+            keys = ['id', 'chara_id_card', 'rarity', 'effect_table_id', 'unique_effect_id', 'command_id', 'skill_set_id', 'support_card_type']
             row_dict = dict(zip(keys, row))
             id_ = row_dict['id']
             if id_ in existing_ids:
                 continue  # Skip if already present
-            chara_id_card = row_dict['chara_id_card']
             rarity = row_dict['rarity']
             effect_table_id = row_dict['effect_table_id']
             unique_effect_id = row_dict['unique_effect_id']
             command_id = row_dict['command_id']
-
+            support_card_type = row_dict['support_card_type']
             effects = self.get_support_card_effects(card_id=effect_table_id, rarity=rarity)
             unique_effects_raw = []
             if unique_effect_id != 0:
@@ -105,8 +104,11 @@ class Database:
             effects = self._apply_unique_effects_to_base(effects, unique_effects_raw, rarity)
             
             row_dict["id"] = id_
-            row_dict["card_chara_name"] = self.get_uma_name(chara_id_card)
+            row_dict["card_chara_name"] = self.get_uma_name(id_)
             prefered_type = self._types.get(command_id, (None, None))
+            if support_card_type == 3:  # Buddy cards operate uniquely and don't have a "preferred type" in the same way, so we can set it to None or a special value
+                prefered_type = (6, "Buddy")
+
             row_dict["prefered_type_id"] = prefered_type[0]
             row_dict["prefered_type"] = prefered_type[1]
             row_dict["effects"] = effects
@@ -182,7 +184,8 @@ class Database:
             raise ValueError("Database path not configured.")
         conn = sqlite3.connect(self._db_path)
         cursor = conn.cursor()
-        cursor.execute('SELECT text FROM text_data WHERE category=182 AND "index"=?', (uma_id,))
+        # category=78 returns the support card's display name (works for all types incl. Buddy)
+        cursor.execute('SELECT text FROM text_data WHERE category=78 AND "index"=?', (uma_id,))
         result = cursor.fetchone()
         conn.close()
         return result[0] if result else None

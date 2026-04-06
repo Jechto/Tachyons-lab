@@ -10,6 +10,10 @@ class EventScraper:
     def get_events_for_support_cards(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         events = []
         for card in data:
+            if not card.get('card_chara_name'):
+                print(f"  Skipping card {card['id']} - no character name")
+                events.append(card)
+                continue
             card_url_postfix = f"{card['id']} {card['card_chara_name']}".lower().replace('.', '').replace(' ', '-')
             full_url = f"https://gametora.com/umamusume/supports/{card_url_postfix}"
             print(f"Fetching: {full_url}")

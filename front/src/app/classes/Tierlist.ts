@@ -740,7 +740,7 @@ export class Tierlist {
         // Add hints contribution to stat contributions, multiplied by useful hints rate
         const totalHints = hintDict.total_hints || 0;
         const usefulHintsRate = hintDict.useful_hints_rate || 0;
-        const usefulHintsCount = totalHints * usefulHintsRate;
+        const usefulHintsCount = Math.round(totalHints * usefulHintsRate);
         const hintsWeight = weights["Hints"] || 4.0;
         const hintsContribution = usefulHintsCount * hintsWeight;
         statContributions.push({

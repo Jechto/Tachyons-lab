@@ -318,9 +318,13 @@ export default function CardTooltip({
                                 </h4>
                                 <div className="flex flex-wrap gap-2">
                                     {hints.gold_skills.map((skill, index) => (
-                                        <div 
+                                        <div
                                             key={index}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs font-medium shadow-[0_0_8px_rgba(234,179,8,0.5)] dark:shadow-[0_0_8px_rgba(250,204,21,0.6)]"
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
+                                                skill.active
+                                                    ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 shadow-[0_0_8px_rgba(234,179,8,0.5)] dark:shadow-[0_0_8px_rgba(250,204,21,0.6)]"
+                                                    : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 shadow-[0_0_8px_rgba(239,68,68,0.5)] dark:shadow-[0_0_8px_rgba(248,113,113,0.6)]"
+                                            }`}
                                         >
                                             <Image
                                                 src={getAssetPath(`images/skills/${skill.icon_id}.png`)}
@@ -329,12 +333,11 @@ export default function CardTooltip({
                                                 height={16}
                                                 className="object-contain"
                                                 onError={(e) => {
-                                                    // Fallback to a star emoji if icon fails
                                                     const target = e.target as HTMLImageElement;
                                                     target.style.display = 'none';
                                                 }}
                                             />
-                                            <span>{skill.name}</span>
+                                            <span className={!skill.active ? "line-through" : ""}>{skill.name}</span>
                                         </div>
                                     ))}
                                 </div>

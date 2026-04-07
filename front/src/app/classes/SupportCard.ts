@@ -495,7 +495,7 @@ export class SupportCard {
 
         const cardHints = this.extractSkillHints();
         let usefulHintCount = 0;
-        const goldSkills: Array<{ name: string; value: number; multiplier: number; icon_id: number }> = [];
+        const goldSkills: Array<{ name: string; value: number; multiplier: number; icon_id: number; active: boolean }> = [];
 
         // Default deck stats if not provided
         const stats = deckStats || {Speed: 0, Stamina: 0, Power: 0, Guts: 0, Wit: 0};
@@ -503,24 +503,25 @@ export class SupportCard {
 
         for (const hint of cardHints) {
             const distanceTypeTrigger = hint.distance_type_trigger;
+            let conditionActive = true;
             if (distanceTypeTrigger !== 0) {
                 if (raceTypes[distanceTypeTrigger - 1] === false) {
-                    // skill doesn't match race type
-                    continue;
+                    conditionActive = false;
                 }
             }
 
             const runningStyleTrigger = hint.running_style_trigger;
             if (runningStyleTrigger !== 0) {
                 if (runningTypes[runningStyleTrigger - 1] === false) {
-                    // skill doesn't match running style
-                    continue;
+                    conditionActive = false;
                 }
             }
 
-            usefulHintCount += 1;
+            if (conditionActive) {
+                usefulHintCount += 1;
+            }
 
-            // Calculate gold skill value for useful hints
+            // Calculate gold skill value for all gold hints, active or not
             const hintData = this.hints.find(h => h.skill_id === hint.id);
             if (hintData?.skill_data) {
                 const skillEvaluator = new SkillHintEvaluator(hintData.skill_data);
@@ -532,6 +533,7 @@ export class SupportCard {
                             value: value,
                             multiplier: multiplier,
                             icon_id: skillEvaluator.getIconId(),
+                            active: conditionActive,
                         });
                     }
                 }

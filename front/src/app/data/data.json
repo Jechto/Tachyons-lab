@@ -83977,6 +83977,63 @@
     "hints_event_table": [
       {
         "type": "skill_hint",
+        "skill_id": 202032,
+        "skill_data": {
+          "id": 202032,
+          "rarity": 1,
+          "group_id": 20203,
+          "icon_id": 20011,
+          "grade_value": 129,
+          "condition_1": "distance_rate_after_random==50",
+          "skill_time_active": 18000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 2500,
+          "skill_name": "Risky Business",
+          "skill_desc": "Moderately increase velocity in the second half of the race, but also greatly increase fatigue sometimes."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 200292,
+        "skill_data": {
+          "id": 200292,
+          "rarity": 1,
+          "group_id": 20029,
+          "icon_id": 10041,
+          "grade_value": 129,
+          "condition_1": "running_style_equal_popularity_one==1",
+          "skill_time_active": -1,
+          "skill_cooldown_time": 0,
+          "ability_type": 4,
+          "ability_value": 400000,
+          "skill_name": "Target in Sight ○",
+          "skill_desc": "Moderately increase performance when the favorite is using the same strategy."
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
+        "skill_id": 202061,
+        "skill_data": {
+          "id": 202061,
+          "rarity": 2,
+          "group_id": 20206,
+          "icon_id": 2010010,
+          "grade_value": 508,
+          "condition_1": "distance_type==4&is_finalcorner_random==1",
+          "skill_time_active": 30000,
+          "skill_cooldown_time": 5000000,
+          "ability_type": 27,
+          "ability_value": 3500,
+          "skill_name": "Best in Japan",
+          "skill_desc": "Everyone's expectations strongly inspire the user, increasing velocity on the final corner. (Long)"
+        },
+        "hint_level": 1
+      },
+      {
+        "type": "skill_hint",
         "skill_id": 200762,
         "skill_data": {
           "id": 200762,
@@ -84122,7 +84179,211 @@
       }
     ],
     "all_events": {
-      "dates": [],
+      "dates": [
+        {
+          "name": "I Shall Have the Last Laugh",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "me",
+                  "value": "+4"
+                },
+                {
+                  "type": "Stamina",
+                  "value": "+10"
+                },
+                {
+                  "type": "Guts",
+                  "value": "+10"
+                },
+                {
+                  "type": "Intelligence",
+                  "value": "+10"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+2",
+                  "detail": 202032
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "The Secret to Her Success",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+25"
+                },
+                {
+                  "type": "Potential",
+                  "value": "+15"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+2",
+                  "detail": 200292
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Common Threads, Dreams Entwined",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+10"
+                },
+                {
+                  "type": "Mood",
+                  "value": "+1"
+                },
+                {
+                  "type": "Power",
+                  "value": "+15"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "It's Tough Being a Little Sister",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Speed",
+                  "value": "+20"
+                },
+                {
+                  "type": "Potential",
+                  "value": "+20"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5"
+                },
+                {
+                  "type": "he",
+                  "value": null,
+                  "detail": 6
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "The Scenery that Lies Beyond",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "-5"
+                },
+                {
+                  "type": "Speed",
+                  "value": "+15"
+                },
+                {
+                  "type": "Power",
+                  "value": "+15"
+                },
+                {
+                  "type": "Potential",
+                  "value": "+15"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "I Want to Share My Dream",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+40"
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "The Meaning of Support",
+          "choices": [
+            {
+              "option": "",
+              "rewards": [
+                {
+                  "type": "Energy",
+                  "value": "+20"
+                },
+                {
+                  "type": "Speed",
+                  "value": "+10"
+                },
+                {
+                  "type": "Stamina",
+                  "value": "+10"
+                },
+                {
+                  "type": "Power",
+                  "value": "+10"
+                },
+                {
+                  "type": "Skill Hint",
+                  "value": "+1",
+                  "detail": 202061
+                },
+                {
+                  "type": "se",
+                  "value": null,
+                  "detail": 100
+                },
+                {
+                  "type": "Bond",
+                  "value": "+5"
+                }
+              ]
+            }
+          ]
+        }
+      ],
       "chain_events": [],
       "random_events": [
         {

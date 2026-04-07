@@ -130,7 +130,7 @@ export interface HintResult {
     useful_hints_rate: number;
     "hints from training": number;
     total_hints: number;
-    gold_skills: Array<{ name: string; value: number; multiplier: number; icon_id: number }>;
+    gold_skills: Array<{ name: string; value: number; multiplier: number; icon_id: number; active: boolean }>;
 }
 
 export interface RaceTypes {

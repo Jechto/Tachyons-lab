@@ -33,7 +33,10 @@ class EventScraper:
                     random_events = trimmed_data.get("random", [])
                     chain_events = trimmed_data.get("arrows", [])
                     special_events = trimmed_data.get("special", [])
-                    date_events = trimmed_data.get("dates", [])
+                    date_events = trimmed_data.get("dates") or trimmed_data.get("dates_random", [])
+
+                    if card['id'] == 30081:
+                        print(trimmed_data)
 
                     card['all_events'] = {}
                     card['all_events']['dates'] = self.parse_event_data(date_events)

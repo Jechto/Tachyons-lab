@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { DeckEvaluator } from "../classes/DeckEvaluator";
 import { SupportCard } from "../classes/SupportCard";
@@ -87,6 +88,7 @@ export default function StatPreviewer({
 }: StatPreviewerProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [cachedStats, setCachedStats] = useState<{ currentStats: StatData; statDifference: StatDifference } | null>(null);
+    const [rowTooltip, setRowTooltip] = useState<{ units: string; weight: string; x: number; y: number } | null>(null);
 
     // Use refs to store latest values for the effect to access
     const currentDeckRef = useRef(currentDeck);
@@ -266,6 +268,33 @@ export default function StatPreviewer({
         return value.toString();
     };
 
+    const getRowTooltip = (statName: string, isGoldSkill: boolean): { units: string; weight: string } | null => {
+        if (isGoldSkill) {
+            return {
+                units: "Estimated value of this skill's effect converted to equivalent raw stats.",
+                weight: "Estimated proc chance during a race based on your selected distance and running style.",
+            };
+        }
+        switch (statName) {
+            case "Speed":
+                return { units: "Speed points contributed by your support cards.", weight: "How heavily Speed is valued for your selected race type." };
+            case "Stamina":
+                return { units: "Stamina points contributed by your support cards.", weight: "How heavily Stamina is valued for your selected race type." };
+            case "Power":
+                return { units: "Power points contributed by your support cards.", weight: "How heavily Power is valued for your selected race type." };
+            case "Guts":
+                return { units: "Guts points contributed by your support cards.", weight: "How heavily Guts is valued for your selected race type." };
+            case "Wit":
+                return { units: "Wit points contributed by your support cards.", weight: "How heavily Wit is valued for your selected race type." };
+            case "Skill Points":
+                return { units: "Skill points contributed by your support cards.", weight: "Score value per skill point." };
+            case "Useful Hints":
+                return { units: "Estimated useful hints per run (total hints × useful hint rate).", weight: "Score value per useful hint." };
+            default:
+                return null;
+        }
+    };
+
     const formatAbsoluteValue = (value: number): string => {
         return value.toString();
     };
@@ -426,18 +455,24 @@ export default function StatPreviewer({
                                                 const standardStats = ["Speed", "Stamina", "Power", "Guts", "Wit", "Skill Points", "Hints", "Useful Hints", "Gold Skills"];
                                                 const isGoldSkill = !standardStats.includes(stat.stat);
 
+                                                const tooltip = getRowTooltip(stat.stat, isGoldSkill);
                                                 return (
                                                 <div
                                                     key={stat.stat}
-                                                    className={`px-3 py-1 grid grid-cols-4 gap-3 items-center ${
+                                                    className={`px-3 py-1 grid grid-cols-4 gap-3 items-center cursor-default ${
                                                         isGoldSkill
                                                             ? "bg-yellow-50 dark:bg-yellow-900/30"
-                                                            : isCapped 
-                                                                ? "bg-red-50 dark:bg-red-900/20" 
+                                                            : isCapped
+                                                                ? "bg-red-50 dark:bg-red-900/20"
                                                                 : index % 2 === 0
                                                                     ? "bg-white dark:bg-gray-800"
                                                                     : "bg-gray-25 dark:bg-gray-750"
                                                     }`}
+                                                    onMouseEnter={tooltip ? (e) => {
+                                                        const rect = e.currentTarget.getBoundingClientRect();
+                                                        setRowTooltip({ ...tooltip, x: rect.left + rect.width / 2, y: rect.top });
+                                                    } : undefined}
+                                                    onMouseLeave={tooltip ? () => setRowTooltip(null) : undefined}
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         <Image
@@ -766,6 +801,25 @@ export default function StatPreviewer({
                         )}
                     </div>
                 </>
+            )}
+            {rowTooltip && typeof window !== "undefined" && createPortal(
+                <div
+                    className="fixed pointer-events-none"
+                    style={{ left: `${rowTooltip.x}px`, top: `${rowTooltip.y}px`, transform: "translateX(-50%) translateY(calc(-100% - 10px))", zIndex: 9999 }}
+                >
+                    <div className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-lg shadow-2xl p-3 w-72">
+                        <div className="mb-2">
+                            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Units</span>
+                            <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">{rowTooltip.units}</p>
+                        </div>
+                        <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
+                            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Weight</span>
+                            <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">{rowTooltip.weight}</p>
+                        </div>
+                    </div>
+                    <div className="w-3 h-3 bg-white dark:bg-gray-800 border-r-2 border-b-2 border-gray-300 dark:border-gray-600 rotate-45 mx-auto -mt-1.5" />
+                </div>,
+                document.body
             )}
         </div>
     );

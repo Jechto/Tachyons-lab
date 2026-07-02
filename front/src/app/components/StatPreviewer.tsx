@@ -308,21 +308,21 @@ export default function StatPreviewer({
     const hasContent = currentDeck.length > 0;
 
     return (
-        <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900 dark:to-blue-900 rounded-lg border border-purple-200 dark:border-purple-700">
+        <div className="mt-6 p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600">
             <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-semibold text-purple-800 dark:text-purple-200">
+                <h4 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
                     Deck Stat Preview
                 </h4>
                 <div className="flex items-center gap-3">
                     {hasContent && (
-                        <div className="text-sm text-purple-600 dark:text-purple-400">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
                             NOTE: Total stats exclude events from main story and
                             inspiration
                         </div>
                     )}
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="flex items-center gap-1 px-3 py-1 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 transition-colors"
+                        className="flex items-center gap-1 px-3 py-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                         aria-label={
                             isExpanded
                                 ? "Collapse deck preview"
@@ -361,7 +361,7 @@ export default function StatPreviewer({
                                 return (
                                     <div
                                         key={statName}
-                                        className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-600 text-center"
+                                        className="bg-white dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-700 text-center"
                                     >
                                         <div className="flex justify-center mb-2">
                                             <Image
@@ -412,14 +412,14 @@ export default function StatPreviewer({
                         )}
                     </div>
 
-                    <div className="mt-3 text-xs text-center text-purple-600 dark:text-purple-400">
+                    <div className="mt-3 text-xs text-center text-gray-500 dark:text-gray-400">
                         💡 Shows total stats acquired from training and running with your deck.
                         Numbers in brackets show the delta compared to an empty deck
                     </div>
 
                     {/* Score Breakdown Section - Always show when expanded */}
-                    <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900 dark:to-green-900 rounded-lg border border-blue-200 dark:border-blue-700">
-                        <h5 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-4">
+                    <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900/60 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <h5 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                             Deck Score Breakdown
                         </h5>
 
@@ -431,9 +431,9 @@ export default function StatPreviewer({
                                 </div>
 
                                 {/* Receipt Table */}
-                                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
+                                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                                     {/* Table Header */}
-                                    <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 border-b border-gray-200 dark:border-gray-600">
+                                    <div className="bg-gray-100 dark:bg-gray-700 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                                         <div className="grid grid-cols-4 gap-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
                                             <div>Stat</div>
                                             <div className="text-right">
@@ -449,7 +449,7 @@ export default function StatPreviewer({
                                     </div>
 
                                     {/* Table Body */}
-                                    <div className="divide-y divide-gray-100 dark:divide-gray-600">
+                                    <div className="divide-y divide-gray-100 dark:divide-gray-700">
                                         {scoreBreakdown.statContributions.map(
                                             (stat, index) => {
                                                 // Check if this stat was capped
@@ -489,7 +489,7 @@ export default function StatPreviewer({
                                                                 ? capBg
                                                                 : index % 2 === 0
                                                                     ? "bg-white dark:bg-gray-800"
-                                                                    : "bg-gray-25 dark:bg-gray-750"
+                                                                    : "bg-gray-50 dark:bg-gray-700/20"
                                                     }`}
                                                     onMouseEnter={tooltip ? (e) => {
                                                         const rect = e.currentTarget.getBoundingClientRect();
@@ -575,12 +575,12 @@ export default function StatPreviewer({
                                         )}
 
                                         {/* Subtotal */}
-                                        <div className="px-3 py-3 bg-gray-100 dark:bg-gray-700 border-t-2 border-gray-300 dark:border-gray-500">
+                                        <div className="px-3 py-3 bg-indigo-50 dark:bg-indigo-900/30 border-t-2 border-indigo-300 dark:border-indigo-600">
                                             <div className="grid grid-cols-4 gap-4 items-center">
-                                                <div className="col-span-3 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                <div className="col-span-3 text-right text-sm font-semibold text-indigo-700 dark:text-indigo-300">
                                                     Subtotal:
                                                 </div>
-                                                <div className="text-right text-base font-bold text-gray-800 dark:text-gray-200 font-mono">
+                                                <div className="text-right text-base font-bold text-indigo-700 dark:text-indigo-300 font-mono">
                                                     {scoreBreakdown.baseScore.toFixed(
                                                         0,
                                                     )}
@@ -709,9 +709,9 @@ export default function StatPreviewer({
                                 </div>
 
                                 {/* Receipt Table */}
-                                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
+                                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                                     {/* Table Header */}
-                                    <div className="bg-gray-50 dark:bg-gray-700 px-4 py-2 border-b border-gray-200 dark:border-gray-600">
+                                    <div className="bg-gray-100 dark:bg-gray-700 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                                         <div className="grid grid-cols-4 gap-4 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
                                             <div>Stat</div>
                                             <div className="text-right">
@@ -727,7 +727,7 @@ export default function StatPreviewer({
                                     </div>
 
                                     {/* Table Body with empty deck values */}
-                                    <div className="divide-y divide-gray-100 dark:divide-gray-600">
+                                    <div className="divide-y divide-gray-100 dark:divide-gray-700">
                                         {[
                                             "Speed",
                                             "Stamina",
@@ -743,7 +743,7 @@ export default function StatPreviewer({
                                                 className={`px-4 py-3 grid grid-cols-4 gap-4 items-center ${
                                                     index % 2 === 0
                                                         ? "bg-white dark:bg-gray-800"
-                                                        : "bg-gray-25 dark:bg-gray-750"
+                                                        : "bg-gray-50 dark:bg-gray-700/20"
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-2">
@@ -791,9 +791,9 @@ export default function StatPreviewer({
                                         ))}
 
                                         {/* Subtotal */}
-                                        <div className="px-4 py-3 bg-gray-100 dark:bg-gray-700 border-t-2 border-gray-300 dark:border-gray-500">
+                                        <div className="px-4 py-3 bg-indigo-50 dark:bg-indigo-900/30 border-t-2 border-indigo-300 dark:border-indigo-600">
                                             <div className="grid grid-cols-4 gap-4 items-center">
-                                                <div className="col-span-3 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                <div className="col-span-3 text-right text-sm font-semibold text-indigo-700 dark:text-indigo-300">
                                                     Subtotal:
                                                 </div>
                                                 <div className="text-right text-base font-bold text-gray-400 dark:text-gray-500 font-mono">
@@ -835,7 +835,7 @@ export default function StatPreviewer({
                             <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Units</span>
                             <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">{rowTooltip.units}</p>
                         </div>
-                        <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
                             <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Weight</span>
                             <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">{rowTooltip.weight}</p>
                         </div>

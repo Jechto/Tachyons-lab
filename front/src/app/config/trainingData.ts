@@ -1,3 +1,22 @@
+// Blue spark configuration: a player can equip up to 6 blue sparks, each tied to
+// a stat (Speed/Stamina/Power/Guts/Wit) with a star rank that grants a cap raise
+// and flat starting stats.
+export type SparkStar = 1 | 2 | 3;
+
+export interface SparkSlot {
+    stat: string | null; // "Speed" | "Stamina" | "Power" | "Guts" | "Wit" | null
+    star: SparkStar | null;
+}
+
+export const MAX_SPARKS = 6;
+
+// star -> { cap raise, flat stats }
+export const SPARK_BONUSES: Record<SparkStar, { cap: number; stats: number }> = {
+    1: { cap: 4, stats: 5 },
+    2: { cap: 9, stats: 12 },
+    3: { cap: 16, stats: 21 },
+};
+
 // Training data constants ported from training_data.py
 export class TrainingData {
     private static readonly baseStats = {
@@ -20,10 +39,10 @@ export class TrainingData {
             },
             maxStats: {
                 Speed: 1200,
-                Stamina: 1200,
+                Stamina: 1900,
                 Power: 1200,
                 Guts: 1200,
-                Intelligence: 1200
+                Intelligence: 1500
             },
             ForcedRaces: 0,
             DefaultOptional: [2+6+8, 5+5+5, 1+0+0], // G1, G2or3, PreOPorOP
@@ -69,11 +88,11 @@ export class TrainingData {
                 Intelligence: 1 / 10,
             },
             maxStats: {
-                Speed: 1200,
-                Stamina: 1200,
-                Power: 1200,
-                Guts: 1200,
-                Intelligence: 1200
+                Speed: 1300,
+                Stamina: 1300,
+                Power: 1300,
+                Guts: 1300,
+                Intelligence: 1500
             },
             ForcedRaces: 8,
             DefaultOptional: [0, 0, 0], // G1, G2or3, PreOPorOP
@@ -91,15 +110,15 @@ export class TrainingData {
                 G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
                 PreOPorOP: [1, 1, 1, 1, 1, 15],
             },
-            // 31 are the level up rewards F -> S
+            // 41 are the level up rewards F -> S+
             scenarioBonusStats: {
-                Speed: 15+31,
-                Stamina: 15+31,
-                Power: 15+31,
-                Guts: 15+31,
-                Intelligence: 15+31,
+                Speed: 15+41,
+                Stamina: 15+41,
+                Power: 15+41,
+                Guts: 15+41,
+                Intelligence: 15+41,
             },
-            scenarioTrainingDistributedBonusStats: 8*15+8*7, // 8 spirit bursts of 15 mainstat + 7 substat each assumed
+            scenarioTrainingDistributedBonusStats: 8*30+8*15+8*7, // 8 spirit bursts of 15 mainstat + 7 substat each assumed ( updated with 8 super spirit bursts of 30 mainstats aswell)
         },
         URA: {
             name: "URA Finals",
@@ -118,11 +137,11 @@ export class TrainingData {
                 Intelligence: 1 / 9,
             },
             maxStats: {
-                Speed: 1200,
-                Stamina: 1200,
-                Power: 1200,
-                Guts: 1200,
-                Intelligence: 1200
+                Speed: 1400,
+                Stamina: 1400,
+                Power: 1400,
+                Guts: 1400,
+                Intelligence: 1400
             },
             ForcedRaces: 8,
             DefaultOptional: [0, 0, 0], // G1, G2or3, PreOPorOP
@@ -224,6 +243,40 @@ export class TrainingData {
                     Intelligence: 1200,
                 }
         );
+    }
+
+    // Soft cap: training gains above this threshold are halved for all scenarios (JP update).
+    static readonly SOFT_STAT_CAP = 1200;
+
+    // Converts a raw stat total into its effective value under the soft-cap rules:
+    //   - at/below 1200: unchanged
+    //   - between 1200 and the scenario max: 1200 + (raw - 1200) / 2 (halved gains)
+    //   - above the scenario max: clamped to 1200 + (max - 1200) / 2
+    static getEffectiveStat(rawValue: number, maxVal: number): number {
+        if (rawValue <= this.SOFT_STAT_CAP) return rawValue;
+        const cappedRaw = Math.min(rawValue, maxVal);
+        return this.SOFT_STAT_CAP + (cappedRaw - this.SOFT_STAT_CAP) / 2;
+    }
+
+    // Sums equipped blue sparks into per-stat cap and flat-stat bonuses.
+    // Keys are aligned with maxStats (Wit is stored as "Intelligence").
+    static getSparkBonuses(sparks: SparkSlot[] = []): {
+        capBonus: Record<string, number>;
+        flatStats: Record<string, number>;
+    } {
+        const capBonus: Record<string, number> = {};
+        const flatStats: Record<string, number> = {};
+
+        for (const spark of sparks) {
+            if (!spark || !spark.stat || !spark.star) continue;
+            const bonus = SPARK_BONUSES[spark.star];
+            if (!bonus) continue;
+            const statKey = spark.stat === "Wit" ? "Intelligence" : spark.stat;
+            capBonus[statKey] = (capBonus[statKey] || 0) + bonus.cap;
+            flatStats[statKey] = (flatStats[statKey] || 0) + bonus.stats;
+        }
+
+        return { capBonus, flatStats };
     }
 
     static getForcedRaces(

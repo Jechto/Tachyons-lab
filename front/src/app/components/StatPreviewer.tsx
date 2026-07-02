@@ -5,7 +5,7 @@ import { DeckEvaluator } from "../classes/DeckEvaluator";
 import { SupportCard } from "../classes/SupportCard";
 import { CardData } from "../types/cardTypes";
 import { getAssetPath } from "../utils/paths";
-import { TrainingData } from "../config/trainingData";
+import { TrainingData, SparkSlot } from "../config/trainingData";
 
 interface DeckCard {
     id: number;
@@ -54,6 +54,7 @@ interface StatPreviewerProps {
     manualDistribution?: number[] | null;
     optionalRaces?: {G1: number, G2or3: number, PreOPorOP: number};
     averageMood?: number;
+    sparks?: SparkSlot[];
     statsVersion?: number;
 }
 
@@ -84,8 +85,12 @@ export default function StatPreviewer({
     manualDistribution = null,
     optionalRaces = {G1: 0, G2or3: 0, PreOPorOP: 0},
     averageMood = 0,
+    sparks = [],
     statsVersion = 0,
 }: StatPreviewerProps) {
+    // Spark bonuses: cap raise per stat (affects colour thresholds) and flat starting
+    // stats (added on top of the displayed totals, never halved). Keys use "Intelligence" for Wit.
+    const { capBonus: sparkCapBonus, flatStats: sparkFlatStats } = TrainingData.getSparkBonuses(sparks);
     const [isExpanded, setIsExpanded] = useState(false);
     const [cachedStats, setCachedStats] = useState<{ currentStats: StatData; statDifference: StatDifference } | null>(null);
     const [rowTooltip, setRowTooltip] = useState<{ units: string; weight: string; x: number; y: number } | null>(null);
@@ -340,11 +345,18 @@ export default function StatPreviewer({
                                         statName as keyof StatDifference
                                     ];
                                 
-                                // Check for overbuilt stats
+                                // Check for soft-capped (halved gains) and overbuilt (over scenario max) stats.
+                                // Spark cap bonuses raise the max; spark flat stats sit on top (never halved).
                                 const maxStats = TrainingData.getMaxStats(scenarioName);
                                 const statKey = statName === "Wit" ? "Intelligence" : statName;
-                                const maxVal = maxStats[statKey];
-                                const isOverbuilt = maxVal !== undefined && currentValue > maxVal;
+                                const flat = sparkFlatStats[statKey] || 0;
+                                const effMax = maxStats[statKey] !== undefined ? maxStats[statKey] + (sparkCapBonus[statKey] || 0) : undefined;
+                                // Colour is judged on the trainable portion (excludes flat spark stats)
+                                const trainable = currentValue;
+                                const displayValue = currentValue + flat;
+                                const displayMax = effMax !== undefined ? effMax + flat : undefined;
+                                const isOverbuilt = effMax !== undefined && trainable > effMax;
+                                const isSoftCapped = effMax !== undefined && !isOverbuilt && trainable > TrainingData.SOFT_STAT_CAP;
 
                                 return (
                                     <div
@@ -385,9 +397,9 @@ export default function StatPreviewer({
                                         <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                             {statName}
                                         </div>
-                                        <div className={`text-lg font-bold mb-1 ${isOverbuilt ? "text-red-600 dark:text-red-400" : "text-gray-800 dark:text-gray-200"}`}>
-                                            {formatAbsoluteValue(currentValue)}
-                                            {maxVal !== undefined && <span className="text-xs font-normal text-gray-500 dark:text-gray-400">/{maxVal}</span>}
+                                        <div className={`text-lg font-bold mb-1 ${isOverbuilt ? "text-red-600 dark:text-red-400" : isSoftCapped ? "text-blue-600 dark:text-blue-400" : "text-gray-800 dark:text-gray-200"}`}>
+                                            {formatAbsoluteValue(displayValue)}
+                                            {displayMax !== undefined && <span className="text-xs font-normal text-gray-500 dark:text-gray-400">/{displayMax}</span>}
                                         </div>
                                         <div
                                             className={`text-sm font-medium ${getStatColor(deltaValue)}`}
@@ -449,8 +461,19 @@ export default function StatPreviewer({
                                                 // But here we only have the contribution (delta)
                                                 // Let's look up the current stat value from currentStats
                                                 const currentStatValue = currentStats[stat.stat as keyof StatData];
-                                                const isCapped = maxVal !== undefined && currentStatValue >= maxVal;
-                                                
+                                                // Spark cap bonuses raise the max used for thresholds
+                                                const effMax = maxVal !== undefined ? maxVal + (sparkCapBonus[statKey] || 0) : undefined;
+                                                // Over the scenario max -> hard capped (red); between 1200 and max -> halved gains (blue)
+                                                const isOvercapped = effMax !== undefined && currentStatValue > effMax;
+                                                const isSoftCapped = effMax !== undefined && !isOvercapped && currentStatValue > TrainingData.SOFT_STAT_CAP;
+                                                const isCapped = isOvercapped || isSoftCapped;
+                                                const capBg = isOvercapped ? "bg-red-50 dark:bg-red-900/20" : "bg-blue-50 dark:bg-blue-900/20";
+                                                const capNameText = isOvercapped ? "text-red-700 dark:text-red-300 font-medium" : "text-blue-700 dark:text-blue-300 font-medium";
+                                                const capValueText = isOvercapped ? "text-red-700 dark:text-red-300 font-bold" : "text-blue-700 dark:text-blue-300 font-bold";
+                                                const capWeightText = isOvercapped ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400";
+                                                const capContribText = isOvercapped ? "text-red-700 dark:text-red-300" : "text-blue-700 dark:text-blue-300";
+                                                const capLabel = isOvercapped ? "(Capped)" : "(above 1200 halved)";
+
                                                 // Check if this is a gold skill (not a standard stat)
                                                 const standardStats = ["Speed", "Stamina", "Power", "Guts", "Wit", "Skill Points", "Hints", "Useful Hints", "Gold Skills"];
                                                 const isGoldSkill = !standardStats.includes(stat.stat);
@@ -463,7 +486,7 @@ export default function StatPreviewer({
                                                         isGoldSkill
                                                             ? "bg-yellow-50 dark:bg-yellow-900/30"
                                                             : isCapped
-                                                                ? "bg-red-50 dark:bg-red-900/20"
+                                                                ? capBg
                                                                 : index % 2 === 0
                                                                     ? "bg-white dark:bg-gray-800"
                                                                     : "bg-gray-25 dark:bg-gray-750"
@@ -505,20 +528,20 @@ export default function StatPreviewer({
                                                         />
                                                         <span className={`text-sm ${
                                                             isGoldSkill 
-                                                                ? "text-yellow-700 dark:text-yellow-300 font-normal" 
-                                                                : isCapped 
-                                                                    ? "text-red-700 dark:text-red-300 font-medium" 
+                                                                ? "text-yellow-700 dark:text-yellow-300 font-normal"
+                                                                : isCapped
+                                                                    ? capNameText
                                                                     : "text-gray-700 dark:text-gray-300 font-medium"
                                                         }`}>
                                                             {stat.stat}
-                                                            {isCapped && <span className="ml-1 text-xs font-normal opacity-75">(Capped)</span>}
+                                                            {isCapped && <span className="ml-1 text-xs font-normal opacity-75">{capLabel}</span>}
                                                         </span>
                                                     </div>
                                                     <div className={`text-right text-sm font-mono ${
                                                         isGoldSkill
                                                             ? "text-yellow-700 dark:text-yellow-300 font-semibold"
-                                                            : isCapped 
-                                                                ? "text-red-700 dark:text-red-300 font-bold" 
+                                                            : isCapped
+                                                                ? capValueText
                                                                 : "text-gray-800 dark:text-gray-200"
                                                     }`}>
                                                         {Math.round(stat.value)}
@@ -526,8 +549,8 @@ export default function StatPreviewer({
                                                     <div className={`text-right text-sm font-mono ${
                                                         isGoldSkill
                                                             ? "text-yellow-600 dark:text-yellow-400"
-                                                            : isCapped 
-                                                                ? "text-red-600 dark:text-red-400" 
+                                                            : isCapped
+                                                                ? capWeightText
                                                                 : "text-gray-600 dark:text-gray-400"
                                                     }`}>
                                                         ×
@@ -536,8 +559,8 @@ export default function StatPreviewer({
                                                     <div className={`text-right text-sm font-semibold font-mono ${
                                                         isGoldSkill
                                                             ? "text-yellow-700 dark:text-yellow-300"
-                                                            : isCapped 
-                                                                ? "text-red-700 dark:text-red-300" 
+                                                            : isCapped
+                                                                ? capContribText
                                                                 : "text-gray-800 dark:text-gray-200"
                                                     }`}>
                                                         {stat.contribution > 0

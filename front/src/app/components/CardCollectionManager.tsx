@@ -150,6 +150,12 @@ export default function CardCollectionManager() {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
 
+    // Import / export (base64) for cross-device transfer
+    const [exportCode, setExportCode] = useState<string>("");
+    const [showImport, setShowImport] = useState(false);
+    const [importValue, setImportValue] = useState<string>("");
+    const [transferMsg, setTransferMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
     // Load from localStorage on mount
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -174,6 +180,13 @@ export default function CardCollectionManager() {
         }
     }, [ownedCards, isLoaded]);
 
+    // Auto-clear transfer feedback
+    useEffect(() => {
+        if (!transferMsg) return;
+        const timer = setTimeout(() => setTransferMsg(null), 4000);
+        return () => clearTimeout(timer);
+    }, [transferMsg]);
+
     const handleOwnershipChange = (cardId: number, level: OwnershipLevel) => {
         setOwnedCards(prev => {
             const newState = { ...prev };
@@ -184,6 +197,63 @@ export default function CardCollectionManager() {
             }
             return newState;
         });
+    };
+
+    // Unicode-safe base64 helpers for the collection payload
+    const encodeCollection = (data: Record<number, OwnershipLevel>): string => {
+        const bytes = new TextEncoder().encode(JSON.stringify(data));
+        let binary = "";
+        bytes.forEach(b => { binary += String.fromCharCode(b); });
+        return btoa(binary);
+    };
+
+    const decodeCollection = (code: string): Record<number, OwnershipLevel> => {
+        const binary = atob(code.trim());
+        const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+        const json = new TextDecoder().decode(bytes);
+        const parsed = JSON.parse(json);
+        if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+            throw new Error("Not a collection object");
+        }
+        const validLevels = [0, 1, 2, 3, 4];
+        const clean: Record<number, OwnershipLevel> = {};
+        for (const [key, value] of Object.entries(parsed)) {
+            const id = Number(key);
+            const lvl = Number(value);
+            if (Number.isInteger(id) && validLevels.includes(lvl)) {
+                clean[id] = lvl as OwnershipLevel;
+            }
+        }
+        return clean;
+    };
+
+    const handleExport = async () => {
+        try {
+            const code = encodeCollection(ownedCards);
+            setExportCode(code);
+            setShowImport(false);
+            try {
+                await navigator.clipboard.writeText(code);
+                setTransferMsg({ type: "success", text: "Code copied to clipboard" });
+            } catch {
+                setTransferMsg({ type: "success", text: "Code generated — copy it below" });
+            }
+        } catch {
+            setTransferMsg({ type: "error", text: "Failed to generate code" });
+        }
+    };
+
+    const handleImport = () => {
+        try {
+            const imported = decodeCollection(importValue);
+            const count = Object.keys(imported).length;
+            setOwnedCards(imported);
+            setImportValue("");
+            setShowImport(false);
+            setTransferMsg({ type: "success", text: `Imported ${count} owned card${count === 1 ? "" : "s"}` });
+        } catch {
+            setTransferMsg({ type: "error", text: "Invalid code — could not import" });
+        }
     };
 
     // Get unique cards
@@ -246,6 +316,69 @@ export default function CardCollectionManager() {
             
             {isExpanded && (
                 <>
+                    {/* Import / Export for cross-device transfer */}
+                    <div className="mb-6 p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-1">
+                                Transfer collection:
+                            </span>
+                            <button
+                                onClick={handleExport}
+                                className="px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm"
+                            >
+                                Export Code
+                            </button>
+                            <button
+                                onClick={() => { setShowImport(v => !v); setExportCode(""); setTransferMsg(null); }}
+                                className="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                            >
+                                Import Code
+                            </button>
+                            {transferMsg && (
+                                <span className={`text-sm font-medium ${transferMsg.type === "success" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                                    {transferMsg.text}
+                                </span>
+                            )}
+                        </div>
+
+                        {exportCode && (
+                            <div className="mt-3">
+                                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                    Your collection code — copy and paste it on another device:
+                                </label>
+                                <textarea
+                                    readOnly
+                                    value={exportCode}
+                                    onFocus={(e) => e.currentTarget.select()}
+                                    rows={3}
+                                    className="w-full text-xs font-mono p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 break-all resize-y focus:ring-2 focus:ring-blue-500 outline-none"
+                                />
+                            </div>
+                        )}
+
+                        {showImport && (
+                            <div className="mt-3">
+                                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                    Paste a collection code — importing replaces your current collection:
+                                </label>
+                                <textarea
+                                    value={importValue}
+                                    onChange={(e) => setImportValue(e.target.value)}
+                                    rows={3}
+                                    placeholder="Paste code here..."
+                                    className="w-full text-xs font-mono p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-y focus:ring-2 focus:ring-blue-500 outline-none"
+                                />
+                                <button
+                                    onClick={handleImport}
+                                    disabled={!importValue.trim()}
+                                    className="mt-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-sm"
+                                >
+                                    Load Collection
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
                     <div className="flex flex-col md:flex-row gap-4 mb-6 justify-between items-start md:items-center">
                         <div className="flex flex-col gap-4 w-full md:w-auto">
                             {/* Type Filters */}

@@ -12,8 +12,9 @@ import TierlistCard from "./components/TierlistCard";
 import StatPreviewer from "./components/StatPreviewer";
 import { getAssetPath } from "./utils/paths";
 import TrainingDistributionSelector from "./components/TrainingDistributionSelector";
+import BlueSparksSelector from "./components/BlueSparksSelector";
 import CardCollectionManager from "./components/CardCollectionManager";
-import { TrainingData } from "./config/trainingData";
+import { TrainingData, SparkSlot, MAX_SPARKS } from "./config/trainingData";
 
 // Types for our form state
 type RaceType = "Sprint" | "Mile" | "Medium" | "Long";
@@ -58,6 +59,32 @@ export default function Home() {
     const [tempAverageMood, setTempAverageMood] = useState<number>(15); // Temporary state for slider
     const [statsVersion, setStatsVersion] = useState<number>(0);
 
+    // Blue sparks: up to 6 slots, each a stat + star rank
+    const [sparks, setSparks] = useState<SparkSlot[]>(
+        () => Array.from({ length: MAX_SPARKS }, () => ({ stat: null, star: null })),
+    );
+
+    // Hydrate sparks from localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem("tachyons_blue_sparks");
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved) as SparkSlot[];
+                if (Array.isArray(parsed)) {
+                    const slots = Array.from({ length: MAX_SPARKS }, (_, i) => parsed[i] ?? { stat: null, star: null });
+                    setSparks(slots);
+                }
+            } catch {
+                // ignore malformed storage
+            }
+        }
+    }, []);
+
+    // Persist sparks
+    useEffect(() => {
+        localStorage.setItem("tachyons_blue_sparks", JSON.stringify(sparks));
+    }, [sparks]);
+
     // Debounce timer ref for auto-regeneration
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -67,7 +94,7 @@ export default function Home() {
     useEffect(() => {
         if (tierlistResult) setParamsStale(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedRaces, selectedStyles, isManualDistribution, manualDistribution, selectedScenario, tempAverageMood, optionalRaces]);
+    }, [selectedRaces, selectedStyles, isManualDistribution, manualDistribution, selectedScenario, tempAverageMood, optionalRaces, sparks]);
 
     // Update optional races when scenario changes
     useEffect(() => {
@@ -310,6 +337,9 @@ export default function Home() {
                 SSR: [0, 1, 2, 3, 4],
             };
 
+            // Blue spark cap bonuses raise the per-stat max used in soft-cap scoring
+            const { capBonus: sparkCapBonus } = TrainingData.getSparkBonuses(sparks);
+
             // Generate tierlist with current deck
             const result = tierlist.bestCardForDeck(
                 deckEvaluator,
@@ -320,6 +350,7 @@ export default function Home() {
                 selectedScenario,
                 optionalRaces,
                 averageMood,
+                sparkCapBonus,
             );
             setTierlistResult(result);
             setParamsStale(false);
@@ -703,6 +734,11 @@ export default function Home() {
                     />
                 </div>
 
+                {/* Blue Sparks Selector */}
+                <div className="mt-6">
+                    <BlueSparksSelector sparks={sparks} onChange={setSparks} />
+                </div>
+
                 {/* Scenario Selection and Generate Button */}
                 <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -836,6 +872,7 @@ export default function Home() {
                     manualDistribution={isManualDistribution ? manualDistribution : null}
                     optionalRaces={optionalRaces}
                     averageMood={averageMood}
+                    sparks={sparks}
                     statsVersion={statsVersion}
                 />
             </div>

@@ -140,6 +140,7 @@ export class Tierlist {
         scenarioName: string = "URA",
         optionalRaces: {G1: number, G2or3: number, PreOPorOP: number} = {G1: 0, G2or3: 0, PreOPorOP: 0},
         averageMood: number = 15,
+        sparkCapBonus: Record<string, number> = {},
     ): TierlistResponse {
         // Default race types
         if (!raceTypes) {
@@ -337,6 +338,7 @@ export class Tierlist {
             raceTypes,
             ACTIVE_PENALTY_CONFIG,
             scenarioName,
+            sparkCapBonus,
         );
 
         // Generate score breakdown for the deck using the delta stats
@@ -348,6 +350,7 @@ export class Tierlist {
             raceTypes,
             ACTIVE_PENALTY_CONFIG,
             scenarioName,
+            sparkCapBonus,
         );
 
         const results: TierlistEntry[] = [];
@@ -432,6 +435,7 @@ export class Tierlist {
                         raceTypes,
                         ACTIVE_PENALTY_CONFIG,
                         scenarioName,
+                        sparkCapBonus,
                     );
 
                     // The card's actual impact is the difference between new deck score and current deck score
@@ -555,25 +559,28 @@ export class Tierlist {
         raceTypes?: RaceTypes,
         penaltyConfig: PenaltyConfig = ACTIVE_PENALTY_CONFIG,
         scenarioName: string = "URA",
+        sparkCapBonus: Record<string, number> = {},
     ): number {
-        // Clamp stats to max values before calculating score
-        const maxStats = TrainingData.getMaxStats("URA"); // Assuming URA for now, or pass scenario
-        
+        // Apply the soft-cap rules to stats before calculating score.
+        // Gains above 1200 are halved; gains above the scenario max are clamped.
+        const maxStats = TrainingData.getMaxStats(scenarioName);
+
         const clampedRawStats = { ...rawStats };
         const clampedDeltaStats = { ...deltaStats };
 
-        // Apply clamping
+        // Apply soft cap
         for (const stat of ["Speed", "Stamina", "Power", "Guts", "Wit"] as const) {
             const statKey = stat === "Wit" ? "Intelligence" : stat;
-            const maxVal = maxStats[statKey] || 1200;
+            const maxVal = (maxStats[statKey] || 1200) + (sparkCapBonus[statKey] || 0);
             const currentVal = rawStats[stat] || 0;
-            
-            if (currentVal > maxVal) {
-                clampedRawStats[stat] = maxVal;
-                // Adjust delta: newDelta = clampedTotal - base
+
+            if (currentVal > TrainingData.SOFT_STAT_CAP) {
+                const effectiveVal = TrainingData.getEffectiveStat(currentVal, maxVal);
+                clampedRawStats[stat] = effectiveVal;
+                // Adjust delta: newDelta = effectiveTotal - base
                 // base = currentTotal - currentDelta
                 const baseVal = currentVal - (deltaStats[stat] || 0);
-                clampedDeltaStats[stat] = maxVal - baseVal;
+                clampedDeltaStats[stat] = effectiveVal - baseVal;
             }
         }
 
@@ -666,6 +673,7 @@ export class Tierlist {
         raceTypes?: RaceTypes,
         penaltyConfig: PenaltyConfig = ACTIVE_PENALTY_CONFIG,
         scenarioName: string = "URA",
+        sparkCapBonus: Record<string, number> = {},
     ): {
         totalScore: number;
         baseScore: number;
@@ -702,22 +710,24 @@ export class Tierlist {
             };
         }
 
-        // Clamp stats to max values before calculating score
-        const maxStats = TrainingData.getMaxStats("URA"); // Assuming URA for now
-        
+        // Apply the soft-cap rules to stats before calculating score.
+        // Gains above 1200 are halved; gains above the scenario max are clamped.
+        const maxStats = TrainingData.getMaxStats(scenarioName);
+
         const clampedDeltaStats = { ...deltaStats };
 
-        // Apply clamping to delta stats for breakdown
+        // Apply soft cap to delta stats for breakdown
         for (const stat of ["Speed", "Stamina", "Power", "Guts", "Wit"] as const) {
             const statKey = stat === "Wit" ? "Intelligence" : stat;
-            const maxVal = maxStats[statKey] || 1200;
+            const maxVal = (maxStats[statKey] || 1200) + (sparkCapBonus[statKey] || 0);
             const currentVal = rawStats[stat] || 0;
-            
-            if (currentVal > maxVal) {
-                // Adjust delta: newDelta = clampedTotal - base
+
+            if (currentVal > TrainingData.SOFT_STAT_CAP) {
+                const effectiveVal = TrainingData.getEffectiveStat(currentVal, maxVal);
+                // Adjust delta: newDelta = effectiveTotal - base
                 // base = currentTotal - currentDelta
                 const baseVal = currentVal - (deltaStats[stat] || 0);
-                clampedDeltaStats[stat] = maxVal - baseVal;
+                clampedDeltaStats[stat] = effectiveVal - baseVal;
             }
         }
 

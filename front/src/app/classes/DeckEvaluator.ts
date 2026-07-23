@@ -172,6 +172,13 @@ export class DeckEvaluator {
             return gains;
         }
 
+        // Scenario-granted progressive Friendship Bonus that applies to all cards
+        // (e.g. Grand Concert's Concert Bonuses), in percentage points. Added to
+        // each card's own Friendship Bonus so decks stacked with friendship cards
+        // benefit more. Cards without a Friendship Bonus (cardBonus === -1) are
+        // skipped at the consumption sites below.
+        const cardBuffFriendship = TrainingData.getCardBuffs(scenarioName)["Friendship Bonus"];
+
         // Base training effectiveness (starts at 1.0 + global from all cards)
         let trainingEffectiveness = 1.0 + globalTrainingEffectiveness;
         let friendshipBonus = 1.0;
@@ -192,8 +199,8 @@ export class DeckEvaluator {
             : 0) / 100;
 
         if (isBonded) {
-            friendshipBonus += (facilitySupportCard.cardBonus["Friendship Bonus"] !== -1 
-                ? facilitySupportCard.cardBonus["Friendship Bonus"] || 0 
+            friendshipBonus += (facilitySupportCard.cardBonus["Friendship Bonus"] !== -1
+                ? (facilitySupportCard.cardBonus["Friendship Bonus"] || 0) + cardBuffFriendship
                 : 0) / 100;
             moodEffect += (facilitySupportCard.cardBonus["Mood Effect"] !== -1 
                 ? facilitySupportCard.cardBonus["Mood Effect"] || 0 
@@ -214,8 +221,8 @@ export class DeckEvaluator {
                 : 0) / 100;
 
             if (isBonded && card.cardType.type === trainingType) {
-                friendshipBonus *= 1 + ((card.cardBonus["Friendship Bonus"] !== -1 
-                    ? card.cardBonus["Friendship Bonus"] || 0 
+                friendshipBonus *= 1 + ((card.cardBonus["Friendship Bonus"] !== -1
+                    ? (card.cardBonus["Friendship Bonus"] || 0) + cardBuffFriendship
                     : 0) / 100);
                 moodEffect += (card.cardBonus["Mood Effect"] !== -1 
                     ? card.cardBonus["Mood Effect"] || 0 
@@ -341,9 +348,15 @@ export class DeckEvaluator {
                 continue; // Skip adding to cardAppearances
             }
             
-            // Calculate specialty rates
-            const specialtyRate = card.cardBonus["Specialty Priority"] !== -1 
-                ? card.cardBonus["Specialty Priority"] || 0 
+            // Calculate specialty rates. Apply any scenario-granted progressive
+            // Speciality Priority bonus (e.g. Grand Concert Concert Bonuses) to the
+            // card's own value, but only when the card actually has a specialty
+            // priority (cardBonus === -1 means the stat is not applicable, e.g.
+            // friend/group cards that don't appear on specialty training).
+            const cardSpecialty = card.cardBonus["Specialty Priority"];
+            const cardBuffSpecialty = TrainingData.getCardBuffs(scenarioName)["Specialty Priority"];
+            const specialtyRate = cardSpecialty !== -1
+                ? (cardSpecialty || 0) + cardBuffSpecialty
                 : 0;
             
             // Total weight = (100 + specialtyPriority) + 4*100 + 50 = 550 + specialtyPriority

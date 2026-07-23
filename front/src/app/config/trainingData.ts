@@ -170,8 +170,13 @@ export class TrainingData {
         },
         GrandConcert: {
             name: "Grand Concert",
-            // Base training gains (Facility Level 1). Facility levels up every 4 trainings
-            // at that facility, like URA Finale.
+            // Base training gains (Facility Level 1). Facility levels up every 4
+            // trainings at that facility, like URA Finale. These are the RAW guide
+            // values — the progressive CONCERT BONUSES (Friendship Bonus and
+            // Speciality Priority Up) are NOT folded in here; they are modelled
+            // per-card via `cardBuffs` (see below) so that decks stacked with
+            // friendship / specialty cards benefit more, matching the scenario's
+            // design and the guide's "increases ... of all your Support Cards".
             training: {
                 Speed: [8, 0, 4, 0, 0, 4, -19],
                 Stamina: [0, 8, 0, 6, 0, 4, -20],
@@ -213,18 +218,62 @@ export class TrainingData {
                 G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
                 PreOPorOP: [1, 1, 1, 1, 1, 15],
             },
-            // Flat scenario bonuses: 5 Concert Great Successes (+10 all stats each),
-            // plus Make Debut! (+10 all stats), plus Technique Lesson stat gains.
+            // Flat one-time stats from the LESSONS economy (Mastery bonuses are one
+            // time by definition per the guide, so they live here — NOT in the
+            // distributed lump). Conservatively capped by the Performance-Points
+            // economy (~840 PP over a run, shared with energy/SP/skill lessons):
+            //   - 5 Concert Great Successes (~4/5 assumed great): +40 all
+            //   - GIRLS' LEGEND U (18 Songs achieved):            +10 all
+            //   - Technique Lessons (stat-type, ~1/3 of ~47):     +20 all
+            //   - Song Mastery flat stat grants (e.g. Full Speed
+            //     Ahead Speed+22, Treasure Box Speed+26, ...):   +25 all
+            // (Note: "Make Debut!" raises Performance Point *caps*, not stats.)
             scenarioBonusStats: {
-                Speed: 60 + 10 + 20,
-                Stamina: 60 + 10 + 20,
-                Power: 60 + 10 + 20,
-                Guts: 60 + 10 + 20,
-                Intelligence: 60 + 10 + 20,
+                Speed: 40 + 10 + 20 + 25,
+                Stamina: 40 + 10 + 20 + 25,
+                Power: 40 + 10 + 20 + 25,
+                Guts: 40 + 10 + 20 + 25,
+                Intelligence: 40 + 10 + 20 + 25,
             },
-            // Song training bonuses (e.g. Speed/Wit Training +1/+2, SP Bonus, Friendship Bonus)
-            // averaged over the career, folded in like Unity's spirit bursts.
-            scenarioTrainingDistributedBonusStats: 4 * 30, // ~4 Song training bonuses of ~+1.5 avg per relevant training
+            scenarioTrainingDistributedBonusStats: 0,
+            // PROGRESSIVE CARD BUFFS, modelled as the time-weighted average of the
+            // cumulative buff active over the ~70 trainable career turns, then
+            // applied PER-CARD in DeckEvaluator (added to each card's own bonus).
+            // Generic name (`cardBuffs`) so future scenarios can reuse the same
+            // mechanism for any per-card progressive bonus.
+            //
+            // For Grand Concert these are the Concert Bonuses that take effect
+            // after the next concert and last the rest of the career:
+            // "Active share" = fraction of remaining turns a Song bought before a
+            // given concert is active for:
+            //   start / "+4 turns": 0.90  | after C1: 0.73 | after C2: 0.56
+            //   after C3: 0.39                | senior Dec: 0.15
+            //
+            //   Speciality Priority Up +5 (per Song):
+            //     Make Debut! (auto, +4 turns):  5 * 0.90 = 4.50
+            //     Believe in Miracles (start):   5 * 0.95 = 4.75
+            //     Run For Our Dream (after C1):  5 * 0.73 = 3.65
+            //     => time-weighted avg ~ +12 (rounded down)
+            //
+            //   Friendship Bonus (+5% / +10% per Song):
+            //     RUNxRUN (start):               5 * 0.95 = 4.75
+            //     Treasure Box (after C3, +10): 10 * 0.39 = 3.90
+            //     GIRLS' LEGEND U (18-Song goal, 10 * 0.15 = 1.50
+            //       senior Dec, +10):
+            //     => time-weighted avg ~ +10
+            //
+            // Applied per-card so a deck stacked with high-Friendship-Bonus /
+            // high-Specialty-Priority cards benefits more (matching the guide:
+            // "Friendship Bonus +X%" / "Speciality Priority Up +5" apply to ALL
+            // your Support Cards). Note: as a uniform career-average applied to
+            // every appearance, this flattens the back-loading (the buffs really
+            // concentrate in late high-facility-level turns) — an acceptable
+            // approximation; cards without a given bonus (cardBonus === -1) are
+            // skipped at the injection sites so friend/group cards are unaffected.
+            cardBuffs: {
+                "Specialty Priority": 12,
+                "Friendship Bonus": 10,
+            },
         },
     };
 
@@ -353,6 +402,23 @@ export class TrainingData {
             this.baseStats[scenarioName as keyof typeof this.baseStats]
                 ?.DefaultOptional || [0, 0, 0]
         );
+    }
+
+    // Progressive per-card buffs granted by a scenario's mechanics (currently used
+    // by Grand Concert's Concert Bonuses: Speciality Priority Up and Friendship
+    // Bonus). Returned in the SAME units as SupportCard.cardBonus (Specialty
+    // Priority in priority points; Friendship Bonus in percentage points).
+    // Defaults to 0 for scenarios that have no such mechanic (MANT / Unity / URA).
+    // Adding new scenarios: add a `cardBuffs` entry to baseStats with the same
+    // keys (or extend this return type) and the per-card injection in
+    // DeckEvaluator picks them up automatically.
+    static getCardBuffs(
+        scenarioName: string = "URA",
+    ): { "Specialty Priority": number; "Friendship Bonus": number } {
+        const buffs = (this.baseStats as Record<string, { cardBuffs?: { "Specialty Priority": number; "Friendship Bonus": number } }>)[
+            scenarioName
+        ]?.cardBuffs;
+        return buffs ?? { "Specialty Priority": 0, "Friendship Bonus": 0 };
     }
 
     static getScenarios(): Array<{ key: string; name: string }> {

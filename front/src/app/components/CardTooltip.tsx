@@ -79,12 +79,41 @@ export default function CardTooltip({
         };
     }, [isVisible, isTouchDevice]);
     
-    // Close tooltip when card is added to deck
+    // Close tooltip when card is added to deck (also cancel any pending show)
     React.useEffect(() => {
-        if (isInDeck && isVisible) {
-            setIsVisible(false);
+        if (isInDeck) {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+            }
+            if (isVisible) {
+                setIsVisible(false);
+            }
         }
     }, [isInDeck, isVisible]);
+
+    // Safety net: if the card moves out from under the cursor (e.g. layout shift
+    // when the first card is added, or the tierlist re-sorting after a deck change),
+    // the browser may never fire mouseleave. Hide the tooltip on the next
+    // mousemove that happens outside the card.
+    React.useEffect(() => {
+        if (isTouchDevice || !isVisible) return;
+
+        const handleMouseMove = (e: MouseEvent) => {
+            if (
+                containerRef.current &&
+                !containerRef.current.contains(e.target as Node)
+            ) {
+                setIsVisible(false);
+            }
+        };
+
+        document.addEventListener('mousemove', handleMouseMove, true);
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove, true);
+        };
+    }, [isVisible, isTouchDevice]);
     
     const calculatePosition = (rect: DOMRect) => {
         const tooltipWidth = 320; // max-w-80 = 320px
@@ -124,16 +153,19 @@ export default function CardTooltip({
     };
     
     const handleMouseEnter = (e: React.MouseEvent) => {
-        // Don't show tooltip on hover for touch devices
-        if (isTouchDevice) return;
-        
+        // Don't show tooltip on hover for touch devices or for cards already in deck
+        if (isTouchDevice || isInDeck) return;
+
         // Capture rect immediately before timeout, as e.currentTarget becomes null after event
         const rect = e.currentTarget.getBoundingClientRect();
-        
+
         // Debounce tooltip display by 150ms to reduce INP
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        
+
         timeoutRef.current = setTimeout(() => {
+            // The card may have moved out from under the cursor (layout shift /
+            // tierlist re-sort) before the timeout fired — only show if still hovered
+            if (!containerRef.current?.matches(':hover')) return;
             const pos = calculatePosition(rect);
             setPosition(pos);
             setIsVisible(true);
@@ -152,7 +184,7 @@ export default function CardTooltip({
     };
     
     const handleTouchStart = (e: React.TouchEvent) => {
-        if (!isTouchDevice) return;
+        if (!isTouchDevice || isInDeck) return;
         
         // If tooltip is already visible, let the click outside handler deal with it
         if (isVisible) return;

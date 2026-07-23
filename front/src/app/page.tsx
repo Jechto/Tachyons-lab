@@ -50,9 +50,9 @@ export default function Home() {
     const [isManualDistribution, setIsManualDistribution] = useState(false);
     const [manualDistribution, setManualDistribution] = useState<number[] | null>(null);
     const [calculatedDistribution, setCalculatedDistribution] = useState<number[]>([0.2, 0.2, 0.2, 0.2, 0.2]);
-    const [selectedScenario, setSelectedScenario] = useState<string>("MANT");
+    const [selectedScenario, setSelectedScenario] = useState<string>("GrandConcert");
     const [optionalRaces, setOptionalRaces] = useState<{G1: number, G2or3: number, PreOPorOP: number}>(() => {
-        const defaults = TrainingData.getDefaultOptional("MANT");
+        const defaults = TrainingData.getDefaultOptional("GrandConcert");
         return {G1: defaults[0], G2or3: defaults[1], PreOPorOP: defaults[2]};
     });
     const [averageMood, setAverageMood] = useState<number>(15);

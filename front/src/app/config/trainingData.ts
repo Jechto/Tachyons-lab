@@ -168,6 +168,64 @@ export class TrainingData {
             },
             scenarioTrainingDistributedBonusStats: 0,
         },
+        GrandConcert: {
+            name: "Grand Concert",
+            // Base training gains (Facility Level 1). Facility levels up every 4 trainings
+            // at that facility, like URA Finale.
+            training: {
+                Speed: [8, 0, 4, 0, 0, 4, -19],
+                Stamina: [0, 8, 0, 6, 0, 4, -20],
+                Power: [0, 4, 9, 0, 0, 4, -20],
+                Guts: [2, 0, 2, 7, 0, 4, -20],
+                Intelligence: [2, 0, 0, 0, 6, 5, 5],
+            },
+            // Per-level facility growth derived from the level table:
+            // multiplier = 1 + min(floor(turn/4), 4) * facilityMultiplier.
+            facilityMultipliers: {
+                Speed: 1 / 8,
+                Stamina: 1 / 8,
+                Power: 1 / 9,
+                Guts: 1 / 7,
+                Intelligence: 1 / 6,
+            },
+            maxStats: {
+                Speed: 1600,
+                Stamina: 1300,
+                Power: 1300,
+                Guts: 1500,
+                Intelligence: 1300
+            },
+            // 5 forced Concerts (end of each half-year); they consume a turn like races.
+            ForcedRaces: 5,
+            // Races give no Performance Points, so optional races are skipped.
+            DefaultOptional: [0, 0, 0], // G1, G2or3, PreOPorOP
+            raceCareerRewards: {
+                finaleRace: [10, 10, 10, 10, 10, 60],
+                careerRace: [3, 3, 3, 3, 3, 45],
+                G1: [2, 2, 2, 2, 2, 45],
+                G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
+                PreOPorOP: [1, 1, 1, 1, 1, 15],
+            },
+            raceCareerRewardsFixed: {
+                finaleRace: [10, 10, 10, 10, 10, 60],
+                careerRace: [3, 3, 3, 3, 3, 45],
+                G1: [2, 2, 2, 2, 2, 45],
+                G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
+                PreOPorOP: [1, 1, 1, 1, 1, 15],
+            },
+            // Flat scenario bonuses: 5 Concert Great Successes (+10 all stats each),
+            // plus Make Debut! (+10 all stats), plus Technique Lesson stat gains.
+            scenarioBonusStats: {
+                Speed: 60 + 10 + 20,
+                Stamina: 60 + 10 + 20,
+                Power: 60 + 10 + 20,
+                Guts: 60 + 10 + 20,
+                Intelligence: 60 + 10 + 20,
+            },
+            // Song training bonuses (e.g. Speed/Wit Training +1/+2, SP Bonus, Friendship Bonus)
+            // averaged over the career, folded in like Unity's spirit bursts.
+            scenarioTrainingDistributedBonusStats: 4 * 30, // ~4 Song training bonuses of ~+1.5 avg per relevant training
+        },
     };
 
     static getBaseTrainingStats(

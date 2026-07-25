@@ -31,7 +31,7 @@ export class DeckEvaluator {
     /** Starting energy at the beginning of the career. */
     private static readonly ENERGY_START = 100;
     /** Base energy regenerated per rest turn (boosted by Event Recovery). */
-    private static readonly REST_REGEN_BASE = 30;
+    private static readonly REST_REGEN_BASE = 50;
 
     public deck: SupportCard[] = [];
     public manualDistribution: number[] | null = null;

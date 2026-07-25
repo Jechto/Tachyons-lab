@@ -69,6 +69,10 @@ export class TrainingData {
                 Intelligence: 15+21+10,
             },
             scenarioTrainingDistributedBonusStats: 0,
+            // Baseline weight applied to every training type before card
+            // Specialty Priority is added. Higher = more uniform distributions
+            // (specialty priority gets diluted). See DeckEvaluator.getTrainingDistribution.
+            baselineTrainingWeight: 0.2,
         },
         Unity: {
             name: "Unity Cup",
@@ -119,6 +123,7 @@ export class TrainingData {
                 Intelligence: 15+41,
             },
             scenarioTrainingDistributedBonusStats: 8*30+8*15+8*7, // 8 spirit bursts of 15 mainstat + 7 substat each assumed ( updated with 8 super spirit bursts of 30 mainstats aswell)
+            baselineTrainingWeight: 0.2,
         },
         URA: {
             name: "URA Finals",
@@ -167,6 +172,7 @@ export class TrainingData {
                 Intelligence: 15,
             },
             scenarioTrainingDistributedBonusStats: 0,
+            baselineTrainingWeight: 0.2,
         },
         GrandConcert: {
             name: "Grand Concert",
@@ -274,6 +280,7 @@ export class TrainingData {
                 "Specialty Priority": 12,
                 "Friendship Bonus": 10,
             },
+            baselineTrainingWeight: 0.35,
         },
     };
 
@@ -334,6 +341,22 @@ export class TrainingData {
         return (
             this.baseStats[scenarioName as keyof typeof this.baseStats]
                 ?.scenarioTrainingDistributedBonusStats || 0
+        );
+    }
+
+    /**
+     * Baseline weight applied equally to every training type before card
+     * Specialty Priority is added (DeckEvaluator.getTrainingDistribution).
+     * Higher = more uniform distributions; lower = specialty priority dominates.
+     * Falls back to 0.2 (the legacy hardcoded value) when a scenario doesn't
+     * define one, so existing behaviour is preserved.
+     */
+    static getBaselineTrainingWeight(
+        scenarioName: string = "URA",
+    ): number {
+        return (
+            this.baseStats[scenarioName as keyof typeof this.baseStats]
+                ?.baselineTrainingWeight ?? 0.2
         );
     }
 

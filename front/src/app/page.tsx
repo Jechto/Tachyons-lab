@@ -119,8 +119,8 @@ export default function Home() {
             }
         });
 
-        setCalculatedDistribution(deckEvaluator.getTrainingDistribution());
-    }, [currentDeck]);
+        setCalculatedDistribution(deckEvaluator.getTrainingDistribution(selectedScenario));
+    }, [currentDeck, selectedScenario]);
 
     // Race types and running styles
     const raceTypes: { value: RaceType; label: string }[] = [

@@ -25,6 +25,14 @@ export class DeckEvaluator {
         Intelligence: 4,
     };
 
+    // Energy-economy constants used to compute the per-deck rest budget (see
+    // evaluateStats). Tunable; prior behaviour assumed a flat 3 rests for
+    // every deck regardless of how energy-expensive its facility mix was.
+    /** Starting energy at the beginning of the career. */
+    private static readonly ENERGY_START = 100;
+    /** Base energy regenerated per rest turn (boosted by Event Recovery). */
+    private static readonly REST_REGEN_BASE = 30;
+
     public deck: SupportCard[] = [];
     public manualDistribution: number[] | null = null;
 
@@ -40,13 +48,23 @@ export class DeckEvaluator {
         this.deck.push(card);
     }
 
-    public getTrainingDistribution(): number[] {
+    public getTrainingDistribution(scenarioName: string = "URA"): number[] {
         if (this.manualDistribution) {
             return this.manualDistribution;
         }
 
-        // Start with base equal distribution
-        const trainingDistribution = [0.2, 0.2, 0.2, 0.2, 0.2];
+        // Baseline weight applied equally to every training type, so that even
+        // with high Specialty Priority a deck doesn't tunnel onto one type.
+        // Configurable per-scenario via TrainingData.getBaselineTrainingWeight.
+        const baselineWeight =
+            TrainingData.getBaselineTrainingWeight(scenarioName);
+        const trainingDistribution = [
+            baselineWeight,
+            baselineWeight,
+            baselineWeight,
+            baselineWeight,
+            baselineWeight,
+        ];
 
         for (const card of this.deck) {
             const idx = DeckEvaluator.typeToIndex[card.cardType.type];
@@ -270,7 +288,7 @@ export class DeckEvaluator {
         optionalRaces: {G1: number, G2or3: number, PreOPorOP: number} = {G1: 0, G2or3: 0, PreOPorOP: 0},
         debug: boolean = false,
     ): StatsDict {
-        const trainingDistribution = this.getTrainingDistribution();
+        const trainingDistribution = this.getTrainingDistribution(scenarioName);
         const forcedRaces = TrainingData.getForcedRaces(scenarioName);
 
         const totalStatsGained: StatsDict = {
@@ -284,6 +302,7 @@ export class DeckEvaluator {
 
         let eventEffectiveness = 0;
         let eventRecovery = 0;
+        let energyCostReduction = 0; // summed as a fraction (cardBonus/100)
         let raceBonus = 0;
 
         // Calculate global training effectiveness from ALL cards (including Support)
@@ -291,7 +310,9 @@ export class DeckEvaluator {
         const globalTrainingEffectiveness: number[] = [0, 0, 0, 0, 0]; // Per facility type
 
         const totalOptionalRaces = optionalRaces.G1 + optionalRaces.G2or3 + optionalRaces.PreOPorOP;
-        const maxTrainingTurns = 72 + 6 - 3 - forcedRaces - totalOptionalRaces;
+        // Total playable turns before rests are subtracted. The number of rests
+        // is now derived from the deck's energy economy below (was a flat -3).
+        const totalPlayableTurns = 72 + 6 - forcedRaces - totalOptionalRaces;
 
         // Prepare card appearances with specialty rates
         const cardAppearances: CardAppearance[] = [];
@@ -340,6 +361,9 @@ export class DeckEvaluator {
                     : 0) / 100;
                 eventRecovery += (card.cardBonus["Event Recovery"] !== -1
                     ? card.cardBonus["Event Recovery"] || 0
+                    : 0) / 100;
+                energyCostReduction += (card.cardBonus["Energy Cost Reduction"] !== -1
+                    ? card.cardBonus["Energy Cost Reduction"] || 0
                     : 0) / 100;
                 raceBonus += (card.cardBonus["Race Bonus"] !== -1
                     ? card.cardBonus["Race Bonus"] || 0
@@ -406,6 +430,9 @@ export class DeckEvaluator {
             eventRecovery += (card.cardBonus["Event Recovery"] !== -1
                 ? card.cardBonus["Event Recovery"] || 0
                 : 0) / 100;
+            energyCostReduction += (card.cardBonus["Energy Cost Reduction"] !== -1
+                ? card.cardBonus["Energy Cost Reduction"] || 0
+                : 0) / 100;
             raceBonus += (card.cardBonus["Race Bonus"] !== -1
                 ? card.cardBonus["Race Bonus"] || 0
                 : 0) / 100;
@@ -418,6 +445,44 @@ export class DeckEvaluator {
                         : 0) / 100) * trainingDistribution[t];
             }
         }
+
+        // ----- Energy-based training-turn budget -----
+        // Replaces a flat "-3 rest turns" assumption. Each training turn
+        // consumes energy (the 7th element of each facility's stat array; e.g.
+        // URA Speed −21, Intelligence +5). Decks that train expensive
+        // facilities (Stamina/Guts) need more rests and so get fewer training
+        // turns; decks heavy on Intelligence (energy-positive) need few or
+        // none. Event Recovery (card bonus) boosts per-rest regen; Energy
+        // Cost Reduction makes each training cheaper. Both were previously
+        // accumulated but never used — they now directly buy more training
+        // turns, so recovery/cost-reduction cards get credit.
+        const baseTrainingStats = TrainingData.getBaseTrainingStats(scenarioName);
+        const facilityEnergyCosts = (["Speed", "Stamina", "Power", "Guts", "Intelligence"] as const).map(
+            (n) => baseTrainingStats[n]?.[6] ?? 0,
+        );
+        let weightedEnergyDelta = 0;
+        for (let t = 0; t < 5; t++) {
+            weightedEnergyDelta += trainingDistribution[t] * facilityEnergyCosts[t];
+        }
+        const energyCostReductionFraction = Math.min(0.8, energyCostReduction); // cap 80%
+        const energyPerTraining = Math.max(0, -weightedEnergyDelta * (1 - energyCostReductionFraction));
+        const restRegen = DeckEvaluator.REST_REGEN_BASE * (1 + Math.min(2, eventRecovery));
+        let maxTrainingTurns: number;
+        if (energyPerTraining <= 0.001) {
+            // Energy-neutral or positive (Wit-heavy) — no rests needed.
+            maxTrainingTurns = totalPlayableTurns;
+        } else {
+            maxTrainingTurns = Math.floor(
+                (DeckEvaluator.ENERGY_START + totalPlayableTurns * restRegen) /
+                (energyPerTraining + restRegen),
+            );
+        }
+        // Clamp: never exceed totalPlayableTurns, and never go so low that the
+        // deck is unplayable (at most 30 rest turns).
+        maxTrainingTurns = Math.max(
+            Math.min(maxTrainingTurns, totalPlayableTurns),
+            totalPlayableTurns - 30,
+        );
 
         // Calculate training turns to bond for each card
         for (const card of this.deck) {
@@ -434,7 +499,6 @@ export class DeckEvaluator {
         }
 
         // Simulate training at each facility using combinatorics
-        const baseTrainingStats = TrainingData.getBaseTrainingStats(scenarioName);
         const facilityMultipliers = TrainingData.getFacilityMultipliers(scenarioName);
         const moodBonus = 1 + averageMoodBonus / 100;
         const totalGameTurns = maxTrainingTurns + forcedRaces + totalOptionalRaces;

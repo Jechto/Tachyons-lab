@@ -182,7 +182,6 @@ export class DeckEvaluator {
         scenarioName: string,
         facilityMultiplier: number,
         moodBonus: number,
-        globalTrainingEffectiveness: number = 0 // Training effectiveness from all cards (including Support)
     ): number[] {
         const gains = [0, 0, 0, 0, 0, 0]; // Speed, Stamina, Power, Guts, Wit, SkillPts
 
@@ -197,8 +196,8 @@ export class DeckEvaluator {
         // skipped at the consumption sites below.
         const cardBuffFriendship = TrainingData.getCardBuffs(scenarioName)["Friendship Bonus"];
 
-        // Base training effectiveness (starts at 1.0 + global from all cards)
-        let trainingEffectiveness = 1.0 + globalTrainingEffectiveness;
+        // Base training effectiveness (starts at 1.0, individual card TEs added below)
+        let trainingEffectiveness = 1.0;
         let friendshipBonus = 1.0;
         let moodEffect = 1.0;
 
@@ -304,10 +303,6 @@ export class DeckEvaluator {
         let eventRecovery = 0;
         let energyCostReduction = 0; // summed as a fraction (cardBonus/100)
         let raceBonus = 0;
-
-        // Calculate global training effectiveness from ALL cards (including Support)
-        // This applies to all facilities based on training distribution
-        const globalTrainingEffectiveness: number[] = [0, 0, 0, 0, 0]; // Per facility type
 
         const totalOptionalRaces = optionalRaces.G1 + optionalRaces.G2or3 + optionalRaces.PreOPorOP;
         // Total playable turns before rests are subtracted. The number of rests
@@ -437,13 +432,6 @@ export class DeckEvaluator {
                 ? card.cardBonus["Race Bonus"] || 0
                 : 0) / 100;
 
-            // Add global training effectiveness from ALL cards to all facilities
-            for (let t = 0; t < 5; t++) {
-                globalTrainingEffectiveness[t] += 
-                    ((card.cardBonus["Training Effectiveness"] !== -1
-                        ? card.cardBonus["Training Effectiveness"] || 0
-                        : 0) / 100) * trainingDistribution[t];
-            }
         }
 
         // ----- Energy-based training-turn budget -----
@@ -567,10 +555,9 @@ export class DeckEvaluator {
                     const facilityMultiplier = 1 + Math.min(Math.floor(turn / trainingsPerLevel), maxFacilityLevel) * facilityMultiplierValue;
                     const currentLevel = Math.min(Math.floor(turn / trainingsPerLevel), maxFacilityLevel);
 
-                    // Baseline (no-card) stats for this turn
-                    const baseTE = 1.0 + globalTrainingEffectiveness[index];
+                    // Baseline (no-card) stats for this turn (TE = 1.0, no cards present)
                     const baseStatsPerTurn = coreStats.map((stat) =>
-                        Math.floor(stat * facilityMultiplier * moodBonus * baseTE)
+                        Math.floor(stat * facilityMultiplier * moodBonus)
                     );
 
                     // Build unified entry list: all card combos + no-card case
@@ -585,7 +572,7 @@ export class DeckEvaluator {
                         const isBonded = turn >= primaryCard.turnsToMaxBond;
                         const gains = this.calculateTrainingGains(
                             coreStats, otherCards, primaryCard, name, isBonded,
-                            scenarioName, facilityMultiplier, moodBonus, globalTrainingEffectiveness[index]
+                            scenarioName, facilityMultiplier, moodBonus,
                         );
                         turnProbSum += probability;
                         allEntries.push({

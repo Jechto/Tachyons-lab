@@ -73,6 +73,8 @@ export class TrainingData {
             // Specialty Priority is added. Higher = more uniform distributions
             // (specialty priority gets diluted). See DeckEvaluator.getTrainingDistribution.
             baselineTrainingWeight: 0.2,
+            trainingsPerFacilityLevel: 3,
+            maxFacilityLevel: 4,
         },
         Unity: {
             name: "Unity Cup",
@@ -124,6 +126,8 @@ export class TrainingData {
             },
             scenarioTrainingDistributedBonusStats: 8*30+8*15+8*7, // 8 spirit bursts of 15 mainstat + 7 substat each assumed ( updated with 8 super spirit bursts of 30 mainstats aswell)
             baselineTrainingWeight: 0.2,
+            trainingsPerFacilityLevel: 4,
+            maxFacilityLevel: 4,
         },
         URA: {
             name: "URA Finals",
@@ -173,25 +177,32 @@ export class TrainingData {
             },
             scenarioTrainingDistributedBonusStats: 0,
             baselineTrainingWeight: 0.2,
+            trainingsPerFacilityLevel: 4,
+            maxFacilityLevel: 4,
         },
         GrandConcert: {
             name: "Grand Concert",
-            // Base training gains (Facility Level 1). Facility levels up every 4
-            // trainings at that facility, like URA Finale. These are the RAW guide
-            // values — the progressive CONCERT BONUSES (Friendship Bonus and
-            // Speciality Priority Up) are NOT folded in here; they are modelled
-            // per-card via `cardBuffs` (see below) so that decks stacked with
-            // friendship / specialty cards benefit more, matching the scenario's
-            // design and the guide's "increases ... of all your Support Cards".
+            // Base training gains (Facility Level 1). Facility levels up every
+            // trainingsPerFacilityLevel trainings at that facility, like URA Finale.
+            //
+            // Raw guide values + career-average lesson rewards folded in:
+            //   Technique lessons (~30, [2,2,2,2,2,2,-5] each): +0.86 all stats/SP, +2.14 energy/turn
+            //   Extra stat gains (time-weighted, per-type): Spd+2.6, Sta+2.2, Pwr+2.2, Gts+2.6, Wit+2.2, SP+3.4
+            //   (Song flat bonuses are NOT folded in — already covered by scenarioBonusStats.)
+            // Total folded-in per type:  Spd[+3.5,+0.9,+0.9,+0.9,+0.9,+4.3,+2.1]  etc.
+            //
+            // Concert LIVE BONUSES (Friendship Bonus, Speciality Rate Up) are NOT
+            // folded in here; they are modelled per-card via `cardBuffs` (see below)
+            // so that decks stacked with friendship / specialty cards benefit more.
             training: {
-                Speed: [8, 0, 4, 0, 0, 4, -19],
-                Stamina: [0, 8, 0, 6, 0, 4, -20],
-                Power: [0, 4, 9, 0, 0, 4, -20],
-                Guts: [2, 0, 2, 7, 0, 4, -20],
-                Intelligence: [2, 0, 0, 0, 6, 5, 5],
+                Speed:        [8+0.9, 0+0.9, 4+0.9, 0+0.9, 0+0.9, 4+4.3, -19+2.1],
+                Stamina:      [0+0.9, 8+0.9, 0+0.9, 6+0.9, 0+0.9, 4+4.3, -20+2.1],
+                Power:        [0+0.9, 4+0.9, 9+0.9, 0+0.9, 0+0.9, 4+4.3, -20+2.1],
+                Guts:         [2+0.9, 0+0.9, 2+0.9, 7+0.9, 0+0.9, 4+4.3, -20+2.1],
+                Intelligence: [2+0.9, 0+0.9, 0+0.9, 0+0.9, 6+0.9, 5+4.3, 5+2.1],
             },
             // Per-level facility growth derived from the level table:
-            // multiplier = 1 + min(floor(turn/4), 4) * facilityMultiplier.
+            // multiplier = 1 + min(floor(turn/trainingsPerFacilityLevel), maxFacilityLevel) * facilityMultiplier.
             facilityMultipliers: {
                 Speed: 1 / 8,
                 Stamina: 1 / 8,
@@ -281,6 +292,8 @@ export class TrainingData {
                 "Friendship Bonus": 10,
             },
             baselineTrainingWeight: 0.35,
+            trainingsPerFacilityLevel: 2.5,
+            maxFacilityLevel: 4,
         },
     };
 
@@ -357,6 +370,24 @@ export class TrainingData {
         return (
             this.baseStats[scenarioName as keyof typeof this.baseStats]
                 ?.baselineTrainingWeight ?? 0.2
+        );
+    }
+
+    static getTrainingsPerFacilityLevel(
+        scenarioName: string = "URA",
+    ): number {
+        return (
+            this.baseStats[scenarioName as keyof typeof this.baseStats]
+                ?.trainingsPerFacilityLevel ?? 4
+        );
+    }
+
+    static getMaxFacilityLevel(
+        scenarioName: string = "URA",
+    ): number {
+        return (
+            this.baseStats[scenarioName as keyof typeof this.baseStats]
+                ?.maxFacilityLevel ?? 4
         );
     }
 

@@ -506,6 +506,8 @@ export class DeckEvaluator {
 
             const facilityMultipliers =
                 TrainingData.getFacilityMultipliers(scenarioName);
+            const trainingsPerLevel = TrainingData.getTrainingsPerFacilityLevel(scenarioName);
+            const maxFacilityLevel = TrainingData.getMaxFacilityLevel(scenarioName);
             const facilityMultiplierValue = facilityMultipliers[name] || 0;
 
             // Calculate effective stat bonuses BEFORE the turn loop so they can be added to base stats
@@ -570,7 +572,7 @@ export class DeckEvaluator {
             ) {
                 const facilityMultiplier =
                     1 +
-                    Math.min(Math.floor(turn / 4), 4) * facilityMultiplierValue;
+                    Math.min(Math.floor(turn / trainingsPerLevel), maxFacilityLevel) * facilityMultiplierValue;
 
                 const rainbow =
                     turn >=

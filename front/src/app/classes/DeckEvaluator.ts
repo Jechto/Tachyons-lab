@@ -500,6 +500,8 @@ export class DeckEvaluator {
 
         // Simulate training at each facility using combinatorics
         const facilityMultipliers = TrainingData.getFacilityMultipliers(scenarioName);
+        const trainingsPerLevel = TrainingData.getTrainingsPerFacilityLevel(scenarioName);
+        const maxFacilityLevel = TrainingData.getMaxFacilityLevel(scenarioName);
         const moodBonus = 1 + averageMoodBonus / 100;
         const totalGameTurns = maxTrainingTurns + forcedRaces + totalOptionalRaces;
 
@@ -517,7 +519,7 @@ export class DeckEvaluator {
             if (facilityCards.length === 0) {
                 // No cards at this facility - just base training
                 for (let turn = 0; turn < Math.ceil(turnsToTrainAtThisFacility); turn++) {
-                    const facilityMultiplier = 1 + Math.min(Math.floor(turn / 4), 4) * facilityMultiplierValue;
+                    const facilityMultiplier = 1 + Math.min(Math.floor(turn / trainingsPerLevel), maxFacilityLevel) * facilityMultiplierValue;
                     
                     const averageStatsPerTurn = coreStats.map((stat) =>
                         Math.floor(stat * facilityMultiplier * moodBonus)
@@ -562,8 +564,8 @@ export class DeckEvaluator {
 
                 // For each turn, evaluate all possible combinations
                 for (let turn = 0; turn < Math.ceil(turnsToTrainAtThisFacility); turn++) {
-                    const facilityMultiplier = 1 + Math.min(Math.floor(turn / 4), 4) * facilityMultiplierValue;
-                    const currentLevel = Math.min(Math.floor(turn / 4), 4);
+                    const facilityMultiplier = 1 + Math.min(Math.floor(turn / trainingsPerLevel), maxFacilityLevel) * facilityMultiplierValue;
+                    const currentLevel = Math.min(Math.floor(turn / trainingsPerLevel), maxFacilityLevel);
 
                     // Baseline (no-card) stats for this turn
                     const baseTE = 1.0 + globalTrainingEffectiveness[index];
@@ -634,7 +636,7 @@ export class DeckEvaluator {
 
                     if (debug && currentLevel !== lastPrintedLevel) {
                         lastPrintedLevel = currentLevel;
-                        console.log(`\n=== Facility: ${name} | Level ${currentLevel + 1}/5 (multiplier: ${facilityMultiplier.toFixed(3)}) | keeping top ${(targetProb * 100).toFixed(1)}% of all-turn prob ===`);
+                        console.log(`\n=== Facility: ${name} | Level ${currentLevel + 1}/${maxFacilityLevel + 1} (multiplier: ${facilityMultiplier.toFixed(3)}) | keeping top ${(targetProb * 100).toFixed(1)}% of all-turn prob ===`);
                         const rows = allEntries.map(e => ({
                             cards: (e.usedProb > 0 ? '✓ ' : '✗ ') + e.label,
                             prob: (e.probability * 100).toFixed(1) + '%',

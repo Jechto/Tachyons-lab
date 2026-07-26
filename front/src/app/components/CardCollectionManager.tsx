@@ -200,18 +200,28 @@ export default function CardCollectionManager() {
     };
 
     // Unicode-safe base64 helpers for the collection payload
-    const encodeCollection = (data: Record<number, OwnershipLevel>): string => {
+    const encodeCollectionBase64 = (data: Record<number, OwnershipLevel>): string => {
         const bytes = new TextEncoder().encode(JSON.stringify(data));
         let binary = "";
         bytes.forEach(b => { binary += String.fromCharCode(b); });
         return btoa(binary);
     };
 
-    const decodeCollection = (code: string): Record<number, OwnershipLevel> => {
-        const binary = atob(code.trim());
-        const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
-        const json = new TextDecoder().decode(bytes);
-        const parsed = JSON.parse(json);
+    const decodeCollection = (input: string): Record<number, OwnershipLevel> => {
+        const trimmed = input.trim();
+        let parsed: unknown;
+
+        // Try JSON first
+        if (trimmed.startsWith("{")) {
+            parsed = JSON.parse(trimmed);
+        } else {
+            // Try base64 decode
+            const binary = atob(trimmed);
+            const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+            const json = new TextDecoder().decode(bytes);
+            parsed = JSON.parse(json);
+        }
+
         if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
             throw new Error("Not a collection object");
         }
@@ -229,17 +239,49 @@ export default function CardCollectionManager() {
 
     const handleExport = async () => {
         try {
-            const code = encodeCollection(ownedCards);
+            const json = JSON.stringify(ownedCards, null, 2);
+            setExportCode(json);
+            setShowImport(false);
+            try {
+                await navigator.clipboard.writeText(json);
+                setTransferMsg({ type: "success", text: "JSON copied to clipboard" });
+            } catch {
+                setTransferMsg({ type: "success", text: "Export generated — copy it below or download" });
+            }
+        } catch {
+            setTransferMsg({ type: "error", text: "Failed to generate code" });
+        }
+    };
+
+    const handleExportBase64 = async () => {
+        try {
+            const code = encodeCollectionBase64(ownedCards);
             setExportCode(code);
             setShowImport(false);
             try {
                 await navigator.clipboard.writeText(code);
-                setTransferMsg({ type: "success", text: "Code copied to clipboard" });
+                setTransferMsg({ type: "success", text: "Base64 code copied to clipboard" });
             } catch {
-                setTransferMsg({ type: "success", text: "Code generated — copy it below" });
+                setTransferMsg({ type: "success", text: "Code generated — copy it below or download" });
             }
         } catch {
             setTransferMsg({ type: "error", text: "Failed to generate code" });
+        }
+    };
+
+    const handleDownloadJSON = () => {
+        try {
+            const json = JSON.stringify(ownedCards, null, 2);
+            const blob = new Blob([json], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "tachyons_collection.json";
+            a.click();
+            URL.revokeObjectURL(url);
+            setTransferMsg({ type: "success", text: "JSON file downloaded" });
+        } catch {
+            setTransferMsg({ type: "error", text: "Failed to download file" });
         }
     };
 
@@ -326,7 +368,13 @@ export default function CardCollectionManager() {
                                 onClick={handleExport}
                                 className="px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm"
                             >
-                                Export Code
+                                Export JSON
+                            </button>
+                            <button
+                                onClick={handleExportBase64}
+                                className="px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 transition-colors shadow-sm"
+                            >
+                                Export Base64
                             </button>
                             <button
                                 onClick={() => { setShowImport(v => !v); setExportCode(""); setTransferMsg(null); }}
@@ -343,14 +391,22 @@ export default function CardCollectionManager() {
 
                         {exportCode && (
                             <div className="mt-3">
-                                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                    Your collection code — copy and paste it on another device:
-                                </label>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="text-xs text-gray-500 dark:text-gray-400">
+                                        {exportCode.startsWith("{") ? "Collection JSON" : "Base64 code"} — copy and paste it on another device:
+                                    </label>
+                                    <button
+                                        onClick={handleDownloadJSON}
+                                        className="px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+                                    >
+                                        Download JSON
+                                    </button>
+                                </div>
                                 <textarea
                                     readOnly
                                     value={exportCode}
                                     onFocus={(e) => e.currentTarget.select()}
-                                    rows={3}
+                                    rows={5}
                                     className="w-full text-xs font-mono p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 break-all resize-y focus:ring-2 focus:ring-blue-500 outline-none"
                                 />
                             </div>
@@ -359,13 +415,13 @@ export default function CardCollectionManager() {
                         {showImport && (
                             <div className="mt-3">
                                 <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                    Paste a collection code — importing replaces your current collection:
+                                    Paste JSON or base64 code — importing replaces your current collection:
                                 </label>
                                 <textarea
                                     value={importValue}
                                     onChange={(e) => setImportValue(e.target.value)}
-                                    rows={3}
-                                    placeholder="Paste code here..."
+                                    rows={5}
+                                    placeholder="Paste JSON or base64 code here..."
                                     className="w-full text-xs font-mono p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-y focus:ring-2 focus:ring-blue-500 outline-none"
                                 />
                                 <button

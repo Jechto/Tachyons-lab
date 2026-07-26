@@ -291,7 +291,7 @@ export class TrainingData {
                 "Specialty Priority": 12,
                 "Friendship Bonus": 10,
             },
-            baselineTrainingWeight: 0.35,
+            baselineTrainingWeight: 0.15,
             trainingsPerFacilityLevel: 2.5,
             maxFacilityLevel: 4,
         },

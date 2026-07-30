@@ -12,8 +12,16 @@ export interface CardEffect {
 export interface UniqueEffect {
     level_unlocked: number;
     effects: Array<{
-        type_name: string;
+        type: number;
+        type_name: string | null;
         value: number;
+        // Special unique effects (type >= 101) carry their real magnitude /
+        // threshold / stack caps in these secondary slots. Standard effects
+        // (types 1-31) leave them at 0.
+        value_1?: number;
+        value_2?: number;
+        value_3?: number;
+        value_4?: number;
     }>;
 }
 
@@ -99,6 +107,7 @@ export interface CardBonus {
     "Minigame Effectiveness": number;
     "Skill Point Bonus": number;
     "Wit Friendship Recovery": number;
+    "Flat Energy Cost Reduction (Friendship Training)": number;
 }
 
 export interface StatsDict {

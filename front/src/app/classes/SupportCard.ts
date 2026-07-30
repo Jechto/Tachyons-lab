@@ -107,6 +107,7 @@ export class SupportCard {
             "Minigame Effectiveness",
             "Skill Point Bonus",
             "Wit Friendship Recovery",
+        "Flat Energy Cost Reduction (Friendship Training)",
         ];
 
         const cardBonus = {} as Record<string, number>;
@@ -125,9 +126,37 @@ export class SupportCard {
             }
         }
 
-        // Note: Unique effects are now baked into the base effects during preprocessing
-        // No need to process uniqueEffects here anymore
-        
+        // Standard unique effects (types 1-31) are baked into the base effects
+        // during preprocessing. Special unique effects (types >= 101) have no
+        // matching base effect, so they would be silently dropped — parse them
+        // here against the card's current limit-break level.
+        const cardLbIndex = SupportCard.lmbToName[lbKey] ?? 4; // mlb default
+        for (const entry of uniqueEffects) {
+            const unlockKey = String(entry.level_unlocked ?? "0lb");
+            const unlockIndex = SupportCard.lmbToName[unlockKey] ?? 0;
+            if (cardLbIndex < unlockIndex) continue;
+            for (const eff of entry.effects ?? []) {
+                switch (eff.type) {
+                    case 113: {
+                        // Light Hello and friends: flat energy-cost reduction
+                        // triggered during Friendship Training. The magnitude
+                        // lives in `value_1` (the secondary slot).
+                        const magnitude = eff.value_1 ?? 0;
+                        if (magnitude > 0) {
+                            cardBonus["Flat Energy Cost Reduction (Friendship Training)"] =
+                                Math.max(cardBonus["Flat Energy Cost Reduction (Friendship Training)"], magnitude);
+                        }
+                        break;
+                    }
+                    // Other type 101..112 unique effects are intentionally not
+                    // modelled yet (deck-composition / friendship-gauge / energy
+                    // conditioning). Tracking TODO; authorised separately.
+                    default:
+                        break;
+                }
+            }
+        }
+
         this.cardBonus = cardBonus as unknown as CardBonus;
     }
 

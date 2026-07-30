@@ -302,6 +302,7 @@ export class DeckEvaluator {
         let eventEffectiveness = 0;
         let eventRecovery = 0;
         let energyCostReduction = 0; // summed as a fraction (cardBonus/100)
+        let flatEnergyCostReduction = 0; // flat magnitude (e.g. Light Hello -30); not a fraction
         let raceBonus = 0;
 
         const totalOptionalRaces = optionalRaces.G1 + optionalRaces.G2or3 + optionalRaces.PreOPorOP;
@@ -351,22 +352,32 @@ export class DeckEvaluator {
                     totalStatsGained.Wit! += card.cardBonus["Initial Wit"];
                 }
 
-                eventEffectiveness += (card.cardBonus["Event Effectiveness"] !== -1
-                    ? card.cardBonus["Event Effectiveness"] || 0
-                    : 0) / 100;
-                eventRecovery += (card.cardBonus["Event Recovery"] !== -1
-                    ? card.cardBonus["Event Recovery"] || 0
-                    : 0) / 100;
-                energyCostReduction += (card.cardBonus["Energy Cost Reduction"] !== -1
-                    ? card.cardBonus["Energy Cost Reduction"] || 0
-                    : 0) / 100;
-                raceBonus += (card.cardBonus["Race Bonus"] !== -1
-                    ? card.cardBonus["Race Bonus"] || 0
-                    : 0) / 100;
-                
-                continue; // Skip adding to cardAppearances
+eventEffectiveness += (card.cardBonus["Event Effectiveness"] !== -1
+                ? card.cardBonus["Event Effectiveness"] || 0
+                : 0) / 100;
+            eventRecovery += (card.cardBonus["Event Recovery"] !== -1
+                ? card.cardBonus["Event Recovery"] || 0
+                : 0) / 100;
+            energyCostReduction += (card.cardBonus["Energy Cost Reduction"] !== -1
+                ? card.cardBonus["Energy Cost Reduction"] || 0
+                : 0) / 100;
+            raceBonus += (card.cardBonus["Race Bonus"] !== -1
+                ? card.cardBonus["Race Bonus"] || 0
+                : 0) / 100;
+            // Flat (Light Hello-type) reduction: not summed as a fraction —
+            // the magnitude (e.g. 30) is consumed directly in the energy
+            // budget below. Tracked separately so it doesn't double-count
+            // with the percentage `energyCostReduction`.
+            if (
+                card.cardBonus["Flat Energy Cost Reduction (Friendship Training)"] !== -1
+            ) {
+                const v = card.cardBonus["Flat Energy Cost Reduction (Friendship Training)"] || 0;
+                if (v > flatEnergyCostReduction) flatEnergyCostReduction = v;
             }
-            
+
+            continue; // Skip adding to cardAppearances
+            }
+
             // Calculate specialty rates. Apply any scenario-granted progressive
             // Speciality Priority bonus (e.g. Grand Concert Concert Bonuses) to the
             // card's own value, but only when the card actually has a specialty
@@ -431,6 +442,15 @@ export class DeckEvaluator {
             raceBonus += (card.cardBonus["Race Bonus"] !== -1
                 ? card.cardBonus["Race Bonus"] || 0
                 : 0) / 100;
+            // Flat (Light Hello-type) reduction — same accumulation as the
+            // support-card branch; only applies to cards whose unique effect
+            // is type 113, so for normal cards this is a no-op.
+            if (
+                card.cardBonus["Flat Energy Cost Reduction (Friendship Training)"] !== -1
+            ) {
+                const v = card.cardBonus["Flat Energy Cost Reduction (Friendship Training)"] || 0;
+                if (v > flatEnergyCostReduction) flatEnergyCostReduction = v;
+            }
 
         }
 
@@ -448,9 +468,59 @@ export class DeckEvaluator {
         const facilityEnergyCosts = (["Speed", "Stamina", "Power", "Guts", "Intelligence"] as const).map(
             (n) => baseTrainingStats[n]?.[6] ?? 0,
         );
+
+        // Light Hello (and any future type-113 unique effect) grants a flat
+        // energy-cost reduction triggered while the buddy's friendship training
+        // together with another bonded card. The effect does not stack and
+        // only affects facilities that actually cost energy — i.e. it is
+        // applied per facility, **cap floor at 0 for all facilities except
+        // Wit (index 4)**, since Wit training already regenerates energy.
+        //
+        // Activation requires the buddy to have reached friendship-bond; we
+        // weight the reduction by the fraction of training turns where that
+        // is the case. `turnsToMaxBond` here is computed below and depends
+        // only on `Initial Friendship Gauge` / event Bond, so it's safe to
+        // compute eagerly.
+        let lightHelloBondTurns = 0;
+        if (flatEnergyCostReduction > 0) {
+            for (const card of this.deck) {
+                if (
+                    card.cardBonus["Flat Energy Cost Reduction (Friendship Training)"] !== -1 &&
+                    (card.cardBonus["Flat Energy Cost Reduction (Friendship Training)"] || 0) > 0
+                ) {
+                    const bondNeeded = Math.max(
+                        80 -
+                            (card.cardBonus["Initial Friendship Gauge"] !== -1
+                                ? card.cardBonus["Initial Friendship Gauge"] || 0
+                                : 0) -
+                            (card.eventsStatReward.Bond || 0),
+                        0,
+                    );
+                    lightHelloBondTurns = Math.max(
+                        lightHelloBondTurns,
+                        Math.ceil(bondNeeded / 7),
+                    );
+                }
+            }
+        }
+        // Use totalPlayableTurns as a proxy for maxTrainingTurns (the actual
+        // value is derived from this budget; small bias, simpler closed form).
+        const lightHelloActiveFraction = flatEnergyCostReduction > 0
+            ? Math.max(0, (totalPlayableTurns - lightHelloBondTurns) / totalPlayableTurns)
+            : 0;
+        const effectiveFlatReduction = flatEnergyCostReduction * lightHelloActiveFraction;
+
+        const facilityEnergyWithFlat = facilityEnergyCosts.map((e, t) => {
+            if (t === 4) return e; // Wit: exempt (no cost to reduce / "cap except Wit")
+            // `e` is ≤ 0 for energy-cost facilities; the reduction lessens
+            // the magnitude of the cost, floored at 0 (training never becomes
+            // energy-positive through this effect).
+            return Math.min(0, e + effectiveFlatReduction);
+        });
+
         let weightedEnergyDelta = 0;
         for (let t = 0; t < 5; t++) {
-            weightedEnergyDelta += trainingDistribution[t] * facilityEnergyCosts[t];
+            weightedEnergyDelta += trainingDistribution[t] * facilityEnergyWithFlat[t];
         }
         const energyCostReductionFraction = Math.min(0.8, energyCostReduction); // cap 80%
         const energyPerTraining = Math.max(0, -weightedEnergyDelta * (1 - energyCostReductionFraction));

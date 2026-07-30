@@ -42,6 +42,27 @@ class Database:
         4: "Intelligence"
     }
 
+    # Effect-type IDs >= 101 are not listed in text_data category 151, so
+    # `get_type_name` returns None for them. These are the "special" unique
+    # effects (conditional bonuses, flat reductions, etc.) the master DB
+    # expresses via the secondary `value_0_*` columns. Provide human-readable
+    # names so downstream consumers can still identify them.
+    _special_unique_effect_type_names = {
+        101: "Conditional Bonus (Friendship-Gauge / Trigger)",
+        102: "Off-Specialty Training Effectiveness (Friendship)",
+        103: "Training Effectiveness (Deck Composition)",
+        104: "Training Effectiveness (Fans Gained)",
+        105: "Initial Stats (Deck Composition)",
+        106: "Friendship Training Friendship Bonus (Stacks)",
+        107: "Friendship Bonus (Energy-based)",
+        108: "Training Effectiveness (Energy-based)",
+        109: "Training Effectiveness (Deck Friendship)",
+        110: "Training Effectiveness (Cards Trained With)",
+        111: "Training Effectiveness (Training Level)",
+        112: "Failure Protection (Training)",
+        113: "Flat Energy Cost Reduction (Friendship Training)",
+    }
+
     def __new__(cls, db_path: Optional[str] = None) -> 'Database':
         if cls._instance is None:
             cls._instance = super(Database, cls).__new__(cls)
@@ -255,8 +276,11 @@ class Database:
         cursor = conn.cursor()
        
         cursor.execute('''
-            SELECT 
-                id, lv, type_0, value_0, type_1, value_1
+            SELECT
+                id, lv, type_0, value_0,
+                value_0_1, value_0_2, value_0_3, value_0_4,
+                type_1, value_1,
+                value_1_1, value_1_2, value_1_3, value_1_4
             FROM support_card_unique_effect
             WHERE id=?
         ''', (card_id,))
@@ -265,18 +289,38 @@ class Database:
         columns = [desc[0] for desc in cursor.description]
         if row:
             row_dict = dict(zip(columns, row))
+
+            def _type_name(t: int) -> str:
+                # Prefer the master DB's label; fall back to our table for the
+                # special IDs (>=101) that have no entry in text_data cat 151.
+                named = self.get_type_name(t)
+                if named:
+                    return named
+                return self._special_unique_effect_type_names.get(t, f"Unknown Unique Effect ({t})")
+
             effects = []
             if row_dict['type_0'] != 0:
                 effects.append({
                     "type": row_dict['type_0'],
-                    "type_name": self.get_type_name(row_dict['type_0']),
-                    "value": row_dict['value_0']
+                    "type_name": _type_name(row_dict['type_0']),
+                    "value": row_dict['value_0'],
+                    # Secondary values - encode the "magnitude / threshold / stack
+                    # cap / etc." for special effects. For standard effects these
+                    # are 0 and can be ignored.
+                    "value_1": row_dict['value_0_1'],
+                    "value_2": row_dict['value_0_2'],
+                    "value_3": row_dict['value_0_3'],
+                    "value_4": row_dict['value_0_4'],
                 })
             if row_dict['type_1'] != 0:
                 effects.append({
                     "type": row_dict['type_1'],
-                    "type_name": self.get_type_name(row_dict['type_1']),
-                    "value": row_dict['value_1']
+                    "type_name": _type_name(row_dict['type_1']),
+                    "value": row_dict['value_1'],
+                    "value_1": row_dict['value_1_1'],
+                    "value_2": row_dict['value_1_2'],
+                    "value_3": row_dict['value_1_3'],
+                    "value_4": row_dict['value_1_4'],
                 })
 
             lb_unlocked = row_dict['lv']

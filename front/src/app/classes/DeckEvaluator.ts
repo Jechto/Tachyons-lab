@@ -35,9 +35,17 @@ export class DeckEvaluator {
 
     public deck: SupportCard[] = [];
     public manualDistribution: number[] | null = null;
+    // Career per-stat variance (E[g^2] - E[g]^2 summed across independent
+    // training turns). Populated by evaluateStats; callers can read it via
+    // getVariance() right after a call. Null until the first evaluateStats.
+    private lastVariance: StatsDict | null = null;
 
     constructor() {
         this.deck = [];
+    }
+
+    public getVariance(): StatsDict | null {
+        return this.lastVariance;
     }
 
     public setManualDistribution(distribution: number[] | null): void {
@@ -299,6 +307,14 @@ export class DeckEvaluator {
             "Skill Points": 0,
         };
 
+        // Per-stat career variance accumulator. Career variance = sum_t Var_t(g)
+        // (turns are treated as independent PMFs). Indices follow the
+        // [Speed, Stamina, Power, Guts, Wit, SkillPts] order used throughout.
+        const careerVariance = [0, 0, 0, 0, 0, 0];
+        // Reset lastVariance so a stale value can't leak in if evaluateStats
+        // returns early on an exception path.
+        this.lastVariance = null;
+
         let eventEffectiveness = 0;
         let eventRecovery = 0;
         let energyCostReduction = 0; // summed as a fraction (cardBonus/100)
@@ -510,12 +526,29 @@ eventEffectiveness += (card.cardBonus["Event Effectiveness"] !== -1
             : 0;
         const effectiveFlatReduction = flatEnergyCostReduction * lightHelloActiveFraction;
 
+        // Gate the flat reduction on co-occurrence: Light Hello's friendship
+        // training only triggers when she is at the facility AND at least one
+        // other specialty card appears (rainbow). `cardAppearances` is fully
+        // populated by this point, so compute per-facility P(>=1 rainbow).
+        // Wit (index 4) is exempt from the reduction entirely.
+        const facilityNames = ["Speed", "Stamina", "Power", "Guts", "Intelligence"] as const;
+        const probRainbowAppears: number[] = facilityNames.map((fname) => {
+            const fcards = cardAppearances.filter((ca) => ca.cardType === fname);
+            if (fcards.length === 0) return 0;
+            let pNone = 1.0;
+            for (const c of fcards) pNone *= (1 - c.rainbowSpecialty);
+            return 1 - pNone;
+        });
+
         const facilityEnergyWithFlat = facilityEnergyCosts.map((e, t) => {
             if (t === 4) return e; // Wit: exempt (no cost to reduce / "cap except Wit")
+            // Only apply the reduction on the fraction of turns where a
+            // rainbow specialty card actually co-occurs at this facility.
+            const gatedReduction = effectiveFlatReduction * probRainbowAppears[t];
             // `e` is ≤ 0 for energy-cost facilities; the reduction lessens
             // the magnitude of the cost, floored at 0 (training never becomes
             // energy-positive through this effect).
-            return Math.min(0, e + effectiveFlatReduction);
+            return Math.min(0, e + gatedReduction);
         });
 
         let weightedEnergyDelta = 0;
@@ -684,10 +717,15 @@ eventEffectiveness += (card.cardBonus["Event Effectiveness"] !== -1
                     // Debug table once per level (sorted, with kept marker)
                     // Expected gains from selected (renormalized) entries
                     const expectedGains = [0, 0, 0, 0, 0, 0];
+                    // Second moment E[g^2] over the (renormalized) per-turn PMF,
+                    // for per-turn variance = E[g^2] - E[g]^2.
+                    const expectedGains2 = [0, 0, 0, 0, 0, 0];
                     for (const entry of selectedEntries) {
                         const normProb = selectedProbSum > 0 ? entry.probability / selectedProbSum : 0;
                         for (let i = 0; i < 6; i++) {
-                            expectedGains[i] += (entry.gains[i] ?? 0) * normProb;
+                            const g = entry.gains[i] ?? 0;
+                            expectedGains[i] += g * normProb;
+                            expectedGains2[i] += g * g * normProb;
                         }
                     }
 
@@ -731,6 +769,16 @@ eventEffectiveness += (card.cardBonus["Event Effectiveness"] !== -1
                     totalStatsGained["Skill Points"]! += expectedGains[5] * turnMultiplier;
 
                     totalTurnGains[3] += expectedGains[3] * turnMultiplier;
+
+                    // Accumulate career per-stat variance. Per-turn
+                    // Var_t(g) = E_t[g^2] - E_t[g]^2; scaling a turn's gains
+                    // by `turnMultiplier` scales variance by turnMultiplier^2,
+                    // and independent turns sum into the career variance.
+                    for (let i = 0; i < 6; i++) {
+                        const m = expectedGains[i];
+                        const turnVar = Math.max(0, expectedGains2[i] - m * m);
+                        careerVariance[i] += turnVar * turnMultiplier * turnMultiplier;
+                    }
 
                     if (turn === 0) {
                         totalProbability = turnProbSum;
@@ -849,6 +897,21 @@ eventEffectiveness += (card.cardBonus["Event Effectiveness"] !== -1
 
         // Record total race bonus as a percentage (e.g. 0.25 -> 25)
         totalStatsGained["Race Bonus"] = raceBonus * 100;
+
+        // Publish career per-stat variance for callers (e.g. StatPreviewer to
+        // derive a per-stat distribution band). Treat career as a sum of
+        // independent per-turn PMFs; flat-averaged sources (scenarioBonusStats,
+        // scenarioTrainingDistributedBonusStats, race rewards, megaphone) have
+        // zero variance contribution in the current model, so the band reflects
+        // the combinatorial training spread only — an MVP per the design.
+        this.lastVariance = {
+            Speed: careerVariance[0],
+            Stamina: careerVariance[1],
+            Power: careerVariance[2],
+            Guts: careerVariance[3],
+            Wit: careerVariance[4],
+            "Skill Points": careerVariance[5],
+        };
 
         return totalStatsGained;
     }

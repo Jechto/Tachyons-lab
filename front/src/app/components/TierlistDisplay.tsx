@@ -433,6 +433,9 @@ export default function TierlistDisplay({
                             The score serves as an estimator for how much each card 
                             can improve your deck&apos;s overall performance. Cards with higher scores should generally provide better performance. The score numbers are not related to the grading you recieve after your game. 
                         </p>
+                        <p className="mt-2 text-xs text-blue-700 dark:text-blue-300">
+                            This tierlist aims to find the deck that gives you the best average stats. Sometimes it&apos;s better to use other cards that give different stats which might not rank high on the tierlist.
+                        </p>
                     </div>
                 </div>
             </div>

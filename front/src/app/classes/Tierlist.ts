@@ -25,6 +25,10 @@ interface TierlistDeck {
     cards: TierlistCard[];
     score: number;
     stats: StatsDict;
+    // Career per-stat variance over training turns (sum of independent per-turn
+    // combinatorial variances). Absent for decks computed before this field
+    // existed or when the variance estimator was unavailable.
+    statsVariance?: StatsDict;
     hints?: HintResult;
     scoreBreakdown?: {
         totalScore: number;
@@ -210,6 +214,10 @@ export class Tierlist {
         // Create a deep copy of the deck
         const originalDeck = this.deepCopyDeck(deckObject);
         const baseResultForDeck = deckObject.evaluateStats(scenarioName, averageMood, optionalRaces, true);
+        // Career per-stat variance for the populated deck (cards driving the
+        // combinatorial PMF). Empty-deck path contributes 0, so this also
+        // acts as the variance of the displayed total = base + delta.
+        const baseVarianceForDeck = deckObject.getVariance();
         
         const emptyDeckEvaluator = new DeckEvaluator();
         if (deckObject.manualDistribution) {
@@ -327,6 +335,7 @@ export class Tierlist {
 
         // Calculate deck stats delta
         deck.stats = this.calculateStatsDelta(baseResultForDeck, baseResultEmptyDeck);
+        deck.statsVariance = baseVarianceForDeck ?? undefined;
         deck.hints = hintsForDeck;
 
         // Calculate deck score using delta stats (consistent with individual card scoring)

@@ -867,6 +867,7 @@ export default function Home() {
                     currentDeck={currentDeck}
                     allData={allDataRaw as CardData[]}
                     deckStats={tierlistResult && 'deck' in tierlistResult ? tierlistResult.deck.stats : undefined}
+                    deckStatsVariance={tierlistResult && 'deck' in tierlistResult ? tierlistResult.deck.statsVariance : undefined}
                     scoreBreakdown={tierlistResult && 'deck' in tierlistResult ? tierlistResult.deck.scoreBreakdown : undefined}
                     scenarioName={selectedScenario}
                     manualDistribution={isManualDistribution ? manualDistribution : null}

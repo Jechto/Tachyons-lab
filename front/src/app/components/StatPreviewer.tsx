@@ -6,6 +6,7 @@ import { SupportCard } from "../classes/SupportCard";
 import { CardData } from "../types/cardTypes";
 import { getAssetPath } from "../utils/paths";
 import { TrainingData, SparkSlot } from "../config/trainingData";
+import { VARIANCE_MULTIPLIER } from "../config/varianceConfig";
 
 interface DeckCard {
     id: number;
@@ -23,6 +24,18 @@ interface StatPreviewerProps {
         Stamina: number;
         Power: number;
         Guts: number;
+        Wit?: number;
+        "Skill Points"?: number;
+    };
+    // Career per-stat variance (combinatorial training spread) from
+    // DeckEvaluator. Same shape as `deckStats` but describing the spread of
+    // the displayed TOTAL stats (mean = base + delta). Missing on decks
+    // computed before the variance estimator existed.
+    deckStatsVariance?: {
+        Speed?: number;
+        Stamina?: number;
+        Power?: number;
+        Guts?: number;
         Wit?: number;
         "Skill Points"?: number;
     };
@@ -76,10 +89,340 @@ interface StatDifference {
     "Skill Points": number;
 }
 
+// Per-stat run-outcome distribution band (option "A": inline bullet strip).
+//
+// The career stat total is modelled as a per-stat sum of independent per-turn
+// training PMFs. With ~60 turns the CLT justifies a symmetric normal
+// approximation; percentiles are derived from mean ± z·sigma where
+//   z(99%) = 2.326, z(90%) = 1.282.
+//
+// Spread shown is the COMBINATORIAL training spread only (cards
+// appearing/not-appearing on a given turn). Flat-averaged sources
+// (scenarioBonusStats, race rewards, megaphone, spirit bursts, concert
+// cardBuffs) contribute zero variance in the current model, so the band is a
+// LOWER bound on the true tail width — see DeckEvaluator.evaluateStats for the
+// variance accumulator that feeds this component.
+function StatDistributionBand({
+    statName,
+    median,
+    variance,
+}: {
+    statName: string;
+    median: number;
+    variance?: number;
+}) {
+    // No variance supplied at all (e.g. deckStatsVariance prop missing) →
+    // skip entirely. CARDS driving a combinatorial PMF always yield variance ≥ 1
+    // for the stats they touch, so variance === 0 means the stat is
+    // deterministic in this deck (no cards of its type AND no off-stat bonus
+    // from any card). That case is rendered as a compact "no spread" stub
+    // below instead of hiding the row — it correlates with negative deltas
+    // (training redirected away from this stat), which is exactly when the
+    // user expects to still see the row.
+    if (variance === undefined) return null;
+
+    // Inflate variance to compensate for untracked sources of run-to-run
+    // variation (energy events, race RNG, mood drift, hint RNG, ...). The raw
+    // band is a LOWER bound on true tail width; VARIANCE_MULTIPLIER widens it.
+    const scaledVariance = variance > 0 ? variance * VARIANCE_MULTIPLIER : 0;
+    const sigma = scaledVariance > 0 ? Math.sqrt(scaledVariance) : 0;
+    // Symmetric (CLT) percentile approximation. Asymmetry from back-loading
+    // (e.g. Grand Concert's cardBuffs) is NOT captured yet — tails will be
+    // equidistant from the median, which the user accepted as the MVP behaviour.
+    const p1 = median - 2.326 * sigma;
+    const p10 = median - 1.282 * sigma;
+    const p50 = median;
+    const p90 = median + 1.282 * sigma;
+    const p99 = median + 2.326 * sigma;
+    const span = p99 - p1;
+    const hasSpread = span >= 1;
+
+    if (!hasSpread) {
+        // Deterministic stat: no combinatorial variance. Show the median as a
+        // single tick with a "no spread" caption so the row stays visible and
+        // consistent with the other stats.
+        const stubTitle = `${statName}: ${Math.round(median)} (no run-to-run spread)`;
+        return (
+            <div className="mt-2" title={stubTitle}>
+                <svg
+                    viewBox="0 0 100 14"
+                    preserveAspectRatio="none"
+                    className="w-full h-3.5"
+                    role="img"
+                    aria-label={stubTitle}
+                >
+                    <line
+                        x1="0"
+                        y1="7"
+                        x2="100"
+                        y2="7"
+                        className="stroke-gray-300 dark:stroke-gray-600"
+                        strokeWidth="1.5"
+                        vectorEffect="non-scaling-stroke"
+                    />
+                    <line
+                        x1="50"
+                        y1="0.5"
+                        x2="50"
+                        y2="13.5"
+                        className="stroke-gray-800 dark:stroke-gray-100"
+                        strokeWidth="1.8"
+                        vectorEffect="non-scaling-stroke"
+                    />
+                </svg>
+                <div className="relative mt-0.5 h-3.5 text-[9px] leading-none text-gray-600 dark:text-gray-400 tabular-nums">
+                    <span
+                        className="absolute -translate-x-1/2 font-semibold text-gray-800 dark:text-gray-200"
+                        style={{ left: "50%" }}
+                    >
+                        {Math.round(median)}
+                    </span>
+                </div>
+            </div>
+        );
+    }
+
+    // SVG viewBox is 0..100 wide, 14 tall; `preserveAspectRatio="none"` lets
+    // it scale horizontally to the card width. `vector-effect` keeps strokes
+    // 1px regardless of horizontal stretching. `overflow: visible` on the svg
+    // prevents the P1/P99 edge ticks from being clipped at the viewBox border.
+    const titleText =
+        `Worst 1%: ${Math.round(p1)} · ` +
+        `Bottom 10%: ${Math.round(p10)} · ` +
+        `Typical: ${Math.round(p50)} · ` +
+        `Top 10%: ${Math.round(p90)} · ` +
+        `Best 1%: ${Math.round(p99)}`;
+    // Label positions as % of the full band width (p1 → 0%, p99 → 100%).
+    // Used for the SVG tail/band connector ticks and the text labels below.
+    const r = (n: number) => Math.round(n).toString();
+    const lp1 = 0;
+    const lp10 = ((p10 - p1) / span) * 100;
+    const lp50 = 50;
+    const lp90 = ((p90 - p1) / span) * 100;
+    const lp99 = 100;
+
+    return (
+        <div
+            className="mt-2 px-px"
+            title={titleText}
+            aria-label={`${statName} run distribution. ${titleText}`}
+        >
+            <svg
+                viewBox="0 0 100 16"
+                preserveAspectRatio="none"
+                className="w-full h-4"
+                style={{ overflow: "visible" }}
+                role="img"
+            >
+                {/* Outer axis: full P1 → P99 range */}
+                <line
+                    x1="0"
+                    y1="7"
+                    x2="100"
+                    y2="7"
+                    className="stroke-gray-300 dark:stroke-gray-600"
+                    strokeWidth="1.5"
+                    vectorEffect="non-scaling-stroke"
+                />
+                {/* Typical band: P10 → P90 (middle 80% of runs) */}
+                <rect
+                    x={lp10}
+                    y="3"
+                    width={Math.max(0, lp90 - lp10)}
+                    height="8"
+                    rx="1.5"
+                    className="fill-indigo-300 dark:fill-indigo-700/70"
+                />
+                {/* Median (typical run) tick — bold, full height */}
+                <line
+                    x1={lp50}
+                    y1="0.5"
+                    x2={lp50}
+                    y2="13.5"
+                    className="stroke-gray-800 dark:stroke-gray-100"
+                    strokeWidth="1.8"
+                    vectorEffect="non-scaling-stroke"
+                />
+                {/* Outer tail ticks: P1 and P99 — tall + amber so they read as
+                    "tail" markers, not background fuzz. */}
+                <line
+                    x1={lp1}
+                    y1="1"
+                    x2={lp1}
+                    y2="13"
+                    className="stroke-amber-500 dark:stroke-amber-400"
+                    strokeWidth="1.4"
+                    vectorEffect="non-scaling-stroke"
+                />
+                <line
+                    x1={lp99}
+                    y1="1"
+                    x2={lp99}
+                    y2="13"
+                    className="stroke-amber-500 dark:stroke-amber-400"
+                    strokeWidth="1.4"
+                    vectorEffect="non-scaling-stroke"
+                />
+                {/* P10 / P90 connector ticks — drop below the bar to mark the
+                    band edges. Short, indigo to match the band. */}
+                <line
+                    x1={lp10}
+                    y1="11"
+                    x2={lp10}
+                    y2="14"
+                    className="stroke-indigo-400 dark:stroke-indigo-500"
+                    strokeWidth="1"
+                    vectorEffect="non-scaling-stroke"
+                />
+                <line
+                    x1={lp90}
+                    y1="11"
+                    x2={lp90}
+                    y2="14"
+                    className="stroke-indigo-400 dark:stroke-indigo-500"
+                    strokeWidth="1"
+                    vectorEffect="non-scaling-stroke"
+                />
+            </svg>
+            {/* Percentile numbers below the bar, color-matched to the legend:
+                amber = 1% tails, indigo = 10% cutoffs, white = median.
+                Edge values (P1/P99) get a small outward nudge so 3–4 digit
+                tail labels don't collide with the P10/P90 cutoff labels on
+                narrow bars. `overflow: visible` lets the nudge render past
+                the row box; inner values center on their tick. */}
+            <div className="relative mt-0.5 h-3.5 text-[9px] leading-none tabular-nums" style={{ overflow: "visible" }}>
+                <span
+                    className="absolute text-amber-500 dark:text-amber-400"
+                    style={{ left: `${lp1}%`, transform: "translateX(-4px)" }}
+                >
+                    {r(p1)}
+                </span>
+                <span
+                    className="absolute -translate-x-1/2 text-indigo-500 dark:text-indigo-300"
+                    style={{ left: `${lp10}%` }}
+                >
+                    {r(p10)}
+                </span>
+                <span
+                    className="absolute -translate-x-1/2 font-semibold text-gray-800 dark:text-white"
+                    style={{ left: `${lp50}%` }}
+                >
+                    {r(p50)}
+                </span>
+                <span
+                    className="absolute -translate-x-1/2 text-indigo-500 dark:text-indigo-300"
+                    style={{ left: `${lp90}%` }}
+                >
+                    {r(p90)}
+                </span>
+                <span
+                    className="absolute text-amber-500 dark:text-amber-400"
+                    style={{ left: `${lp99}%`, transform: "translateX(calc(-100% + 4px))" }}
+                >
+                    {r(p99)}
+                </span>
+            </div>
+        </div>
+    );
+}
+
+// One-off legend shared above the stat grid, explaining the bullet strip's
+// visual encoding so any reader can decode the bands without tooltips.
+function DistributionLegend() {
+    return (
+        <div className="mb-3 text-xs text-gray-600 dark:text-gray-400 flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-gray-700 dark:text-gray-300">
+                Run-outcome range:
+            </span>
+            {/* Mini bullet identical in encoding to StatDistributionBand */}
+            <svg
+                viewBox="0 0 60 10"
+                preserveAspectRatio="none"
+                className="h-3 w-16 inline-block align-middle"
+                style={{ overflow: "visible" }}
+                aria-hidden="true"
+            >
+                <line
+                    x1="0"
+                    y1="5"
+                    x2="60"
+                    y2="5"
+                    className="stroke-gray-300 dark:stroke-gray-600"
+                    strokeWidth="1.5"
+                    vectorEffect="non-scaling-stroke"
+                />
+                <rect
+                    x="10"
+                    y="2.5"
+                    width="40"
+                    height="5"
+                    rx="1"
+                    className="fill-indigo-300 dark:fill-indigo-700/70"
+                />
+                <line
+                    x1="30"
+                    y1="0"
+                    x2="30"
+                    y2="10"
+                    className="stroke-gray-800 dark:stroke-gray-100"
+                    strokeWidth="1.8"
+                    vectorEffect="non-scaling-stroke"
+                />
+                <line
+                    x1="0"
+                    y1="1"
+                    x2="0"
+                    y2="9"
+                    className="stroke-amber-500 dark:stroke-amber-400"
+                    strokeWidth="1.4"
+                    vectorEffect="non-scaling-stroke"
+                />
+                <line
+                    x1="60"
+                    y1="1"
+                    x2="60"
+                    y2="9"
+                    className="stroke-amber-500 dark:stroke-amber-400"
+                    strokeWidth="1.4"
+                    vectorEffect="non-scaling-stroke"
+                />
+                {/* P10 / P90 cutoff ticks — indigo, match the "10%" text */}
+                <line
+                    x1="10"
+                    y1="6"
+                    x2="10"
+                    y2="9"
+                    className="stroke-indigo-400 dark:stroke-indigo-500"
+                    strokeWidth="1"
+                    vectorEffect="non-scaling-stroke"
+                />
+                <line
+                    x1="50"
+                    y1="6"
+                    x2="50"
+                    y2="9"
+                    className="stroke-indigo-400 dark:stroke-indigo-500"
+                    strokeWidth="1"
+                    vectorEffect="non-scaling-stroke"
+                />
+            </svg>
+            <span>
+                <span className="font-semibold text-amber-500 dark:text-amber-400">1%</span> = worst/best tail runs &middot;{" "}
+                <span className="font-semibold text-indigo-400 dark:text-indigo-500">10%</span> = bottom/top cutoffs (middle 80% band) &middot;{" "}
+                <span className="font-semibold text-gray-800 dark:text-white">median</span> = typical run.
+            </span>
+            <span className="w-full text-red-600 dark:text-red-400 font-medium">
+                This range assumes the training distribution above is roughly followed. Estimates training spread only.
+            </span>
+        </div>
+    );
+}
+
 export default function StatPreviewer({
     currentDeck,
     allData,
     deckStats,
+    deckStatsVariance,
     scoreBreakdown,
     scenarioName = "MANT",
     manualDistribution = null,
@@ -316,8 +659,8 @@ export default function StatPreviewer({
                 <div className="flex items-center gap-3">
                     {hasContent && (
                         <div className="text-sm text-gray-500 dark:text-gray-400">
-                            NOTE: Total stats exclude events from main story and
-                            inspiration
+                            NOTE: Total stats exclude events from Main story and
+                            Inspiration.
                         </div>
                     )}
                     <button
@@ -337,6 +680,7 @@ export default function StatPreviewer({
 
             {isExpanded && (
                 <>
+                    {deckStatsVariance && <DistributionLegend />}
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                         {Object.entries(currentStats).map(
                             ([statName, currentValue]) => {
@@ -406,6 +750,21 @@ export default function StatPreviewer({
                                         >
                                             ({formatStatValue(deltaValue)})
                                         </div>
+                                        {deckStatsVariance && (
+                                            <StatDistributionBand
+                                                statName={statName}
+                                                /* Spread applies to the
+                                                   displayed total (trainable +
+                                                   flat sparks, since flat
+                                                   sparks carry zero variance). */
+                                                median={displayValue}
+                                                variance={
+                                                    deckStatsVariance[
+                                                        statName as keyof typeof deckStatsVariance
+                                                    ] ?? 0
+                                                }
+                                            />
+                                        )}
                                     </div>
                                 );
                             },

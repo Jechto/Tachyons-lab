@@ -7,7 +7,9 @@
 // RNG), so the computed band is a LOWER bound on the true tail width.
 //
 // VARIANCE_MULTIPLIER lets you inflate the displayed spread to compensate
-// for those untracked sources. It scales variance (not sigma), so the band
-// width grows with sqrt(multiplier). A value of 1 reproduces the raw model;
-// increase it to widen the band toward the empirically observed tail width.
+// for those remaining untracked sources. It scales variance (not sigma), so
+// the band width grows with sqrt(multiplier). A value of 1 reproduces the raw
+// model (combinatorial training spread + now-tracked rest-RNG tails);
+// increase it to widen the band further toward the empirically observed tail
+// width.
 export const VARIANCE_MULTIPLIER = 2;

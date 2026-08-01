@@ -30,8 +30,22 @@ export class DeckEvaluator {
     // every deck regardless of how energy-expensive its facility mix was.
     /** Starting energy at the beginning of the career. */
     private static readonly ENERGY_START = 100;
-    /** Base energy regenerated per rest turn (boosted by Event Recovery). */
-    private static readonly REST_REGEN_BASE = 50;
+
+    // Rest recovery is a discrete RNG, not a flat +50. The per-rest energy
+    // gain rolls on this distribution (verified in-game odds):
+    //   +30 with 12.5%   ·   +50 with 62.5%   ·   +70 with 25%
+    // Mean μ = 52.5, E[X²] = 2900 → Var = 143.75 (σ ≈ 11.99). The career total
+    // rest recovery is a sum over R rest turns, so its std scales as σ·√R
+    // (CLT). We use the mean for the median run and the p99 total recovery
+    // for the "top 1% run" — see the rest-RNG variance injection near the end
+    // of evaluateStats, which feeds StatDistributionBand's outer tails.
+    private static readonly REST_REGEN_MEAN = 52.5;
+    private static readonly REST_REGEN_VAR = 143.75;
+    private static readonly Z_99 = 2.326;
+    /** Order of stats in the careerVariance[0..5] / totalStatsGained tuple. */
+    private static readonly CAREER_STAT_KEYS = [
+        "Speed", "Stamina", "Power", "Guts", "Wit", "Skill Points",
+    ] as const;
 
     public deck: SupportCard[] = [];
     public manualDistribution: number[] | null = null;
@@ -557,23 +571,25 @@ eventEffectiveness += (card.cardBonus["Event Effectiveness"] !== -1
         }
         const energyCostReductionFraction = Math.min(0.8, energyCostReduction); // cap 80%
         const energyPerTraining = Math.max(0, -weightedEnergyDelta * (1 - energyCostReductionFraction));
-        const restRegen = DeckEvaluator.REST_REGEN_BASE * (1 + Math.min(2, eventRecovery));
-        let maxTrainingTurns: number;
-        if (energyPerTraining <= 0.001) {
-            // Energy-neutral or positive (Wit-heavy) — no rests needed.
-            maxTrainingTurns = totalPlayableTurns;
-        } else {
-            maxTrainingTurns = Math.floor(
-                (DeckEvaluator.ENERGY_START + totalPlayableTurns * restRegen) /
-                (energyPerTraining + restRegen),
+        // Event Recovery inflates every rest roll by a flat multiplier; it
+        // scales the rest distribution's mean and std together (std scales by
+        // the same factor, variance by its square).
+        const restEvMult = 1 + Math.min(2, eventRecovery);
+        const meanRestRegen = DeckEvaluator.REST_REGEN_MEAN * restEvMult;
+        // Closed-form equilibrium training/rest split given a per-rest regen
+        // `r` and per-training energy cost `e`:
+        //   e·N = ENERGY_START + r·(totalPlayableTurns − N)
+        //   → N = (ENERGY_START + r·totalPlayableTurns) / (e + r)
+        // Then clamp to [totalPlayableTurns − 30, totalPlayableTurns].
+        const computeMaxTrainingTurns = (r: number): number => {
+            if (energyPerTraining <= 0.001) return totalPlayableTurns;
+            const n = Math.floor(
+                (DeckEvaluator.ENERGY_START + totalPlayableTurns * r) /
+                (energyPerTraining + r),
             );
-        }
-        // Clamp: never exceed totalPlayableTurns, and never go so low that the
-        // deck is unplayable (at most 30 rest turns).
-        maxTrainingTurns = Math.max(
-            Math.min(maxTrainingTurns, totalPlayableTurns),
-            totalPlayableTurns - 30,
-        );
+            return Math.max(Math.min(n, totalPlayableTurns), totalPlayableTurns - 30);
+        };
+        const maxTrainingTurns = computeMaxTrainingTurns(meanRestRegen);
 
         // Calculate training turns to bond for each card
         for (const card of this.deck) {
@@ -898,12 +914,47 @@ eventEffectiveness += (card.cardBonus["Event Effectiveness"] !== -1
         // Record total race bonus as a percentage (e.g. 0.25 -> 25)
         totalStatsGained["Race Bonus"] = raceBonus * 100;
 
+        // Rest-RNG variance injection.
+        //
+        // Rest recovery rolls on a discrete distribution (see REST_REGEN_*).
+        // Over the career's R rest turns the total recovery is a sum of i.i.d.
+        // draws, so its std scales as σ·√R (CLT). The p99 total recovery maps
+        // to a higher effective per-rest regen → a higher maxTrainingTurns in
+        // the top-1% run. The resulting extra training turns translate to an
+        // extra per-stat gain (linear approx: per-turn mean × Δturns), which
+        // we fold into careerVariance as a symmetric additive term so the
+        // existing CLT band (median ± z·σ) widens to reflect rest luck — a
+        // previously-untracked source of run-to-run variation. This is a
+        // lower-bound estimate: turns added at the end of training run at max
+        // facility level and yield slightly more than the per-turn average
+        // used here. Skill Points (idx 5) are included since training turns
+        // also grant SP.
+        if (energyPerTraining > 0.001 && maxTrainingTurns > 0) {
+            const restTurns = Math.max(0, totalPlayableTurns - maxTrainingTurns);
+            if (restTurns > 0) {
+                const restSigma = Math.sqrt(DeckEvaluator.REST_REGEN_VAR) * restEvMult;
+                const p99RestRegen = meanRestRegen + DeckEvaluator.Z_99 * restSigma / Math.sqrt(restTurns);
+                const maxTrainingTurnsTop1 = computeMaxTrainingTurns(p99RestRegen);
+                const deltaTurns = maxTrainingTurnsTop1 - maxTrainingTurns;
+                if (deltaTurns > 0) {
+                    for (let i = 0; i < 6; i++) {
+                        const key = DeckEvaluator.CAREER_STAT_KEYS[i];
+                        const perTurnMean = (totalStatsGained[key] ?? 0) / maxTrainingTurns;
+                        const statDelta = perTurnMean * deltaTurns;
+                        const sigmaStat = statDelta / DeckEvaluator.Z_99;
+                        careerVariance[i] += sigmaStat * sigmaStat;
+                    }
+                }
+            }
+        }
+
         // Publish career per-stat variance for callers (e.g. StatPreviewer to
-        // derive a per-stat distribution band). Treat career as a sum of
-        // independent per-turn PMFs; flat-averaged sources (scenarioBonusStats,
-        // scenarioTrainingDistributedBonusStats, race rewards, megaphone) have
-        // zero variance contribution in the current model, so the band reflects
-        // the combinatorial training spread only — an MVP per the design.
+        // derive a per-stat distribution band). Career variance = combinatorial
+        // training spread (per-turn PMF second moments) PLUS the rest-RNG tail
+        // term injected above. Flat-averaged sources (scenarioBonusStats,
+        // scenarioTrainingDistributedBonusStats, race rewards, megaphone) still
+        // contribute zero variance, so the band remains a lower bound on the
+        // true tail width — see VARIANCE_MULTIPLIER for a manual fudge factor.
         this.lastVariance = {
             Speed: careerVariance[0],
             Stamina: careerVariance[1],

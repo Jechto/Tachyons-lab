@@ -107,25 +107,54 @@ export class DeckEvaluator {
             normalizedDistribution = [0.2, 0.2, 0.2, 0.2, 0.2];
         }
 
-        // Cap at 50%
-        const maxTrainingPercentage = 0.5;
+        // Cap at the scenario's max training percentage. Defaults to 50% for
+        // scenarios without an explicit cap (legacy behaviour). Grand Live sets
+        // a lower cap because its cardBuff inflates Specialty Priority and a
+        // 2–3 SSR stack will otherwise tunnel onto one facility.
+        const maxTrainingPercentage = TrainingData.getMaxTrainingPercentage(scenarioName);
+        // Per-scenario minimum share for any non-capped type. Without a floor,
+        // the excess from the capped type is redistributed proportionally to
+        // current weight — so a deck with 2 Wit SSRs absorbs ~all of Speed's
+        // excess into Wit, while Sta/Pwr/Gut stay starving at ~6%, far below
+        // real play where players spread odd turns to balance caps. Grand Live
+        // sets 0.10; default 0 preserves legacy behaviour for URA/MANT/Unity.
+        const minTrainingPercentage = TrainingData.getMinTrainingPercentage(scenarioName);
         const maxValue = Math.max(...normalizedDistribution);
         if (maxValue > maxTrainingPercentage) {
             const maxIndex = normalizedDistribution.indexOf(maxValue);
             const excess = maxValue - maxTrainingPercentage;
             normalizedDistribution[maxIndex] = maxTrainingPercentage;
-            
-            const remainingSum = normalizedDistribution.reduce((sum, val, idx) => 
-                idx === maxIndex ? sum : sum + val, 0);
-            
-            if (remainingSum > 0) {
+
+            // Step 1: top up any non-capped type below the floor, drawing from
+            // the excess. Each type below `minTrainingPercentage` is lifted to
+            // the floor before any proportional redistribution happens.
+            let remainingExcess = excess;
+            if (minTrainingPercentage > 0) {
                 for (let i = 0; i < normalizedDistribution.length; i++) {
-                    if (i !== maxIndex) {
-                        normalizedDistribution[i] += excess * (normalizedDistribution[i] / remainingSum);
+                    if (i === maxIndex) continue;
+                    if (normalizedDistribution[i] < minTrainingPercentage) {
+                        const needed = minTrainingPercentage - normalizedDistribution[i];
+                        const applied = Math.min(needed, remainingExcess);
+                        normalizedDistribution[i] += applied;
+                        remainingExcess -= applied;
+                        if (remainingExcess <= 0) break;
                     }
                 }
-            } else {
-                const redistributed = excess / (normalizedDistribution.length - 1);
+            }
+
+            // Step 2: redistribute whatever excess remains proportionally to
+            // non-capped types already at/above the floor.
+            const remainingSum = normalizedDistribution.reduce((sum, val, idx) =>
+                idx === maxIndex ? sum : sum + val, 0);
+
+            if (remainingSum > 0 && remainingExcess > 0) {
+                for (let i = 0; i < normalizedDistribution.length; i++) {
+                    if (i !== maxIndex) {
+                        normalizedDistribution[i] += remainingExcess * (normalizedDistribution[i] / remainingSum);
+                    }
+                }
+            } else if (remainingSum <= 0 && remainingExcess > 0) {
+                const redistributed = remainingExcess / (normalizedDistribution.length - 1);
                 for (let i = 0; i < normalizedDistribution.length; i++) {
                     if (i !== maxIndex) {
                         normalizedDistribution[i] += redistributed;
@@ -542,16 +571,52 @@ eventEffectiveness += (card.cardBonus["Event Effectiveness"] !== -1
 
         // Gate the flat reduction on co-occurrence: Light Hello's friendship
         // training only triggers when she is at the facility AND at least one
-        // other specialty card appears (rainbow). `cardAppearances` is fully
-        // populated by this point, so compute per-facility P(>=1 rainbow).
-        // Wit (index 4) is exempt from the reduction entirely.
+        // OTHER specialty card appears (rainbow). The buddy herself is excluded
+        // from the "other" pool — the in-game text reads "together with another
+        // bonded card", and folding her into P(>=1 rainbow) double-counts her
+        // own appearance and over-credits her own facility (Speed). Wit (index
+        // 4) is exempt from the reduction entirely.
         const facilityNames = ["Speed", "Stamina", "Power", "Guts", "Intelligence"] as const;
+        // Identify the Light Hello (type-113) buddy so we can exclude her from
+        // each facility's "other specialty cards" pool. There can be at most
+        // one such buddy in a deck (the unique effect doesn't stack).
+        const lightHelloCards = flatEnergyCostReduction > 0
+            ? this.deck.filter((card) =>
+                card.cardBonus["Flat Energy Cost Reduction (Friendship Training)"] !== -1 &&
+                (card.cardBonus["Flat Energy Cost Reduction (Friendship Training)"] || 0) > 0
+            )
+            : [];
+        const lightHelloIndices = new Set(lightHelloCards.map((c) => this.deck.indexOf(c)));
+
         const probRainbowAppears: number[] = facilityNames.map((fname) => {
-            const fcards = cardAppearances.filter((ca) => ca.cardType === fname);
-            if (fcards.length === 0) return 0;
-            let pNone = 1.0;
-            for (const c of fcards) pNone *= (1 - c.rainbowSpecialty);
-            return 1 - pNone;
+            // Include the buddy at this facility in the appearance check: she
+            // must appear here for the reduction to trigger.
+            const fcardsAll = cardAppearances.filter((ca) => ca.cardType === fname);
+            if (fcardsAll.length === 0) return 0;
+            const fcardsBuddy = fcardsAll.filter((ca) => lightHelloIndices.has(ca.index));
+            if (fcardsBuddy.length === 0) return 0; // buddy not at this facility
+            // P(at least one buddy appears).
+            let pAnyBuddy = 0;
+            {
+                // Inclusion-exclusion across multiple buddy cards (rare: deck usually 1).
+                let pNoneBuddy = 1.0;
+                for (const c of fcardsBuddy) pNoneBuddy *= (1 - c.rainbowSpecialty);
+                pAnyBuddy = 1 - pNoneBuddy;
+            }
+            // P(at least one OTHER specialty card appears) — buddy excluded.
+            const fcardsOther = fcardsAll.filter((ca) => !lightHelloIndices.has(ca.index));
+            let pAnyOther = 0;
+            if (fcardsOther.length > 0) {
+                let pNoneOther = 1.0;
+                for (const c of fcardsOther) pNoneOther *= (1 - c.rainbowSpecialty);
+                pAnyOther = 1 - pNoneOther;
+            }
+            // Approximation (exact joint is intractable): buddy and other
+            // appearances are independent draws of distinct cards, so the joint
+            // probability factors. This is exact unless the same physical card
+            // is the buddy for two facilities (impossible: one card has one
+            // type), so P(buddy AND >=1 other) = pAnyBuddy * pAnyOther.
+            return pAnyBuddy * pAnyOther;
         });
 
         const facilityEnergyWithFlat = facilityEnergyCosts.map((e, t) => {
@@ -820,6 +885,22 @@ eventEffectiveness += (card.cardBonus["Event Effectiveness"] !== -1
         const g1RewardsFixed = careerRacesFixed.G1 || [0, 0, 0, 0, 0, 0];
         const g2or3RewardsFixed = careerRacesFixed.G2or3 || [0, 0, 0, 0, 0, 0];
         const preOPorOPRewardsFixed = careerRacesFixed.PreOPorOP || [0, 0, 0, 0, 0, 0];
+
+        // Per-Concert rewards (Grand Live only; zero for URA/MANT/Unity). The
+        // scenario's ForcedRaces turn count covers the 5 Concerts for Grand Live
+        // (they consume a turn like races), so the per-Concert reward is
+        // multiplied by that count. Concerts aren't races — they don't pick up
+        // the raceBonus multiplier — so they're applied flat here, mirroring the
+        // `Fixed` race-rewards pattern.
+        const concertRewards = TrainingData.getConcertRewards(scenarioName);
+        if (forcedRaces > 0 && concertRewards.some((v) => v !== 0)) {
+            totalStatsGained.Speed += concertRewards[0] * forcedRaces;
+            totalStatsGained.Stamina += concertRewards[1] * forcedRaces;
+            totalStatsGained.Power += concertRewards[2] * forcedRaces;
+            totalStatsGained.Guts += concertRewards[3] * forcedRaces;
+            totalStatsGained.Wit! += concertRewards[4] * forcedRaces;
+            totalStatsGained["Skill Points"]! += concertRewards[5] * forcedRaces;
+        }
 
         // Always give 8 career race rewards (even if no forced races in scenario)
         totalStatsGained.Speed += finaleRace[0] * 3 + careerRace[0] * 8 * (1 + raceBonus);

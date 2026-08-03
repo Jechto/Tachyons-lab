@@ -695,12 +695,18 @@ export default function StatPreviewer({
                                 const statKey = statName === "Wit" ? "Intelligence" : statName;
                                 const flat = sparkFlatStats[statKey] || 0;
                                 const effMax = maxStats[statKey] !== undefined ? maxStats[statKey] + (sparkCapBonus[statKey] || 0) : undefined;
-                                // Colour is judged on the trainable portion (excludes flat spark stats)
+                                // Colour is judged on the RAW trainable portion (excludes flat spark
+                                // stats). The displayed value below is the EFFECTIVE total after the
+                                // in-game soft-cap (gains above 1200 halved, clamped at the scenario
+                                // max) so players see the same number the game reports at end-of-run.
                                 const trainable = currentValue;
-                                const displayValue = currentValue + flat;
-                                const displayMax = effMax !== undefined ? effMax + flat : undefined;
                                 const isOverbuilt = effMax !== undefined && trainable > effMax;
                                 const isSoftCapped = effMax !== undefined && !isOverbuilt && trainable > TrainingData.SOFT_STAT_CAP;
+                                const effectiveTrainable = (effMax !== undefined && trainable > TrainingData.SOFT_STAT_CAP)
+                                    ? Math.round(TrainingData.getEffectiveStat(trainable, effMax))
+                                    : trainable;
+                                const displayValue = effectiveTrainable + flat;
+                                const displayMax = effMax !== undefined ? effMax + flat : undefined;
 
                                 return (
                                     <div

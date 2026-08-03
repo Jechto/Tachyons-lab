@@ -235,6 +235,16 @@ export class TrainingData {
                 G2or3: [1.5, 1.5, 1.5, 1.5, 1.5, 30],
                 PreOPorOP: [1, 1, 1, 1, 1, 15],
             },
+            // Per-Concert payouts. Grand Live's 5 forced Concerts consume a
+            // turn each (ForcedRaces) but the race-reward logic above only
+            // covers URA-style races — Concerts grant their own reward table
+            // (~SP-heavy finale-sized payouts). Values are not folded into
+            // raceCareerRewards because Concerts aren't races; matched against
+            // run data (~850 SP over 5 concerts ≈ 170 SP/Concert) and tuned so
+            // Speed/Wit (already over-credited elsewhere) get 0, while
+            // Sta/Pwr/Gut get a modest boost toward run reality.
+            //   [Speed, Stamina, Power, Guts, Wit, SkillPts]
+            concertRewards: [0, 2, 2, 3, 0, 170],
             // Flat one-time stats from the LESSONS economy (Mastery bonuses are one
             // time by definition per the guide, so they live here — NOT in the
             // distributed lump). Conservatively capped by the Performance-Points
@@ -292,6 +302,22 @@ export class TrainingData {
                 "Friendship Bonus": 10,
             },
             baselineTrainingWeight: 0.15,
+            // Lower than the legacy 0.5 default: Grand Live's +12 cardBuff to
+            // Specialty Priority inflates appearance rates, so a deck stacking
+            // 2-3 same-type SSRs tunnel onto one facility to 50%+ — much more
+            // than real play, where players balance caps across facilities.
+            // 0.38 keeps multi-stack specialty decks honest (a 3-SSR Speed
+            // stack caps at ~38% rather than 50%).
+            maxTrainingPercentage: 0.36,
+            // Floor for any non-capped type. Without this, the Speed stack's
+            // excess is redistributed proportionally to weight, so the
+            // 2-Wit-SSR stack absorbs ~all of it (Wit ~43%) while Sta/Pwr/Gut
+            // stay at ~6% each — slightly below real play. A small floor
+            // (0.05 → 5%) nudges unstacked types up to ~7-8% without over-
+            // correcting Wit (a 10% floor would push Wit down to ~29%, well
+            // below the ~40% reality). 5% matches the "balance caps" heuristic
+            // for Grand Live's high-cap facility economy.
+            minTrainingPercentage: 0.05,
             trainingsPerFacilityLevel: 2.5,
             maxFacilityLevel: 4,
         },
@@ -388,6 +414,60 @@ export class TrainingData {
         return (
             this.baseStats[scenarioName as keyof typeof this.baseStats]
                 ?.maxFacilityLevel ?? 4
+        );
+    }
+
+    /**
+     * Per-scenario cap on any single training type's share of total training
+     * turns (DeckEvaluator.getTrainingDistribution). Lower values keep
+     * multi-stack specialty decks from tunnelling onto one facility — real
+     * players balance caps across facilities. Defaults to the legacy 0.5 when
+     * a scenario doesn't define one, so existing behaviour is preserved.
+     */
+    static getMaxTrainingPercentage(
+        scenarioName: string = "URA",
+    ): number {
+        return (
+            (this.baseStats as Record<string, { maxTrainingPercentage?: number }>)[
+                scenarioName
+            ]?.maxTrainingPercentage ?? 0.5
+        );
+    }
+
+    /**
+     * Per-scenario minimum share for any non-capped training type. Without a
+     * floor, excess from a capped type is redistributed proportionally to
+     * current weight, so a deck with two Wit SSRs absorbs nearly all of the
+     * Speed stack's excess while Sta/Pwr/Gut stay at baseline (~6%) — well
+     * below real play, where players spread turns to balance stat caps.
+     * Defaults to 0 (preserves legacy behaviour) when a scenario doesn't
+     * define one.
+     */
+    static getMinTrainingPercentage(
+        scenarioName: string = "URA",
+    ): number {
+        return (
+            (this.baseStats as Record<string, { minTrainingPercentage?: number }>)[
+                scenarioName
+            ]?.minTrainingPercentage ?? 0
+        );
+    }
+
+    /**
+     * Per-Concert reward table for scenarios with forced Concerts (currently
+     * Grand Live only). Returned as [Speed, Stamina, Power, Guts, Wit, SkillPts]
+     * — the reward granted PER Concert; the caller multiplies by the scenario's
+     * forced-Concert count (== ForcedRaces for Grand Live). Defaults to all
+     * zeros when a scenario doesn't define Concerts, so URA/MANT/Unity are
+     * unaffected.
+     */
+    static getConcertRewards(
+        scenarioName: string = "URA",
+    ): number[] {
+        return (
+            (this.baseStats as Record<string, { concertRewards?: number[] }>)[
+                scenarioName
+            ]?.concertRewards ?? [0, 0, 0, 0, 0, 0]
         );
     }
 

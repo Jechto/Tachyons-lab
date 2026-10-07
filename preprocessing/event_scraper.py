@@ -15,6 +15,9 @@ class EventScraper:
                 events.append(card)
                 continue
             card_url_postfix = f"{card['id']} {card['card_chara_name']}".lower().replace('.', '').replace(' ', '-')
+            # GameTora uses a different URL slug for this card
+            if card['id'] == 30067:
+                card_url_postfix = "30067-the-thrones-assemblage"
             full_url = f"https://gametora.com/umamusume/supports/{card_url_postfix}"
             print(f"Fetching: {full_url}")
             if 'all_events' in card:
